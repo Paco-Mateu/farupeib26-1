@@ -13,20 +13,18 @@ import {
   Loader2,
   Orbit,
   Radar,
+  ShieldCheck,
   Sparkles,
   Stethoscope,
   Syringe,
 } from 'lucide-react'
 
+import { useLanguage } from '@/components/i18n/language-provider'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { humanizeToken } from '@/lib/i18n'
 
-type MetricCard = {
-  key: keyof NetworkMetrics
-  label: string
-  icon: typeof Activity
-  suffix?: string
-}
+type MetricCard = { key: keyof NetworkMetrics; label: string; icon: typeof Activity; suffix?: string }
 
 type NetworkMetrics = {
   centers: number
@@ -82,8 +80,8 @@ type WorkspacePayload = {
       datetime: string
       drug?: string
       name?: string
-      value?: number
-      unit?: string
+      value?: string | number
+      unit?: string | null
       doseMg?: number
     }>
     targets: {
@@ -121,6 +119,22 @@ type WorkspacePayload = {
       matchedTerms: string[]
     }>
   }
+  protocolComparison?: {
+    referenceProtocol?: {
+      title?: string
+      version?: string
+    }
+    localProtocol?: {
+      title?: string
+      version?: string
+    }
+    comparisons?: Array<{
+      heading: string
+      referenceText?: string
+      localText?: string
+      differenceType?: string
+    }>
+  }
   similarCases?: Array<{
     _id: string
     drugName: string
@@ -137,15 +151,52 @@ type WorkspacePayload = {
     originHospitalName?: string
     decisionSummary?: string
     rationale?: string
+    expertName?: string
+    expertRole?: string
     matchedSignals?: string[]
     patientSnapshot?: { displayName?: string }
   }>
+  drugEvidence?: {
+    drugProfile?: {
+      name?: string
+      class?: string
+      therapeuticArea?: string
+      monitoringType?: string
+      aliases?: string[]
+      typicalPkpdSignals?: string[]
+      unit?: string
+      targetRange?: { min?: number; max?: number }
+      terminology?: { sourceNote?: string | null }
+    }
+    officialInformation?: {
+      status?: string
+      preferredSources?: Array<{ source?: string; url?: string }>
+      notice?: string
+      sections?: Array<{ heading?: string; text?: string }>
+    }
+    monitoringVocabulary?: {
+      observations?: Array<{ _id?: string; name?: string; category?: string; allowedUnits?: string[] }>
+      units?: Array<{ _id?: string; ucum?: string; display?: string; category?: string }>
+    }
+  }
   knowledgeProducts?: Array<{
     _id: string
     type: string
     status: string
     content?: { headline?: string; supportingText?: string }
   }>
+  expertReviewPacket?: {
+    assignedTeam?: string
+    originHospital?: string
+    referenceHospital?: string
+    clinicalQuestion?: string
+    whyNow?: string
+    keyEvidence?: string[]
+    protocolSectionsToReview?: string[]
+    missingDataChecklist?: string[]
+    fhirBackbone?: string
+    nextReviewStep?: string
+  }
   expertInterventions?: Array<{
     _id: string
     decisionSummary?: string
@@ -189,6 +240,8 @@ type NetworkPayload = {
   hospitals: HospitalNode[]
 }
 
+type CopilotLabelKey = 'copilotSummary' | 'expertReviewSummary' | 'draftInterventionNote'
+
 const orbitPositions = [
   { top: '8%', left: '48%' },
   { top: '18%', left: '74%' },
@@ -202,25 +255,24 @@ const orbitPositions = [
 ]
 
 const priorityTone: Record<string, string> = {
-  high: 'bg-red-500/15 text-red-100 ring-1 ring-red-400/35',
-  medium: 'bg-amber-400/15 text-amber-50 ring-1 ring-amber-300/30',
-  low: 'bg-emerald-400/15 text-emerald-50 ring-1 ring-emerald-300/30',
+  high: 'bg-red-50 text-red-700 ring-1 ring-red-300',
+  medium: 'bg-amber-50 text-amber-700 ring-1 ring-amber-300',
+  low: 'bg-teal-50 text-[#1a6860] ring-1 ring-[#2a9e90]/40',
 }
 
-const metricCards: MetricCard[] = [
-  { key: 'centers', label: 'Centers', icon: Orbit },
-  { key: 'directInterventions', label: 'Direct interventions', icon: HeartPulse },
-  { key: 'activeCases', label: 'Active cases', icon: Activity },
-  { key: 'criticalCases', label: 'Critical cases', icon: AlertTriangle },
-  { key: 'averageResponseHours', label: 'Avg. response', icon: Clock3, suffix: 'h' },
-  { key: 'medicalTeamRequestsShare', label: 'Medical-team requests', icon: Radar, suffix: '%' },
-]
+const protocolDifferenceTone: Record<string, string> = {
+  aligned: 'border-[#2a9e90]/25 bg-teal-50',
+  local_variant: 'border-amber-300/40 bg-amber-50',
+  local_only: 'border-sky-300/40 bg-sky-50',
+  reference_only: 'border-slate-200 bg-slate-50',
+}
 
-function formatDate(value?: string | null) {
-  if (!value) return 'Pending'
+function formatDate(value: string | null | undefined, language: string, pendingLabel: string) {
+  if (!value) return pendingLabel
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString('en-GB', {
+  const locale = language === 'es' ? 'es-ES' : language === 'ca' ? 'ca-ES' : 'en-GB'
+  return date.toLocaleString(locale, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -229,16 +281,34 @@ function formatDate(value?: string | null) {
 }
 
 export function MissionControl() {
+  const { language, copy } = useLanguage()
+  const t = copy.missionControl
   const [network, setNetwork] = useState<NetworkPayload | null>(null)
   const [queue, setQueue] = useState<QueueCase[]>([])
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
   const [workspace, setWorkspace] = useState<WorkspacePayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [copilotText, setCopilotText] = useState<string>('')
-  const [copilotLabel, setCopilotLabel] = useState<string>('Copilot summary')
+  const [copilotLabel, setCopilotLabel] = useState<CopilotLabelKey>('copilotSummary')
   const [copilotWarning, setCopilotWarning] = useState<string | null>(null)
   const [busyAction, setBusyAction] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const metricCards: MetricCard[] = [
+    { key: 'centers', label: t.metrics.centers, icon: Orbit },
+    { key: 'directInterventions', label: t.metrics.directInterventions, icon: HeartPulse },
+    { key: 'activeCases', label: t.metrics.activeCases, icon: Activity },
+    { key: 'criticalCases', label: t.metrics.criticalCases, icon: AlertTriangle },
+    { key: 'averageResponseHours', label: t.metrics.averageResponseHours, icon: Clock3, suffix: 'h' },
+    { key: 'medicalTeamRequestsShare', label: t.metrics.medicalTeamRequestsShare, icon: Radar, suffix: '%' },
+  ]
+
+  const priorityLabel = (value?: string | null) => t.priorities[(value || 'medium') as keyof typeof t.priorities] ?? humanizeToken(value)
+  const statusLabel = (value?: string | null) => t.statuses[(value || 'local_review') as keyof typeof t.statuses] ?? humanizeToken(value)
+  const evidenceStatusLabel =
+    (value?: string | null) =>
+      t.evidenceStatuses[(value || 'download_required') as keyof typeof t.evidenceStatuses] ?? humanizeToken(value)
+  const fallbackDate = t.pendingDate
 
   useEffect(() => {
     let cancelled = false
@@ -275,7 +345,7 @@ export function MissionControl() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Unable to load PK/PD data.')
+          setError(loadError instanceof Error ? loadError.message : t.loadError)
         }
       } finally {
         if (!cancelled) {
@@ -288,7 +358,7 @@ export function MissionControl() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [t.loadError])
 
   async function selectCase(caseId: string) {
     startTransition(() => {
@@ -299,7 +369,7 @@ export function MissionControl() {
     const response = await fetch(`/api/cases/${caseId}`)
     const payload = (await response.json()) as WorkspacePayload
     setWorkspace(payload)
-    setCopilotLabel('Copilot summary')
+    setCopilotLabel('copilotSummary')
     setCopilotText(payload.case?.ai?.caseSummary ?? '')
   }
 
@@ -317,59 +387,61 @@ export function MissionControl() {
         warning?: string | null
       }
       if (action === 'summarize') {
-        setCopilotLabel('Expert-review summary')
+        setCopilotLabel('expertReviewSummary')
         setCopilotText(payload.summary ?? '')
       } else {
-        setCopilotLabel('Draft intervention note')
+        setCopilotLabel('draftInterventionNote')
         setCopilotText(payload.draftIntervention ?? '')
       }
       setCopilotWarning(payload.warning ?? null)
     } catch (actionError) {
-      setCopilotWarning(actionError instanceof Error ? actionError.message : 'Copilot action failed.')
+      setCopilotWarning(actionError instanceof Error ? actionError.message : t.copilotActionFailed)
     } finally {
       setBusyAction(null)
     }
   }
 
   const selectedCase = workspace?.case
+  const officialSections =
+    workspace?.drugEvidence?.officialInformation?.sections?.length
+      ? workspace.drugEvidence.officialInformation.sections
+      : [{ heading: t.sourceManifestNotice, text: t.noOfficialSections }]
 
   return (
-    <div className="min-h-screen bg-[#0d1718] text-slate-100">
+    <div className="min-h-screen bg-[#f0f9f8]">
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-6 lg:px-6">
         <section
           id="command-center"
-          className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(255,126,87,0.24),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.18),_transparent_28%),linear-gradient(135deg,_rgba(8,18,20,0.98),_rgba(17,44,42,0.94))] p-6 shadow-[0_40px_120px_rgba(2,12,13,0.42)]"
+          className="overflow-hidden rounded-[32px] border border-[#2a9e90]/20 bg-[linear-gradient(135deg,_#1a6860,_#0f2d2a)] p-6 shadow-[0_24px_64px_rgba(26,104,96,0.22)]"
         >
           <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className="rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-emerald-100">
+                <Badge className="rounded-full bg-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-white">
                   PK/PD Nexus AI
                 </Badge>
-                <Badge className="rounded-full bg-amber-300/15 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-amber-100">
-                  Bellvitge reference hospital
+                <Badge className="rounded-full bg-[#e8762b]/20 px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-orange-200">
+                  {t.referenceHospitalBadge}
                 </Badge>
               </div>
 
               <div className="max-w-4xl space-y-3">
                 <h1 className="font-serif text-4xl leading-none tracking-tight text-white md:text-6xl">
-                  Collaborative intelligence for hospital PK/PD review.
+                  {t.heroTitle}
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-slate-200/82 md:text-lg">
-                  This is not a chatbot. It is a clinical mission-control layer for Bellvitge’s
-                  collaborative PK/PD network: deterministic triage first, semantic retrieval next,
-                  expert validation always.
+                  {t.heroText}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <Button
-                  className="h-11 rounded-full bg-emerald-400 px-5 text-[13px] font-semibold uppercase tracking-[0.16em] text-[#08211f] hover:bg-emerald-300"
+                  className="h-11 rounded-full bg-[#2a9e90] px-5 text-[13px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-[#3ab5a8]"
                   onClick={() => runCopilot('summarize')}
                   disabled={!selectedCaseId || busyAction !== null}
                 >
                   {busyAction === 'summarize' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  Summarize live case
+                  {t.summarizeLiveCase}
                 </Button>
                 <Button
                   variant="outline"
@@ -378,13 +450,13 @@ export function MissionControl() {
                   disabled={!selectedCaseId || busyAction !== null}
                 >
                   {busyAction === 'draft-intervention' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                  Draft intervention
+                  {t.draftIntervention}
                 </Button>
                 <a
                   href="/app"
                   className="inline-flex h-11 items-center rounded-full border border-white/20 bg-transparent px-5 text-[13px] font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white/10"
                 >
-                  Open mobile flow
+                  {t.openMobileFlow}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </a>
               </div>
@@ -397,7 +469,7 @@ export function MissionControl() {
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <span className="text-xs uppercase tracking-[0.24em] text-slate-300/70">{label}</span>
-                      <Icon className="h-4 w-4 text-emerald-200" />
+                      <Icon className="h-4 w-4 text-white/60" />
                     </div>
                     <div className="text-3xl font-semibold tracking-tight text-white">
                       {network?.metrics?.[key as keyof NetworkMetrics] ?? '—'}
@@ -411,33 +483,26 @@ export function MissionControl() {
             <div className="rounded-[28px] border border-white/10 bg-black/20 p-5">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.28em] text-slate-300/70">Network story</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">Bellvitge-led territorial model</h2>
+                  <p className="text-xs uppercase tracking-[0.28em] text-slate-300/70">{t.networkStory}</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">{t.territorialModel}</h2>
                 </div>
-                <BrainCircuit className="h-8 w-8 text-emerald-200" />
+                <BrainCircuit className="h-8 w-8 text-white/60" />
               </div>
 
               <div className="space-y-4 text-sm leading-6 text-slate-200/85">
-                <p>
-                  Operational since <span className="font-semibold text-white">May 2025</span>, with a
-                  bi-weekly expert-review rhythm and a workflow that turns each validated case into a reusable
-                  network knowledge product.
-                </p>
+                <p>{t.territorialText}</p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(network?.network?.story?.drugHighlights ?? []).map((item) => (
                     <div key={item.drugName} className="rounded-2xl border border-white/10 bg-white/5 p-3">
                       <p className="text-xs uppercase tracking-[0.22em] text-slate-300/70">{item.drugName}</p>
                       <p className="mt-2 text-2xl font-semibold text-white">{item.cases}</p>
-                      <p className="text-xs text-slate-300/70">documented cases</p>
+                      <p className="text-xs text-slate-300/70">{t.documentedCases}</p>
                     </div>
                   ))}
                 </div>
-                <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/8 p-4">
-                  <p className="text-xs uppercase tracking-[0.22em] text-emerald-100/80">Safety positioning</p>
-                  <p className="mt-2 text-sm leading-6 text-emerald-50/90">
-                    AI drafts, retrieves, summarizes, and explains. Clinicians decide. Every recommendation remains
-                    bounded by protocol evidence and expert validation.
-                  </p>
+                <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/70">{t.safetyPositioning}</p>
+                  <p className="mt-2 text-sm leading-6 text-white/85">{t.safetyText}</p>
                 </div>
               </div>
             </div>
@@ -445,7 +510,7 @@ export function MissionControl() {
         </section>
 
         {error ? (
-          <div className="rounded-3xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+          <div className="rounded-3xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         ) : null}
@@ -453,22 +518,22 @@ export function MissionControl() {
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.18fr_0.95fr]">
           <section
             id="queue"
-            className="space-y-6 rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,_rgba(8,18,20,0.98),_rgba(12,28,31,0.96))] p-5"
+            className="space-y-6 rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-300/70">Network command center</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">10-center collaboration map</h2>
+                <p className="text-xs uppercase tracking-[0.28em] text-[#4a7068]">{t.networkCommandCenter}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-[#152520]">{t.collaborationMap}</h2>
               </div>
-              <Orbit className="h-6 w-6 text-emerald-200" />
+              <Orbit className="h-6 w-6 text-[#2a9e90]" />
             </div>
 
-            <div className="relative mx-auto aspect-square w-full max-w-[360px] rounded-full border border-white/10 bg-[radial-gradient(circle,_rgba(16,185,129,0.12),_transparent_52%)]">
-              <div className="absolute inset-[15%] rounded-full border border-dashed border-white/10" />
-              <div className="absolute inset-[28%] rounded-full border border-dashed border-white/10" />
-              <div className="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-emerald-200/40 bg-emerald-200/12 px-3 text-center shadow-[0_0_40px_rgba(16,185,129,0.15)]">
+            <div className="relative mx-auto aspect-square w-full max-w-[360px] rounded-full border border-[#2a9e90]/20 bg-[radial-gradient(circle,_rgba(42,158,144,0.10),_transparent_52%)]">
+              <div className="absolute inset-[15%] rounded-full border border-dashed border-[#2a9e90]/20" />
+              <div className="absolute inset-[28%] rounded-full border border-dashed border-[#2a9e90]/20" />
+              <div className="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-[#2a9e90]/40 bg-[#2a9e90]/10 px-3 text-center shadow-[0_0_40px_rgba(42,158,144,0.15)]">
                 <img src="/brand/logo.png" alt="Bellvitge" className="mb-2 h-7 w-auto" />
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-50">Reference center</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1a6860]">{t.referenceCenter}</span>
               </div>
               {(network?.hospitals ?? [])
                 .filter((hospital) => hospital.role !== 'reference_center')
@@ -479,21 +544,21 @@ export function MissionControl() {
                     className="absolute flex w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
                     style={orbitPositions[index]}
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-xs font-semibold text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2a9e90]/30 bg-[#2a9e90]/10 text-xs font-semibold text-[#1a6860]">
                       {hospital.activeCases}
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/25 px-2 py-1 text-center text-[11px] leading-4 text-slate-200/80">
-                      <div className="font-medium text-white">{hospital.name.replace(' Hospital', '')}</div>
-                      <div>{hospital.criticalCases} critical</div>
+                    <div className="rounded-2xl border border-slate-200 bg-white px-2 py-1 text-center text-[11px] leading-4 shadow-sm">
+                      <div className="font-medium text-[#152520]">{hospital.name.replace(' Hospital', '')}</div>
+                      <div className="text-[#4a7068]">{hospital.criticalCases} {t.critical}</div>
                     </div>
                   </div>
                 ))}
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div className="rounded-3xl border border-slate-200 bg-[#f8faf9] p-4">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">Intelligent case queue</h3>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin text-slate-300" /> : null}
+                <h3 className="text-lg font-semibold text-[#152520]">{t.intelligentQueue}</h3>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin text-[#4a7068]" /> : null}
               </div>
               <div className="space-y-3">
                 {queue.map((item) => {
@@ -504,29 +569,29 @@ export function MissionControl() {
                       onClick={() => selectCase(item._id)}
                       className={`w-full rounded-3xl border p-4 text-left transition ${
                         selected
-                          ? 'border-emerald-300/40 bg-emerald-300/10 shadow-[0_20px_40px_rgba(16,185,129,0.08)]'
-                          : 'border-white/10 bg-black/20 hover:bg-white/5'
+                          ? 'border-[#2a9e90]/40 bg-[#2a9e90]/[0.08] shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-[#2a9e90]/30 hover:bg-[#2a9e90]/[0.04]'
                       }`}
                     >
                       <div className="mb-2 flex items-center justify-between gap-3">
                         <Badge className={`rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] ${priorityTone[item.priority] ?? priorityTone.medium}`}>
-                          {item.priority}
+                          {priorityLabel(item.priority)}
                         </Badge>
-                        <span className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
-                          {item.status.replaceAll('_', ' ')}
+                        <span className="text-[11px] uppercase tracking-[0.18em] text-[#4a7068]">
+                          {statusLabel(item.status)}
                         </span>
                       </div>
-                      <h4 className="text-base font-semibold text-white">
+                      <h4 className="text-base font-semibold text-[#152520]">
                         {item.drugName} · {item.patientSnapshot?.displayName}
                       </h4>
-                      <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[#4a7068]">
                         {item.originHospitalName ?? item.originHospitalId}
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300/78">{item.caseReason}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4a7068]">{item.caseReason}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {(item.riskSignals ?? []).slice(0, 3).map((signal) => (
-                          <Badge key={signal} className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                            {signal.replaceAll('_', ' ')}
+                          <Badge key={signal} className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                            {humanizeToken(signal)}
                           </Badge>
                         ))}
                       </div>
@@ -539,42 +604,42 @@ export function MissionControl() {
 
           <section
             id="workspace"
-            className="space-y-6 rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,_rgba(9,14,18,0.98),_rgba(14,27,34,0.96))] p-5"
+            className="space-y-6 rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm"
           >
             {selectedCase ? (
               <>
-                <div className="rounded-[28px] border border-emerald-200/15 bg-[linear-gradient(135deg,_rgba(16,185,129,0.14),_rgba(255,255,255,0.02))] p-5">
+                <div className="rounded-[28px] border border-[#2a9e90]/20 bg-[linear-gradient(135deg,_rgba(42,158,144,0.08),_rgba(255,255,255,0))] p-5">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-3">
                         <Badge className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${priorityTone[selectedCase.priority] ?? priorityTone.medium}`}>
-                          {selectedCase.priority} priority
+                          {priorityLabel(selectedCase.priority)}
                         </Badge>
-                        <Badge className="rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-100">
-                          {selectedCase.status.replaceAll('_', ' ')}
+                        <Badge className="rounded-full bg-[#2a9e90]/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[#1a6860]">
+                          {statusLabel(selectedCase.status)}
                         </Badge>
                       </div>
                       <div>
-                        <h2 className="font-serif text-4xl leading-none text-white">{selectedCase.drugName}</h2>
-                        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-200/82">
+                        <h2 className="font-serif text-4xl leading-none text-[#152520]">{selectedCase.drugName}</h2>
+                        <p className="mt-3 max-w-2xl text-base leading-7 text-[#4a7068]">
                           {selectedCase.ai?.explanation}
                         </p>
                         <div className="mt-4 flex flex-wrap gap-2">
                           {(selectedCase.riskSignals ?? []).map((signal) => (
-                            <Badge key={signal} className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                              {signal.replaceAll('_', ' ')}
+                            <Badge key={signal} className="rounded-full bg-[#2a9e90]/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                              {humanizeToken(signal)}
                             </Badge>
                           ))}
                         </div>
                       </div>
                     </div>
                     <div className="grid min-w-[240px] gap-3 sm:grid-cols-2">
-                      <InfoTile label="Origin hospital" value={workspace?.originHospital?.name ?? '—'} />
-                      <InfoTile label="Reference center" value={workspace?.referenceHospital?.name ?? '—'} />
-                      <InfoTile label="Therapeutic area" value={selectedCase.therapeuticArea} />
+                      <InfoTile label={t.originHospital} value={workspace?.originHospital?.name ?? '—'} />
+                      <InfoTile label={t.referenceCenter} value={workspace?.referenceHospital?.name ?? '—'} />
+                      <InfoTile label={t.therapeuticArea} value={humanizeToken(selectedCase.therapeuticArea)} />
                       <InfoTile
-                        label="FHIR link"
-                        value={selectedCase.syntheaPatientRef ? 'Connected' : 'Missing'}
+                        label={t.fhirLink}
+                        value={selectedCase.syntheaPatientRef ? t.connected : t.missing}
                       />
                     </div>
                   </div>
@@ -583,26 +648,26 @@ export function MissionControl() {
                 <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
                   <Panel
                     icon={Syringe}
-                    title="Case workspace"
-                    subtitle="Dose, levels, biomarkers, and missing data"
+                    title={t.caseWorkspace}
+                    subtitle={t.caseWorkspaceSubtitle}
                   >
                     <div className="grid gap-3 sm:grid-cols-2">
                       <InfoTile
-                        label="Patient"
+                        label={t.patient}
                         value={`${selectedCase.patientSnapshot?.displayName} · ${selectedCase.patientSnapshot?.age ?? '—'} · ${selectedCase.patientSnapshot?.sex ?? '—'}`}
                       />
                       <InfoTile
-                        label="Target window"
+                        label={t.targetWindow}
                         value={`${selectedCase.targets.levelMin}–${selectedCase.targets.levelMax} ${selectedCase.targets.unit}`}
                       />
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/8 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/80">Deterministic priority factors</p>
+                    <div className="mt-4 rounded-2xl border border-[#2a9e90]/20 bg-teal-50 p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-[#1a6860]">{t.deterministicPriorityFactors}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {(selectedCase.priorityFactors ?? []).map((factor) => (
-                          <Badge key={factor} className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                            {factor.replaceAll('_', ' ')}
+                          <Badge key={factor} className="rounded-full bg-[#2a9e90]/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                            {humanizeToken(factor)}
                           </Badge>
                         ))}
                       </div>
@@ -610,143 +675,258 @@ export function MissionControl() {
 
                     <div className="mt-4 space-y-3">
                       {selectedCase.timeline.map((event, index) => (
-                        <div key={`${event.type}-${index}`} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div key={`${event.type}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                                {event.type.replaceAll('_', ' ')}
+                              <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">
+                                {humanizeToken(event.type)}
                               </p>
-                              <h4 className="mt-1 text-base font-semibold text-white">
-                                {event.name ?? event.drug ?? event.type}
+                              <h4 className="mt-1 text-base font-semibold text-[#152520]">
+                                {event.name ?? event.drug ?? humanizeToken(event.type)}
                               </h4>
                             </div>
                             <div className="text-right">
-                              <p className="text-lg font-semibold text-white">
+                              <p className="text-lg font-semibold text-[#152520]">
                                 {event.doseMg ? `${event.doseMg} mg` : `${event.value} ${event.unit ?? ''}`.trim()}
                               </p>
-                              <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{formatDate(event.datetime)}</p>
+                              <p className="text-xs uppercase tracking-[0.16em] text-[#4a7068]">{formatDate(event.datetime, language, fallbackDate)}</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/8 p-4 text-sm leading-6 text-amber-50/85">
-                      <p className="font-semibold text-amber-50">Missing information to request</p>
+                    <div className="mt-4 rounded-2xl border border-amber-300/40 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
+                      <p className="font-semibold text-amber-900">{t.missingInformation}</p>
                       <p className="mt-2">
-                        {(selectedCase.ai?.missingData ?? []).join(', ') || 'No missing data flagged.'}
+                        {(selectedCase.ai?.missingData ?? []).join(', ') || t.noMissingData}
                       </p>
                     </div>
                   </Panel>
 
                   <Panel
                     icon={Database}
-                    title="FHIR backbone"
-                    subtitle="Real patient context pulled from the existing breast-cancer dataset"
+                    title={t.fhirBackbone}
+                    subtitle={t.fhirBackboneSubtitle}
                   >
                     <div className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <InfoTile label="FHIR patient" value={workspace?.fhirContext?.patient?.name ?? 'Linked synthetic patient'} />
+                        <InfoTile label={t.fhirPatient} value={workspace?.fhirContext?.patient?.name ?? t.linkedSyntheticPatient} />
                         <InfoTile
-                          label="Clinical backbone"
-                          value={(workspace?.fhirContext?.summary?.focus ?? workspace?.patient?.clinicalBackbone ?? 'general_clinical').replaceAll('_', ' ')}
+                          label={t.clinicalBackbone}
+                          value={humanizeToken(workspace?.fhirContext?.summary?.focus ?? workspace?.patient?.clinicalBackbone ?? 'general_clinical')}
                         />
                         <InfoTile
-                          label="Resource types"
+                          label={t.resourceTypes}
                           value={Object.keys(workspace?.fhirContext?.summary?.resourceCounts ?? {}).length.toString()}
                         />
                         <InfoTile
-                          label="Oncology linkage"
-                          value={workspace?.patient?.oncologySignals?.length ? workspace.patient.oncologySignals.join(', ').replaceAll('_', ' ') : 'Shared longitudinal context'}
+                          label={t.oncologyLinkage}
+                          value={
+                            workspace?.patient?.oncologySignals?.length
+                              ? workspace.patient.oncologySignals.map((item) => humanizeToken(item)).join(', ')
+                              : t.sharedLongitudinalContext
+                          }
                         />
                       </div>
 
                       {workspace?.fhirContext?.summary?.oncologyHighlights?.narrative ? (
-                        <div className="rounded-2xl border border-rose-300/20 bg-rose-300/8 p-4 text-sm leading-6 text-rose-50/90">
+                        <div className="rounded-2xl border border-rose-300/40 bg-rose-50 p-4 text-sm leading-6 text-rose-800">
                           {workspace.fhirContext.summary.oncologyHighlights.narrative}
                         </div>
                       ) : null}
 
-                      <TagCloud title="Oncology conditions" items={workspace?.fhirContext?.summary?.oncologyHighlights?.conditions ?? []} />
-                      <TagCloud title="Oncology therapies" items={workspace?.fhirContext?.summary?.oncologyHighlights?.medications ?? []} />
-                      <TagCloud title="Breast procedures" items={workspace?.fhirContext?.summary?.oncologyHighlights?.procedures ?? []} />
-                      <TagCloud title="General conditions" items={workspace?.fhirContext?.summary?.conditions ?? []} />
+                      <TagCloud title={t.oncologyConditions} items={workspace?.fhirContext?.summary?.oncologyHighlights?.conditions ?? []} emptyLabel={t.noItemsHighlighted} />
+                      <TagCloud title={t.oncologyTherapies} items={workspace?.fhirContext?.summary?.oncologyHighlights?.medications ?? []} emptyLabel={t.noItemsHighlighted} />
+                      <TagCloud title={t.breastProcedures} items={workspace?.fhirContext?.summary?.oncologyHighlights?.procedures ?? []} emptyLabel={t.noItemsHighlighted} />
+                      <TagCloud title={t.generalConditions} items={workspace?.fhirContext?.summary?.conditions ?? []} emptyLabel={t.noItemsHighlighted} />
 
                       <div className="space-y-2">
-                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Prioritized labs</p>
+                        <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">{t.prioritizedLabs}</p>
                         {(workspace?.fhirContext?.summary?.labs ?? []).slice(0, 4).map((lab, index) => (
-                          <div key={`${lab.label}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-sm">
-                            <span className="text-slate-200/85">{lab.label}</span>
-                            <span className="font-semibold text-white">
+                          <div key={`${lab.label}-${index}`} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm">
+                            <span className="text-[#4a7068]">{lab.label}</span>
+                            <span className="font-semibold text-[#152520]">
                               {[lab.value, lab.unit].filter(Boolean).join(' ')}
                             </span>
                           </div>
                         ))}
                       </div>
 
-                      <TagCloud title="Recent procedures" items={workspace?.fhirContext?.summary?.procedures ?? []} />
+                      <TagCloud title={t.recentProcedures} items={workspace?.fhirContext?.summary?.procedures ?? []} emptyLabel={t.noItemsHighlighted} />
                     </div>
                   </Panel>
                 </div>
 
-                <Panel icon={Stethoscope} title="Collaboration thread" subtitle="How the network moves from detection to validated decision">
+                <Panel icon={Stethoscope} title={t.collaborationThread} subtitle={t.collaborationThreadSubtitle}>
                   <div className="space-y-3">
                     {(selectedCase.collaboration?.comments ?? []).map((comment, index) => (
-                      <div key={`${comment.author}-${index}`} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div key={`${comment.author}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="font-semibold text-white">{comment.author}</p>
-                          <span className="text-xs uppercase tracking-[0.16em] text-slate-400">{formatDate(comment.timestamp)}</span>
+                          <p className="font-semibold text-[#152520]">{comment.author}</p>
+                          <span className="text-xs uppercase tracking-[0.16em] text-[#4a7068]">{formatDate(comment.timestamp, language, fallbackDate)}</span>
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-200/80">{comment.text}</p>
+                        <p className="mt-2 text-sm leading-6 text-[#4a7068]">{comment.text}</p>
                       </div>
                     ))}
                   </div>
                 </Panel>
               </>
             ) : (
-              <EmptyPanel label="Select a case from the queue to open the workspace." />
+              <EmptyPanel label={t.selectCaseWorkspace} />
             )}
           </section>
 
           <section
             id="copilot"
-            className="space-y-6 rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,_rgba(7,15,18,0.98),_rgba(11,24,29,0.96))] p-5"
+            className="space-y-6 rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <Panel icon={FileText} title="Protocol retrieval" subtitle="Deterministic retrieval first, semantic explanation second">
+            <Panel icon={FileText} title={t.protocolRetrieval} subtitle={t.protocolRetrievalSubtitle}>
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-white">
-                  {workspace?.protocolMatch?.protocol?.title ?? 'Loading protocol context'}
+                <h3 className="text-lg font-semibold text-[#152520]">
+                  {workspace?.protocolMatch?.protocol?.title ?? t.loadingProtocolContext}
                 </h3>
                 {(workspace?.protocolMatch?.topChunks ?? []).map((chunk) => (
-                  <div key={chunk.chunkId} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div key={chunk.chunkId} className="rounded-2xl border border-slate-200 bg-[#f8faf9] p-4">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <Badge className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.18em] text-slate-100">
+                      <Badge className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.18em] text-[#1a6860]">
                         {chunk.section}
                       </Badge>
-                      <span className="text-[11px] uppercase tracking-[0.16em] text-slate-400">{chunk.variant}</span>
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-[#4a7068]">{humanizeToken(chunk.variant)}</span>
                     </div>
-                    <p className="text-sm leading-6 text-slate-200/82">{chunk.chunkText}</p>
+                    <p className="text-sm leading-6 text-[#4a7068]">{chunk.chunkText}</p>
                   </div>
                 ))}
               </div>
             </Panel>
 
-            <Panel icon={Radar} title="Similar historical cases" subtitle="Validated cases retrieved inside the trusted subset">
+            <Panel icon={ShieldCheck} title={t.trustedDrugEvidence} subtitle={t.trustedDrugEvidenceSubtitle}>
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <InfoTile
+                    label={t.drugClass}
+                    value={humanizeToken(workspace?.drugEvidence?.drugProfile?.class) || '—'}
+                  />
+                  <InfoTile
+                    label={t.monitoringType}
+                    value={humanizeToken(workspace?.drugEvidence?.drugProfile?.monitoringType) || '—'}
+                  />
+                </div>
+
+                <TagCloud
+                  title={t.monitoringSignals}
+                  items={(workspace?.drugEvidence?.drugProfile?.typicalPkpdSignals ?? []).map((item) => humanizeToken(item))}
+                  emptyLabel={t.noItemsHighlighted}
+                />
+                <TagCloud
+                  title={t.structuredObservations}
+                  items={(workspace?.drugEvidence?.monitoringVocabulary?.observations ?? []).map((item) => item.name || item._id || '').filter(Boolean)}
+                  emptyLabel={t.noItemsHighlighted}
+                />
+                <TagCloud
+                  title={t.unitVocabulary}
+                  items={(workspace?.drugEvidence?.monitoringVocabulary?.units ?? []).map((item) => item.display || item.ucum || '').filter(Boolean)}
+                  emptyLabel={t.noItemsHighlighted}
+                />
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">{t.officialInformationStatus}</p>
+                    <Badge className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                      {evidenceStatusLabel(workspace?.drugEvidence?.officialInformation?.status)}
+                    </Badge>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-[#4a7068]">
+                    {workspace?.drugEvidence?.officialInformation?.notice ?? t.noOfficialSections}
+                  </p>
+                  {(workspace?.drugEvidence?.drugProfile?.terminology?.sourceNote ?? '').trim() ? (
+                    <p className="mt-3 text-xs leading-6 text-[#4a7068]">
+                      <span className="font-semibold text-[#152520]">{t.terminologyNote}:</span>{' '}
+                      {workspace?.drugEvidence?.drugProfile?.terminology?.sourceNote}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">{t.preferredSources}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(workspace?.drugEvidence?.officialInformation?.preferredSources ?? []).map((item) => (
+                      <a
+                        key={`${item.source}-${item.url}`}
+                        href={item.url || '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex rounded-full border border-[#2a9e90]/30 bg-[#2a9e90]/10 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-[#1a6860] transition hover:bg-[#2a9e90]/20"
+                      >
+                        {item.source}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {officialSections.map((section, index) => (
+                    <div key={`${section.heading}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <p className="font-semibold text-[#152520]">{section.heading}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4a7068]">{section.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Panel>
+
+            <Panel icon={ArrowRight} title={t.protocolComparison} subtitle={t.protocolComparisonSubtitle}>
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <InfoTile
+                    label={t.referenceProtocol}
+                    value={workspace?.protocolComparison?.referenceProtocol?.title ?? t.referenceProtocolPending}
+                  />
+                  <InfoTile
+                    label={t.localProtocol}
+                    value={workspace?.protocolComparison?.localProtocol?.title ?? t.noLocalVariantFound}
+                  />
+                </div>
+                {(workspace?.protocolComparison?.comparisons ?? []).slice(0, 3).map((item) => (
+                  <div
+                    key={item.heading}
+                    className={`rounded-2xl border p-4 ${protocolDifferenceTone[item.differenceType ?? 'aligned'] ?? protocolDifferenceTone.aligned}`}
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="font-semibold text-[#152520]">{item.heading}</p>
+                      <Badge className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                        {humanizeToken(item.differenceType ?? 'aligned')}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2 text-sm leading-6">
+                      <p className="text-[#4a7068]">
+                        <span className="font-semibold text-[#152520]">{t.referenceLabel}:</span> {item.referenceText ?? t.notPresent}
+                      </p>
+                      <p className="text-[#4a7068]">
+                        <span className="font-semibold text-[#152520]">{t.localLabel}:</span> {item.localText ?? t.notPresent}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+
+            <Panel icon={Radar} title={t.similarHistoricalCases} subtitle={t.similarHistoricalCasesSubtitle}>
               <div className="space-y-3">
                 {(workspace?.similarCases ?? []).map((item) => (
-                  <div key={item._id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div key={item._id} className="rounded-2xl border border-slate-200 bg-white p-4">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <p className="font-semibold text-white">{item.drugName}</p>
-                      <span className="text-xs uppercase tracking-[0.16em] text-slate-400">score {item.score}</span>
+                      <p className="font-semibold text-[#152520]">{item.drugName}</p>
+                      <span className="text-xs uppercase tracking-[0.16em] text-[#4a7068]">{t.scoreLabel} {item.score}</span>
                     </div>
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                      {(item.patientSnapshot?.displayName ?? 'Linked patient')} · {item.originHospitalName ?? 'Network precedent'}
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-[#4a7068]">
+                      {(item.patientSnapshot?.displayName ?? t.linkedPatient)} · {item.originHospitalName ?? t.networkPrecedent}
                     </p>
-                    <p className="text-sm leading-6 text-slate-200/80">{item.summary}</p>
+                    <p className="text-sm leading-6 text-[#4a7068]">{item.summary}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(item.matchedSignals ?? []).map((signal) => (
-                        <Badge key={signal} className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                          {signal.replaceAll('_', ' ')}
+                        <Badge key={signal} className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                          {humanizeToken(signal)}
                         </Badge>
                       ))}
                     </div>
@@ -755,83 +935,112 @@ export function MissionControl() {
               </div>
             </Panel>
 
-            <Panel icon={HeartPulse} title="Validated network precedents" subtitle="Bellvitge-reviewed decisions pulled from related historical cases">
+            <Panel icon={HeartPulse} title={t.networkPrecedents} subtitle={t.networkPrecedentsSubtitle}>
               <div className="space-y-3">
                 {(workspace?.validatedPrecedents ?? []).length ? (
                   (workspace?.validatedPrecedents ?? []).map((item) => (
-                    <div key={item._id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div key={item._id} className="rounded-2xl border border-slate-200 bg-white p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="font-semibold text-white">{item.drugName ?? 'Validated precedent'}</p>
-                        <span className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                          {item.originHospitalName ?? 'Bellvitge network'}
+                        <p className="font-semibold text-[#152520]">{item.drugName ?? t.validatedPrecedent}</p>
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-[#4a7068]">
+                          {item.originHospitalName ?? t.bellvitgeNetwork}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm leading-6 text-slate-200/80">{item.decisionSummary}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">{item.rationale}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4a7068]">{item.decisionSummary}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4a7068]">{item.rationale}</p>
+                      {item.expertName ? (
+                        <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-[#4a7068]">
+                          {t.validatedBy} {item.expertName}
+                        </p>
+                      ) : null}
                       <div className="mt-3 flex flex-wrap gap-2">
                         {(item.matchedSignals ?? []).map((signal) => (
-                          <Badge key={signal} className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                            {signal.replaceAll('_', ' ')}
+                          <Badge key={signal} className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                            {humanizeToken(signal)}
                           </Badge>
                         ))}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-300/78">
-                    Validated precedent cards will appear here when the trusted historical subset contains matched expert decisions.
+                  <div className="rounded-2xl border border-slate-200 bg-[#f8faf9] p-4 text-sm leading-6 text-[#4a7068]">
+                    {t.noPrecedents}
                   </div>
                 )}
               </div>
             </Panel>
 
-            <Panel icon={BrainCircuit} title={copilotLabel} subtitle="Grounded copilot output for pharmacist review">
+            <Panel icon={BrainCircuit} title={t[copilotLabel]} subtitle={t.groundedCopilotSubtitle}>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="rounded-full bg-emerald-400 text-[#08211f] hover:bg-emerald-300"
+                    className="rounded-full bg-[#2a9e90] text-white hover:bg-[#3ab5a8]"
                     onClick={() => runCopilot('summarize')}
                     disabled={busyAction !== null || !selectedCaseId}
                   >
-                    Summarize case
+                    {t.summarizeCase}
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-full border-white/15 bg-transparent text-white hover:bg-white/10"
+                    className="rounded-full border-[#2a9e90] text-[#1a6860] hover:bg-[#2a9e90]/10"
                     onClick={() => runCopilot('draft-intervention')}
                     disabled={busyAction !== null || !selectedCaseId}
                   >
-                    Draft note
+                    {t.draftNote}
                   </Button>
                 </div>
-                <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/8 p-4">
-                  <p className="whitespace-pre-wrap text-sm leading-7 text-emerald-50/90">
-                    {copilotText || 'Choose a case to see the grounded copilot response.'}
+                <div className="rounded-3xl border border-[#2a9e90]/20 bg-teal-50 p-4">
+                  <p className="whitespace-pre-wrap text-sm leading-7 text-[#152520]">
+                    {copilotText || t.chooseCaseForCopilot}
                   </p>
                 </div>
                 {copilotWarning ? (
-                  <div className="rounded-2xl border border-amber-300/20 bg-amber-300/8 px-4 py-3 text-sm leading-6 text-amber-50/85">
+                  <div className="rounded-2xl border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
                     {copilotWarning}
                   </div>
                 ) : null}
               </div>
             </Panel>
 
-            <Panel icon={Sparkles} title="Semantic knowledge products" subtitle="Every validated case becomes reusable network knowledge">
+            <Panel icon={Stethoscope} title={t.expertReviewPacket} subtitle={t.expertReviewPacketSubtitle}>
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <InfoTile
+                    label={t.assignedTeam}
+                    value={workspace?.expertReviewPacket?.assignedTeam ? humanizeToken(workspace.expertReviewPacket.assignedTeam) : t.pendingAssignment}
+                  />
+                  <InfoTile
+                    label={t.nextStep}
+                    value={workspace?.expertReviewPacket?.nextReviewStep ?? t.pendingReview}
+                  />
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">{t.whyNow}</p>
+                  <p className="mt-2 text-sm leading-6 text-[#4a7068]">
+                    {workspace?.expertReviewPacket?.whyNow ?? t.clinicalReviewPacketPreparing}
+                  </p>
+                </div>
+                <TagCloud title={t.protocolSectionsToReview} items={workspace?.expertReviewPacket?.protocolSectionsToReview ?? []} emptyLabel={t.noItemsHighlighted} />
+                <LineList title={t.keyEvidence} items={workspace?.expertReviewPacket?.keyEvidence ?? []} emptyLabel={t.noOutstandingItems} />
+                <LineList title={t.missingBeforeMeeting} items={workspace?.expertReviewPacket?.missingDataChecklist ?? []} emptyLabel={t.noOutstandingItems} />
+              </div>
+            </Panel>
+
+            <Panel icon={Sparkles} title={t.semanticKnowledgeProducts} subtitle={t.knowledgeProductsSubtitle}>
               <div className="space-y-3">
                 {(workspace?.knowledgeProducts ?? []).slice(0, 5).map((item) => (
-                  <div key={item._id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div key={item._id} className="rounded-2xl border border-slate-200 bg-white p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-white">{item.type.replaceAll('_', ' ')}</p>
-                      <Badge className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                        {item.status}
+                      <p className="font-semibold text-[#152520]">{humanizeToken(item.type)}</p>
+                      <Badge className="rounded-full bg-[#2a9e90]/10 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+                        {humanizeToken(item.status)}
                       </Badge>
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-slate-200/80">
-                      {item.content?.headline ?? 'Knowledge product generated for expert validation.'}
+                    <p className="mt-2 text-sm leading-6 text-[#4a7068]">
+                      {item.content?.headline ?? t.generatedForValidation}
                     </p>
                     {item.content?.supportingText ? (
-                      <p className="mt-2 text-sm leading-6 text-slate-400">{item.content.supportingText}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4a7068]">{item.content.supportingText}</p>
                     ) : null}
                   </div>
                 ))}
@@ -856,13 +1065,13 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/5 p-4">
+    <div className="rounded-[28px] border border-slate-100 bg-[#f8faf9] p-4">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{subtitle}</p>
-          <h3 className="mt-2 text-xl font-semibold text-white">{title}</h3>
+          <p className="text-xs uppercase tracking-[0.24em] text-[#4a7068]">{subtitle}</p>
+          <h3 className="mt-2 text-xl font-semibold text-[#152520]">{title}</h3>
         </div>
-        <Icon className="mt-1 h-5 w-5 text-emerald-200" />
+        <Icon className="mt-1 h-5 w-5 text-[#2a9e90]" />
       </div>
       {children}
     </div>
@@ -871,31 +1080,58 @@ function Panel({
 
 function InfoTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-2 text-sm font-medium leading-6 text-white">{value}</p>
+    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-[#4a7068]">{label}</p>
+      <p className="mt-2 text-sm font-medium leading-6 text-[#152520]">{value}</p>
     </div>
   )
 }
 
-function TagCloud({ title, items }: { title: string; items: string[] }) {
+function TagCloud({ title, items, emptyLabel }: { title: string; items: string[]; emptyLabel: string }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{title}</p>
-      <div className="flex flex-wrap gap-2">
-        {items.slice(0, 8).map((item) => (
-          <Badge key={item} className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100">
-            {item}
-          </Badge>
-        ))}
-      </div>
+      <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">{title}</p>
+      {items.length ? (
+        <div className="flex flex-wrap gap-2">
+          {items.slice(0, 8).map((item) => (
+            <Badge key={item} className="rounded-full bg-[#2a9e90]/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#1a6860]">
+              {item}
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm leading-6 text-[#4a7068]">
+          {emptyLabel}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LineList({ title, items, emptyLabel }: { title: string; items: string[]; emptyLabel: string }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs uppercase tracking-[0.18em] text-[#4a7068]">{title}</p>
+      {items.length ? (
+        <div className="space-y-2">
+          {items.map((item) => (
+            <div key={item} className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm leading-6 text-[#4a7068]">
+              {item}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm leading-6 text-[#4a7068]">
+          {emptyLabel}
+        </div>
+      )}
     </div>
   )
 }
 
 function EmptyPanel({ label }: { label: string }) {
   return (
-    <div className="flex min-h-[360px] items-center justify-center rounded-[28px] border border-dashed border-white/12 bg-white/5 p-6 text-center text-sm leading-7 text-slate-300/75">
+    <div className="flex min-h-[360px] items-center justify-center rounded-[28px] border border-dashed border-[#2a9e90]/25 bg-[#f8faf9] p-6 text-center text-sm leading-7 text-[#4a7068]">
       {label}
     </div>
   )
