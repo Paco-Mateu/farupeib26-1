@@ -72,6 +72,27 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("DATABASE_NAME", "MONGODB_DATABASE"),
     )
+    synthea_breast_cancer_fhir_mongodb_connection_string: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "SYNTHEA_BREAST_CANCER_FHIR_MONGODB_CONNECTION_STRING",
+            "SYNTHEA_FHIR_MONGODB_CONNECTION_STRING",
+        ),
+    )
+    synthea_breast_cancer_fhir_mongodb_db: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "SYNTHEA_BREAST_CANCER_FHIR_MONGODB_DB",
+            "SYNTHEA_FHIR_MONGODB_DB",
+        ),
+    )
+    synthea_breast_cancer_fhir_resources_collection: str = Field(
+        default="fhir_resources",
+        validation_alias=AliasChoices(
+            "SYNTHEA_BREAST_CANCER_FHIR_RESOURCES_COLLECTION",
+            "SYNTHEA_FHIR_RESOURCES_COLLECTION",
+        ),
+    )
 
     openai_api_key: str | None = Field(
         default=None,
@@ -119,6 +140,13 @@ class Settings(BaseSettings):
     @property
     def has_voyage(self) -> bool:
         return bool(self.voyage_api_key)
+
+    @property
+    def has_synthea_fhir(self) -> bool:
+        return bool(
+            self.synthea_breast_cancer_fhir_mongodb_connection_string
+            and self.synthea_breast_cancer_fhir_mongodb_db
+        )
 
     @property
     def resolved_backend_port(self) -> int:

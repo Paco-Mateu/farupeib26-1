@@ -11,9 +11,12 @@ const merriweather = Merriweather({
   weight: ['400', '700'],
 })
 
-export const metadata = {
-  title: 'Prototype Sprint Kit',
-  description: 'A rapid prototype workspace for Next.js, FastAPI, MongoDB, and OpenAI.',
+export function generateMetadata() {
+  const title = process.env.PROJECT_NAME ?? process.env.APP_NAME ?? 'Prototype Sprint Kit'
+  return {
+    title,
+    description: `${title} — built on Next.js, FastAPI, and MongoDB.`,
+  }
 }
 
 export const viewport: Viewport = {

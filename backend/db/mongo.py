@@ -7,6 +7,7 @@ from pymongo.errors import PyMongoError
 from backend.config import settings
 
 _mongo_client: Optional[MongoClient] = None
+_external_clients: dict[str, MongoClient] = {}
 
 
 class MongoConnectionError(Exception):
@@ -43,6 +44,46 @@ def get_database(name: Optional[str] = None) -> Database:
 def ping_database() -> bool:
     try:
         get_client().admin.command("ping")
+        return True
+    except Exception:
+        return False
+
+
+def get_external_client(uri: str, *, cache_key: str) -> MongoClient:
+    cached = _external_clients.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        candidate = MongoClient(
+            uri,
+            appname=f"{settings.app_name}-{cache_key}",
+            serverSelectionTimeoutMS=8000,
+        )
+        candidate.admin.command("ping")
+        _external_clients[cache_key] = candidate
+        return candidate
+    except PyMongoError as exc:
+        raise MongoConnectionError(f"Backend could not connect to external MongoDB '{cache_key}': {exc}") from exc
+
+
+def get_synthea_fhir_database() -> Database:
+    if not settings.has_synthea_fhir:
+        raise MongoConnectionError(
+            "Synthea FHIR MongoDB is not configured. Set "
+            "SYNTHEA_BREAST_CANCER_FHIR_MONGODB_CONNECTION_STRING and "
+            "SYNTHEA_BREAST_CANCER_FHIR_MONGODB_DB before using PK/PD FHIR features."
+        )
+
+    return get_external_client(
+        settings.synthea_breast_cancer_fhir_mongodb_connection_string or "",
+        cache_key="synthea-fhir",
+    )[settings.synthea_breast_cancer_fhir_mongodb_db or ""]
+
+
+def ping_synthea_fhir_database() -> bool:
+    try:
+        get_synthea_fhir_database().command("ping")
         return True
     except Exception:
         return False

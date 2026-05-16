@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "demo:seed": "bash scripts/seed-pkpd-demo.sh",
     "demo:start": "bash scripts/start-demo.sh",
     "demo:stop": "bash scripts/stop-demo.sh",
     "security:check": "python3 scripts/secret-audit.py",

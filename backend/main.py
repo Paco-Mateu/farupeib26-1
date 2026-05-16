@@ -6,6 +6,7 @@ from backend.db.mongo import MongoConnectionError
 from backend.routes.ai import router as ai_router
 from backend.routes.health import router as health_router
 from backend.routes.kit import router as kit_router
+from backend.routes.pkpd import router as pkpd_router
 
 app = FastAPI(
     title="Prototype Sprint Kit API",
@@ -21,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for router in (health_router, kit_router, ai_router):
+for router in (health_router, kit_router, ai_router, pkpd_router):
     app.include_router(router)
 
 

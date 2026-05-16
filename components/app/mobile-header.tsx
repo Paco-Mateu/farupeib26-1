@@ -6,14 +6,18 @@ import { Badge } from '@/components/ui/badge'
 export function MobileHeader() {
   return (
     <header
-      className="shrink-0 flex items-center justify-between px-4 border-b bg-background/95 backdrop-blur-sm"
+      className="shrink-0 flex items-center px-4 border-b bg-background/95 backdrop-blur-sm"
       style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}
     >
-      <Avatar className="w-8 h-8">
+      <Avatar className="w-8 h-8 shrink-0">
         <AvatarFallback className="text-xs font-semibold">U</AvatarFallback>
       </Avatar>
 
-      <div className="flex items-center gap-1">
+      <div className="flex-1 flex justify-center">
+        <img src="/brand/logo.png" alt="PK/PD Nexus AI" className="h-6 w-auto" />
+      </div>
+
+      <div className="flex items-center gap-1 shrink-0">
         <Button variant="ghost" size="icon" className="w-9 h-9">
           <Search className="w-4 h-4" />
         </Button>

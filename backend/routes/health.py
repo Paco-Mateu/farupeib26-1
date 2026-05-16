@@ -2,12 +2,14 @@ from fastapi import APIRouter, HTTPException
 
 from backend.config import settings
 from backend.db import ping_database
+from backend.db.mongo import get_database, ping_synthea_fhir_database
 from backend.providers import (
     OpenAIConfigurationError,
     OpenAIPlatformClient,
     VoyageConfigurationError,
     VoyagePlatformClient,
 )
+from backend.services.pkpd_seed import PKPD_COLLECTIONS
 from backend.services.runtime_config import (
     get_openai_runtime_status,
     get_parallel_runtime_manifest,
@@ -17,12 +19,35 @@ from backend.services.runtime_config import (
 router = APIRouter(prefix="/api", tags=["health"])
 
 
+def _pkpd_dataset_status() -> dict[str, object]:
+    try:
+        db = get_database()
+        collection_counts = {
+            name: db[collection_name].estimated_document_count()
+            for name, collection_name in PKPD_COLLECTIONS.items()
+        }
+        ready = collection_counts.get("cases", 0) > 0 and collection_counts.get("protocols", 0) > 0
+        return {
+            "configured": settings.has_mongo,
+            "ready": ready,
+            "collections": collection_counts,
+        }
+    except Exception as exc:
+        return {
+            "configured": settings.has_mongo,
+            "ready": False,
+            "collections": {},
+            "error": str(exc),
+        }
+
+
 @router.get("/health")
 async def health():
     mongo_connected = ping_database() if settings.has_mongo else False
     openai = get_openai_runtime_status()
     voyage = get_voyage_runtime_status()
     runtime = get_parallel_runtime_manifest()
+    pkpd_dataset = _pkpd_dataset_status()
 
     return {
         "service": "Prototype Sprint Kit API",
@@ -34,6 +59,12 @@ async def health():
                 "configured": settings.has_mongo,
                 "connected": mongo_connected,
                 "database": settings.resolved_database_name,
+            },
+            "syntheaFhir": {
+                "configured": settings.has_synthea_fhir,
+                "connected": ping_synthea_fhir_database() if settings.has_synthea_fhir else False,
+                "database": settings.synthea_breast_cancer_fhir_mongodb_db,
+                "collection": settings.synthea_breast_cancer_fhir_resources_collection,
             },
             "openai": {
                 "configured": openai["configured"],
@@ -60,6 +91,9 @@ async def health():
                 "liveEndpoint": voyage["liveEndpoint"],
             },
         },
+        "datasets": {
+            "pkpdDemo": pkpd_dataset,
+        },
     }
 
 
@@ -83,3 +117,8 @@ async def voyage_health():
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Voyage runtime validation failed: {exc}") from exc
+
+
+@router.get("/health/pkpd")
+async def pkpd_health():
+    return _pkpd_dataset_status()

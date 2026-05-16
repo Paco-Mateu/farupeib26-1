@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 type Providers = {
   mongo: { configured: boolean; connected?: boolean }
+  syntheaFhir: { configured: boolean; connected?: boolean }
   openai: { configured: boolean; chatReady?: boolean }
   voyage: { configured: boolean; ready?: boolean }
 }
@@ -24,6 +25,11 @@ export function ProviderStatus() {
         label="MongoDB"
         active={Boolean(providers?.mongo.connected)}
         standby={Boolean(providers?.mongo.configured && !providers?.mongo.connected)}
+      />
+      <Dot
+        label="FHIR Backbone"
+        active={Boolean(providers?.syntheaFhir.connected)}
+        standby={Boolean(providers?.syntheaFhir.configured && !providers?.syntheaFhir.connected)}
       />
       <Dot
         label="OpenAI"
