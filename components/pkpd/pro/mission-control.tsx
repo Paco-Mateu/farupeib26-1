@@ -55,6 +55,7 @@ type QueueCase = {
   status: string
   drugName: string
   caseReason: string
+  originHospitalName?: string
   patientSnapshot: {
     displayName: string
     age: number | null
@@ -70,6 +71,7 @@ type WorkspacePayload = {
     protocolId: string
     clinicalQuestion: string
     syntheaPatientRef?: string
+    priorityFactors?: string[]
     ai?: {
       caseSummary?: string
       missingData?: string[]
@@ -96,6 +98,8 @@ type WorkspacePayload = {
   patient?: {
     _id: string
     syntheaPatientRef?: string
+    clinicalBackbone?: string
+    oncologySignals?: string[]
     demographics?: {
       age?: number
       sex?: string
@@ -121,14 +125,26 @@ type WorkspacePayload = {
     _id: string
     drugName: string
     score: number
+    originHospitalName?: string
+    patientSnapshot?: { displayName?: string }
     summary?: string
     matchedSignals?: string[]
+  }>
+  validatedPrecedents?: Array<{
+    _id: string
+    sourceCaseId?: string
+    drugName?: string
+    originHospitalName?: string
+    decisionSummary?: string
+    rationale?: string
+    matchedSignals?: string[]
+    patientSnapshot?: { displayName?: string }
   }>
   knowledgeProducts?: Array<{
     _id: string
     type: string
     status: string
-    content?: { headline?: string }
+    content?: { headline?: string; supportingText?: string }
   }>
   expertInterventions?: Array<{
     _id: string
@@ -142,9 +158,17 @@ type WorkspacePayload = {
       sex?: string
     }
     summary?: {
+      focus?: string
       resourceCounts?: Record<string, number>
       conditions?: string[]
       medications?: string[]
+      procedures?: string[]
+      oncologyHighlights?: {
+        conditions?: string[]
+        medications?: string[]
+        procedures?: string[]
+        narrative?: string | null
+      }
       labs?: Array<{ label?: string; value?: string | number; unit?: string | null; date?: string | null }>
       recentEvents?: Array<{ type?: string; label?: string; date?: string | null }>
     }
@@ -228,7 +252,7 @@ export function MissionControl() {
 
         const [networkResponse, casesResponse] = await Promise.all([
           fetch('/api/network/kpis'),
-          fetch('/api/cases?limit=18&include_historical=true'),
+          fetch('/api/cases?limit=18&include_historical=false'),
         ])
         const networkJson = (await networkResponse.json()) as NetworkPayload
         const casesJson = (await casesResponse.json()) as { items: QueueCase[] }
@@ -495,7 +519,17 @@ export function MissionControl() {
                       <h4 className="text-base font-semibold text-white">
                         {item.drugName} · {item.patientSnapshot?.displayName}
                       </h4>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                        {item.originHospitalName ?? item.originHospitalId}
+                      </p>
                       <p className="mt-2 text-sm leading-6 text-slate-300/78">{item.caseReason}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(item.riskSignals ?? []).slice(0, 3).map((signal) => (
+                          <Badge key={signal} className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                            {signal.replaceAll('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
                     </button>
                   )
                 })}
@@ -525,6 +559,13 @@ export function MissionControl() {
                         <p className="mt-3 max-w-2xl text-base leading-7 text-slate-200/82">
                           {selectedCase.ai?.explanation}
                         </p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {(selectedCase.riskSignals ?? []).map((signal) => (
+                            <Badge key={signal} className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                              {signal.replaceAll('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <div className="grid min-w-[240px] gap-3 sm:grid-cols-2">
@@ -554,6 +595,17 @@ export function MissionControl() {
                         label="Target window"
                         value={`${selectedCase.targets.levelMin}–${selectedCase.targets.levelMax} ${selectedCase.targets.unit}`}
                       />
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/8 p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/80">Deterministic priority factors</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(selectedCase.priorityFactors ?? []).map((factor) => (
+                          <Badge key={factor} className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                            {factor.replaceAll('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="mt-4 space-y-3">
@@ -596,22 +648,32 @@ export function MissionControl() {
                       <div className="grid gap-3 sm:grid-cols-2">
                         <InfoTile label="FHIR patient" value={workspace?.fhirContext?.patient?.name ?? 'Linked synthetic patient'} />
                         <InfoTile
+                          label="Clinical backbone"
+                          value={(workspace?.fhirContext?.summary?.focus ?? workspace?.patient?.clinicalBackbone ?? 'general_clinical').replaceAll('_', ' ')}
+                        />
+                        <InfoTile
                           label="Resource types"
                           value={Object.keys(workspace?.fhirContext?.summary?.resourceCounts ?? {}).length.toString()}
                         />
+                        <InfoTile
+                          label="Oncology linkage"
+                          value={workspace?.patient?.oncologySignals?.length ? workspace.patient.oncologySignals.join(', ').replaceAll('_', ' ') : 'Shared longitudinal context'}
+                        />
                       </div>
 
-                      <TagCloud
-                        title="Conditions"
-                        items={workspace?.fhirContext?.summary?.conditions ?? []}
-                      />
-                      <TagCloud
-                        title="Medications"
-                        items={workspace?.fhirContext?.summary?.medications ?? []}
-                      />
+                      {workspace?.fhirContext?.summary?.oncologyHighlights?.narrative ? (
+                        <div className="rounded-2xl border border-rose-300/20 bg-rose-300/8 p-4 text-sm leading-6 text-rose-50/90">
+                          {workspace.fhirContext.summary.oncologyHighlights.narrative}
+                        </div>
+                      ) : null}
+
+                      <TagCloud title="Oncology conditions" items={workspace?.fhirContext?.summary?.oncologyHighlights?.conditions ?? []} />
+                      <TagCloud title="Oncology therapies" items={workspace?.fhirContext?.summary?.oncologyHighlights?.medications ?? []} />
+                      <TagCloud title="Breast procedures" items={workspace?.fhirContext?.summary?.oncologyHighlights?.procedures ?? []} />
+                      <TagCloud title="General conditions" items={workspace?.fhirContext?.summary?.conditions ?? []} />
 
                       <div className="space-y-2">
-                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Recent labs</p>
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Prioritized labs</p>
                         {(workspace?.fhirContext?.summary?.labs ?? []).slice(0, 4).map((lab, index) => (
                           <div key={`${lab.label}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-sm">
                             <span className="text-slate-200/85">{lab.label}</span>
@@ -621,6 +683,8 @@ export function MissionControl() {
                           </div>
                         ))}
                       </div>
+
+                      <TagCloud title="Recent procedures" items={workspace?.fhirContext?.summary?.procedures ?? []} />
                     </div>
                   </Panel>
                 </div>
@@ -675,6 +739,9 @@ export function MissionControl() {
                       <p className="font-semibold text-white">{item.drugName}</p>
                       <span className="text-xs uppercase tracking-[0.16em] text-slate-400">score {item.score}</span>
                     </div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                      {(item.patientSnapshot?.displayName ?? 'Linked patient')} · {item.originHospitalName ?? 'Network precedent'}
+                    </p>
                     <p className="text-sm leading-6 text-slate-200/80">{item.summary}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(item.matchedSignals ?? []).map((signal) => (
@@ -685,6 +752,36 @@ export function MissionControl() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </Panel>
+
+            <Panel icon={HeartPulse} title="Validated network precedents" subtitle="Bellvitge-reviewed decisions pulled from related historical cases">
+              <div className="space-y-3">
+                {(workspace?.validatedPrecedents ?? []).length ? (
+                  (workspace?.validatedPrecedents ?? []).map((item) => (
+                    <div key={item._id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-semibold text-white">{item.drugName ?? 'Validated precedent'}</p>
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                          {item.originHospitalName ?? 'Bellvitge network'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-slate-200/80">{item.decisionSummary}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-400">{item.rationale}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(item.matchedSignals ?? []).map((signal) => (
+                          <Badge key={signal} className="rounded-full bg-white/10 text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                            {signal.replaceAll('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-300/78">
+                    Validated precedent cards will appear here when the trusted historical subset contains matched expert decisions.
+                  </div>
+                )}
               </div>
             </Panel>
 
@@ -733,6 +830,9 @@ export function MissionControl() {
                     <p className="mt-2 text-sm leading-6 text-slate-200/80">
                       {item.content?.headline ?? 'Knowledge product generated for expert validation.'}
                     </p>
+                    {item.content?.supportingText ? (
+                      <p className="mt-2 text-sm leading-6 text-slate-400">{item.content.supportingText}</p>
+                    ) : null}
                   </div>
                 ))}
               </div>

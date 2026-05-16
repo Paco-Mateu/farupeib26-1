@@ -14,7 +14,7 @@ from backend.services.pkpd_fhir import fetch_fhir_patient_refs
 
 PKPD_NETWORK_ID = "CAT-PKPD-NET"
 PKPD_REFERENCE_HOSPITAL_ID = "HOSP-REF-01"
-PKPD_DATASET_VERSION = "pkpd-nexus-ai-demo-v1"
+PKPD_DATASET_VERSION = "pkpd-nexus-ai-demo-v2"
 PKPD_DEMO_ANCHOR = datetime(2026, 5, 16, 12, 0, tzinfo=UTC)
 
 PKPD_COLLECTIONS = {
@@ -169,6 +169,16 @@ CASE_DISTRIBUTION = {
     "Voriconazole": 5,
     "Levetiracetam": 5,
 }
+
+CASE_SEQUENCE = (
+    "Infliximab",
+    "Vancomycin",
+    "Ustekinumab",
+    "Adalimumab",
+    "Tacrolimus",
+    "Voriconazole",
+    "Levetiracetam",
+)
 
 PROTOCOL_LIBRARY = [
     {
@@ -463,20 +473,27 @@ def _build_patients(fhir_patients: list[dict[str, Any]]) -> list[dict[str, Any]]
     hospitals = [entry["_id"] for entry in SATELLITE_HOSPITALS]
     patients: list[dict[str, Any]] = []
     for index, row in enumerate(fhir_patients):
+        clinical_backbone = row.get("clinicalBackbone") or "general_clinical"
         patients.append(
             {
                 "_id": _pseudo_id(index),
-                "source": "synthea_breast_cancer_fhir_demo",
+                "source": "synthea_breast_cancer_fhir_demo" if clinical_backbone == "breast_oncology" else "synthea_longitudinal_fhir_demo",
                 "syntheaPatientRef": row["patientRef"],
                 "demographics": {
                     "age": row.get("age"),
                     "sex": row.get("sex"),
                     "displayName": row.get("name"),
                 },
+                "clinicalBackbone": clinical_backbone,
+                "oncologySignals": row.get("oncologySignals") or [],
                 "conditions": [
                     {
-                        "code": "breast_cancer_history",
-                        "display": "Breast cancer longitudinal history",
+                        "code": "breast_oncology_history" if clinical_backbone == "breast_oncology" else "longitudinal_hospital_history",
+                        "display": (
+                            "Breast oncology longitudinal history"
+                            if clinical_backbone == "breast_oncology"
+                            else "Longitudinal hospital history from the shared FHIR dataset"
+                        ),
                         "status": "history",
                     }
                 ],
@@ -622,31 +639,39 @@ def _build_cases(patients: list[dict[str, Any]], hospitals: list[dict[str, Any]]
     rng = Random(26)
     satellite_pool = [entry for entry in hospitals if entry["_id"] != PKPD_REFERENCE_HOSPITAL_ID]
     protocols_by_drug = {entry["drugName"]: entry["_id"] for entry in _build_protocol_documents()}
+    remaining = dict(CASE_DISTRIBUTION)
+    case_order: list[str] = []
+    while any(total > 0 for total in remaining.values()):
+        for drug_name in CASE_SEQUENCE:
+            if remaining.get(drug_name, 0) <= 0:
+                continue
+            case_order.append(drug_name)
+            remaining[drug_name] -= 1
 
     cases: list[dict[str, Any]] = []
     patient_index = 0
-    for drug_name, total in CASE_DISTRIBUTION.items():
+    for drug_name in case_order:
         blueprint = DRUG_BLUEPRINTS[drug_name]
-        for _ in range(total):
-            patient = patients[patient_index % len(patients)]
-            origin_hospital = satellite_pool[(patient_index + len(cases)) % len(satellite_pool)]
-            cases.append(
-                _build_case(
-                    case_index=len(cases),
-                    patient=patient,
-                    origin_hospital=origin_hospital,
-                    blueprint=blueprint,
-                    protocol_id=protocols_by_drug[drug_name],
-                    rng=rng,
-                )
+        patient = patients[patient_index % len(patients)]
+        origin_hospital = satellite_pool[(patient_index + len(cases)) % len(satellite_pool)]
+        cases.append(
+            _build_case(
+                case_index=len(cases),
+                patient=patient,
+                origin_hospital=origin_hospital,
+                blueprint=blueprint,
+                protocol_id=protocols_by_drug[drug_name],
+                rng=rng,
             )
-            patient_index += 1
+        )
+        patient_index += 1
     return cases
 
 
 def _build_expert_interventions(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     interventions: list[dict[str, Any]] = []
     for index, case in enumerate(cases[18:48]):
+        signals = ", ".join(signal.replace("_", " ") for signal in (case.get("riskSignals") or [])[:3])
         interventions.append(
             {
                 "_id": f"INT-{991 + index:06d}",
@@ -656,17 +681,52 @@ def _build_expert_interventions(cases: list[dict[str, Any]]) -> list[dict[str, A
                 "decisionType": "treatment_optimization_recommendation",
                 "decisionSummary": (
                     f"Validated {case['drugName'].lower()} review with protocol-aligned follow-up "
-                    f"for {case['originHospitalId']}."
+                    f"for {case['originHospitalId']} after reviewing {signals}."
                 ),
                 "rationale": (
                     f"Decision grounded in the reference {case['drugName']} protocol, deterministic signal review, "
-                    f"and previously validated cases with overlapping risk signals."
+                    f"and previously validated cases with overlapping risk signals from the Bellvitge network."
                 ),
                 "status": "validated",
                 "createdAt": case["updatedAt"],
             }
         )
     return interventions
+
+
+def _knowledge_product_content(case: dict[str, Any], product_type: str) -> dict[str, Any]:
+    priority = str(case.get("priority") or "medium").lower()
+    signals = [signal.replace("_", " ") for signal in case.get("riskSignals") or []]
+    signal_text = ", ".join(signals[:3]) if signals else "no major signal pattern detected"
+    next_step = "expert_review_required" if priority == "high" else "local_follow_up"
+    protocol_slug = str(case.get("protocolId") or "").replace("PROT-", "").replace("-REF-2026", "").replace("-", " ")
+
+    if product_type == "case_summary_card":
+        headline = case["ai"]["caseSummary"]
+        supporting = f"{case['patientSnapshot']['displayName']} originated from {case['originHospitalId']} and is routed into the collaborative review workflow."
+    elif product_type == "pkpd_risk_profile":
+        headline = f"{case['priority'].title()} priority because {signal_text}."
+        supporting = "Priority is computed deterministically before any LLM draft is generated."
+    elif product_type == "protocol_match_card":
+        headline = f"Reference {protocol_slug.title()} protocol matched for trusted escalation criteria."
+        supporting = "Protocol evidence is filtered to approved network content and then ranked inside that subset."
+    elif product_type == "similar_case_bundle":
+        headline = f"Validated precedents are available for the {case['drugName'].lower()} signal pattern."
+        supporting = "Similar-case retrieval stays inside historical Bellvitge-network decisions rather than generic external examples."
+    elif product_type == "intervention_note_draft":
+        headline = f"Draft intervention note prepared for {case['drugName'].lower()} with expert validation pending."
+        supporting = "This artifact is documentation support only and is not a prescribing action."
+    else:
+        headline = case["ai"]["caseSummary"]
+        supporting = "Reusable knowledge artifact prepared for the network learning layer."
+
+    return {
+        "headline": headline,
+        "supportingText": supporting,
+        "clinicalQuestion": case["clinicalQuestion"],
+        "keySignals": case["riskSignals"],
+        "recommendedNextStep": next_step,
+    }
 
 
 def _build_knowledge_products(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -678,8 +738,9 @@ def _build_knowledge_products(cases: list[dict[str, Any]]) -> list[dict[str, Any
         "similar_case_bundle",
         "intervention_note_draft",
     ]
-    for case in cases[:10]:
+    for case in cases[:16]:
         for offset, product_type in enumerate(product_types, start=1):
+            content = _knowledge_product_content(case, product_type)
             documents.append(
                 {
                     "_id": f"KP-{case['_id']}-{product_type.upper()}",
@@ -690,13 +751,7 @@ def _build_knowledge_products(cases: list[dict[str, Any]]) -> list[dict[str, Any
                     "status": "draft" if product_type == "intervention_note_draft" else "generated",
                     "generatedBy": "llm",
                     "validatedBy": None,
-                    "content": {
-                        "headline": case["ai"]["caseSummary"],
-                        "clinicalQuestion": case["clinicalQuestion"],
-                        "keySignals": case["riskSignals"],
-                        "recommendedNextStep": "expert_review_required" if case["priority"] == "high" else "local_follow_up",
-                        "artifactIndex": offset,
-                    },
+                    "content": {**content, "artifactIndex": offset},
                     "createdAt": case["updatedAt"],
                 }
             )
@@ -760,7 +815,11 @@ def seed_pkpd_demo_dataset() -> dict[str, Any]:
 def ensure_pkpd_demo_dataset() -> dict[str, Any]:
     db = get_database()
     cases_collection = db[PKPD_COLLECTIONS["cases"]]
-    if cases_collection.estimated_document_count() > 0:
+    had_existing_data = cases_collection.estimated_document_count() > 0
+    network_doc = db[PKPD_COLLECTIONS["networks"]].find_one({"_id": PKPD_NETWORK_ID}, {"datasetVersion": 1})
+    current_version = (network_doc or {}).get("datasetVersion")
+
+    if had_existing_data and current_version == PKPD_DATASET_VERSION:
         return {
             "seeded": False,
             "datasetVersion": PKPD_DATASET_VERSION,
@@ -772,7 +831,11 @@ def ensure_pkpd_demo_dataset() -> dict[str, Any]:
         }
 
     stats = seed_pkpd_demo_dataset()
-    return {"seeded": True, **stats}
+    return {
+        "seeded": True,
+        "reseeded": had_existing_data and current_version != PKPD_DATASET_VERSION,
+        **stats,
+    }
 
 
 def summarize_case_mix(cases: list[dict[str, Any]]) -> dict[str, Any]:

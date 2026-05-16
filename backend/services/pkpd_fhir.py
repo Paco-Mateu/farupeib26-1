@@ -8,6 +8,50 @@ from backend.config import settings
 from backend.db.mongo import get_synthea_fhir_database
 
 
+BREAST_ONCOLOGY_CONDITION_TERMS = (
+    "malignant neoplasm of breast",
+    "breast",
+)
+BREAST_ONCOLOGY_PROCEDURE_TERMS = (
+    "breast",
+    "mammography",
+    "lumpectomy",
+    "mastectomy",
+    "her2",
+    "teleradiotherapy",
+)
+BREAST_ONCOLOGY_MEDICATION_TERMS = (
+    "exemestane",
+    "ribociclib",
+    "tamoxifen",
+    "anastrozole",
+    "letrozole",
+    "trastuzumab",
+    "docetaxel",
+    "cyclophosphamide",
+)
+CLINICALLY_RELEVANT_LAB_TERMS = (
+    "creatinine",
+    "leukocyte",
+    "hemoglobin",
+    "hematocrit",
+    "platelet",
+    "neutrophil",
+    "glucose",
+    "potassium",
+    "sodium",
+    "alt",
+    "ast",
+)
+LOW_SIGNAL_LAB_TERMS = (
+    "body height",
+    "body weight",
+    "body mass index",
+    "pain severity",
+    "tobacco smoking status",
+)
+
+
 def _normalize_patient_ref(value: str | None) -> str:
     token = str(value or "").strip()
     if not token:
@@ -119,20 +163,123 @@ def _extract_age(birth_date: str | None) -> int | None:
     return today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
 
 
+def _contains_any(value: str | None, terms: tuple[str, ...]) -> bool:
+    haystack = str(value or "").strip().lower()
+    if not haystack:
+        return False
+    return any(term in haystack for term in terms)
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        token = str(value or "").strip()
+        if not token or token in seen:
+            continue
+        seen.add(token)
+        ordered.append(token)
+    return ordered
+
+
+def _regex_for_terms(terms: tuple[str, ...]) -> dict[str, Any]:
+    return {"$regex": "|".join(terms), "$options": "i"}
+
+
+def _focus_narrative(
+    conditions: list[str],
+    medications: list[str],
+    procedures: list[str],
+) -> str | None:
+    highlights = _dedupe(conditions[:2] + medications[:2] + procedures[:2])[:4]
+    if not highlights:
+        return None
+    return "Breast-oncology backbone detected through " + ", ".join(highlights) + "."
+
+
+def _lab_priority(label: str | None) -> int:
+    token = str(label or "").strip().lower()
+    if not token:
+        return 0
+    if _contains_any(token, LOW_SIGNAL_LAB_TERMS):
+        return 0
+    if _contains_any(token, CLINICALLY_RELEVANT_LAB_TERMS):
+        return 2
+    return 1
+
+
 def fetch_fhir_patient_refs(limit: int = 40) -> list[dict[str, Any]]:
     collection = get_synthea_fhir_database()[settings.synthea_breast_cancer_fhir_resources_collection]
     cursor = collection.find(
         {"resource.resourceType": "Patient", "resource.id": {"$exists": True}},
         {"resource.id": 1, "resource.name": 1, "resource.birthDate": 1, "resource.gender": 1},
-    ).sort("resource.id", 1).limit(max(1, min(limit, 200)))
+    ).sort("resource.id", 1)
 
-    patients: list[dict[str, Any]] = []
-    for row in cursor:
+    all_patients = list(cursor)
+    patient_by_ref: dict[str, dict[str, Any]] = {}
+    ordered_refs: list[str] = []
+    for row in all_patients:
         resource = row.get("resource") or {}
         patient_ref = _normalize_patient_ref(resource.get("id"))
         if not patient_ref:
             continue
+        patient_by_ref[patient_ref] = resource
+        ordered_refs.append(patient_ref)
+
+    breast_condition_refs = set(
+        collection.distinct(
+            "resource.subject.reference",
+            {
+                "resource.resourceType": "Condition",
+                "resource.code.text": _regex_for_terms(BREAST_ONCOLOGY_CONDITION_TERMS),
+            },
+        )
+    )
+    oncology_medication_refs = set(
+        collection.distinct(
+            "resource.subject.reference",
+            {
+                "resource.resourceType": "MedicationRequest",
+                "resource.medicationCodeableConcept.text": _regex_for_terms(BREAST_ONCOLOGY_MEDICATION_TERMS),
+            },
+        )
+    )
+    oncology_procedure_refs = set(
+        collection.distinct(
+            "resource.subject.reference",
+            {
+                "resource.resourceType": "Procedure",
+                "resource.code.text": _regex_for_terms(BREAST_ONCOLOGY_PROCEDURE_TERMS),
+            },
+        )
+    )
+
+    preferred_refs = sorted(
+        breast_condition_refs | oncology_medication_refs | oncology_procedure_refs,
+        key=lambda ref: (
+            -(
+                (4 if ref in breast_condition_refs else 0)
+                + (2 if ref in oncology_medication_refs else 0)
+                + (1 if ref in oncology_procedure_refs else 0)
+            ),
+            ref,
+        ),
+    )
+    selected_refs = preferred_refs + [ref for ref in ordered_refs if ref not in set(preferred_refs)]
+
+    patients: list[dict[str, Any]] = []
+    for patient_ref in selected_refs[: max(1, min(limit, 200))]:
+        resource = patient_by_ref.get(patient_ref) or {}
+        if not resource:
+            continue
         birth_date = str(resource.get("birthDate") or "").strip() or None
+        oncology_signals = []
+        if patient_ref in breast_condition_refs:
+            oncology_signals.append("breast_cancer_condition")
+        if patient_ref in oncology_medication_refs:
+            oncology_signals.append("oncology_medication")
+        if patient_ref in oncology_procedure_refs:
+            oncology_signals.append("breast_imaging_or_procedure")
         patients.append(
             {
                 "patientRef": patient_ref,
@@ -140,6 +287,8 @@ def fetch_fhir_patient_refs(limit: int = 40) -> list[dict[str, Any]]:
                 "birthDate": birth_date,
                 "age": _extract_age(birth_date),
                 "sex": str(resource.get("gender") or "").strip().lower() or "unknown",
+                "clinicalBackbone": "breast_oncology" if oncology_signals else "general_clinical",
+                "oncologySignals": oncology_signals,
             }
         )
     return patients
@@ -151,7 +300,16 @@ def build_fhir_patient_context(patient_ref: str, *, limit: int = 220) -> dict[st
         return {
             "patientRef": None,
             "patient": None,
-            "summary": {"resourceCounts": {}, "recentEvents": [], "conditions": [], "medications": [], "labs": []},
+            "summary": {
+                "focus": "unlinked",
+                "resourceCounts": {},
+                "recentEvents": [],
+                "conditions": [],
+                "medications": [],
+                "procedures": [],
+                "labs": [],
+                "oncologyHighlights": {"conditions": [], "medications": [], "procedures": [], "narrative": None},
+            },
         }
 
     collection = get_synthea_fhir_database()[settings.synthea_breast_cancer_fhir_resources_collection]
@@ -194,8 +352,12 @@ def build_fhir_patient_context(patient_ref: str, *, limit: int = 220) -> dict[st
     resource_counts: Counter[str] = Counter()
     conditions: list[str] = []
     medications: list[str] = []
+    procedures: list[str] = []
     labs: list[dict[str, Any]] = []
     recent_events: list[dict[str, Any]] = []
+    oncology_conditions: list[str] = []
+    oncology_medications: list[str] = []
+    oncology_procedures: list[str] = []
 
     for row in resources:
         resource = row.get("resource") or {}
@@ -206,8 +368,16 @@ def build_fhir_patient_context(patient_ref: str, *, limit: int = 220) -> dict[st
 
         if resource_type == "Condition" and label not in conditions:
             conditions.append(label)
+            if _contains_any(label, BREAST_ONCOLOGY_CONDITION_TERMS):
+                oncology_conditions.append(label)
         if resource_type == "MedicationRequest" and label not in medications:
             medications.append(label)
+            if _contains_any(label, BREAST_ONCOLOGY_MEDICATION_TERMS):
+                oncology_medications.append(label)
+        if resource_type == "Procedure" and label not in procedures:
+            procedures.append(label)
+            if _contains_any(label, BREAST_ONCOLOGY_PROCEDURE_TERMS):
+                oncology_procedures.append(label)
         if resource_type == "Observation":
             quantity = resource.get("valueQuantity") or {}
             lab_value = quantity.get("value")
@@ -234,9 +404,13 @@ def build_fhir_patient_context(patient_ref: str, *, limit: int = 220) -> dict[st
         )
 
     recent_events.sort(key=lambda item: item.get("date") or "", reverse=True)
-    labs.sort(key=lambda item: item.get("date") or "", reverse=True)
+    labs.sort(key=lambda item: (_lab_priority(item.get("label")), item.get("date") or ""), reverse=True)
 
     birth_date = str(patient_resource.get("birthDate") or "").strip() or None
+    oncology_conditions = _dedupe(oncology_conditions)
+    oncology_medications = _dedupe(oncology_medications)
+    oncology_procedures = _dedupe(oncology_procedures)
+    focus = "breast_oncology" if (oncology_conditions or oncology_medications or oncology_procedures) else "general_clinical"
 
     return {
         "patientRef": normalized_ref,
@@ -247,10 +421,18 @@ def build_fhir_patient_context(patient_ref: str, *, limit: int = 220) -> dict[st
             "age": _extract_age(birth_date),
         },
         "summary": {
+            "focus": focus,
             "resourceCounts": dict(resource_counts),
             "conditions": conditions[:10],
             "medications": medications[:10],
+            "procedures": procedures[:10],
             "labs": labs[:10],
             "recentEvents": recent_events[:18],
+            "oncologyHighlights": {
+                "conditions": oncology_conditions[:6],
+                "medications": oncology_medications[:6],
+                "procedures": oncology_procedures[:6],
+                "narrative": _focus_narrative(oncology_conditions, oncology_medications, oncology_procedures),
+            },
         },
     }

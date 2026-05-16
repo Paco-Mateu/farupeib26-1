@@ -25,6 +25,13 @@ def _collection(key: str):
     return get_database()[PKPD_COLLECTIONS[key]]
 
 
+def _hospital_name_map() -> dict[str, str]:
+    return {
+        row["_id"]: row.get("name") or row["_id"]
+        for row in _collection("hospitals").find({"networkId": PKPD_NETWORK_ID}, {"_id": 1, "name": 1})
+    }
+
+
 def _priority_rank(value: str | None) -> int:
     mapping = {"high": 0, "medium": 1, "low": 2}
     return mapping.get(str(value or "").strip().lower(), 9)
@@ -79,7 +86,13 @@ def list_cases(*, limit: int = 18, include_historical: bool = True) -> list[dict
             row.get("sortOrder") or 0,
         )
     )
-    return rows[: max(1, min(limit, 100))]
+    hospital_names = _hospital_name_map()
+    decorated: list[dict[str, Any]] = []
+    for row in rows[: max(1, min(limit, 100))]:
+        item = dict(row)
+        item["originHospitalName"] = hospital_names.get(item.get("originHospitalId"), item.get("originHospitalId"))
+        decorated.append(item)
+    return decorated
 
 
 def get_case(case_id: str) -> dict[str, Any] | None:
@@ -149,6 +162,7 @@ def get_similar_cases(case: dict[str, Any], *, limit: int = 5) -> list[dict[str,
     case_signals = set(case.get("riskSignals") or [])
     case_terms = _tokens(case.get("caseReason"), case.get("impactStory"), " ".join(case_signals))
     scored: list[dict[str, Any]] = []
+    hospital_names = _hospital_name_map()
 
     for row in candidates:
         score = 0
@@ -171,6 +185,7 @@ def get_similar_cases(case: dict[str, Any], *, limit: int = 5) -> list[dict[str,
                 "priority": row.get("priority"),
                 "status": row.get("status"),
                 "originHospitalId": row.get("originHospitalId"),
+                "originHospitalName": hospital_names.get(row.get("originHospitalId"), row.get("originHospitalId")),
                 "patientSnapshot": row.get("patientSnapshot"),
                 "summary": (row.get("ai") or {}).get("caseSummary"),
                 "riskSignals": row.get("riskSignals") or [],
@@ -180,6 +195,48 @@ def get_similar_cases(case: dict[str, Any], *, limit: int = 5) -> list[dict[str,
         )
     scored.sort(key=lambda item: (-item["score"], item["_id"]))
     return scored[: max(1, min(limit, 12))]
+
+
+def get_validated_precedents(case: dict[str, Any], similar_cases: list[dict[str, Any]], *, limit: int = 4) -> list[dict[str, Any]]:
+    precedent_case_ids = [row.get("_id") for row in similar_cases if row.get("_id")]
+    if not precedent_case_ids:
+        return []
+
+    interventions = list(
+        _collection("expert_interventions")
+        .find({"caseId": {"$in": precedent_case_ids}, "status": "validated"})
+        .sort("createdAt", -1)
+        .limit(max(1, min(limit * 2, 12)))
+    )
+    if not interventions:
+        return []
+
+    source_cases = {
+        row["_id"]: row
+        for row in _collection("cases").find(
+            {"_id": {"$in": [item["caseId"] for item in interventions]}},
+            {"_id": 1, "drugName": 1, "originHospitalId": 1, "riskSignals": 1, "patientSnapshot": 1},
+        )
+    }
+    hospital_names = _hospital_name_map()
+    precedents: list[dict[str, Any]] = []
+    for row in interventions:
+        source_case = source_cases.get(row.get("caseId")) or {}
+        precedents.append(
+            {
+                "_id": row["_id"],
+                "sourceCaseId": row.get("caseId"),
+                "drugName": source_case.get("drugName"),
+                "originHospitalId": source_case.get("originHospitalId"),
+                "originHospitalName": hospital_names.get(source_case.get("originHospitalId"), source_case.get("originHospitalId")),
+                "decisionSummary": row.get("decisionSummary"),
+                "rationale": row.get("rationale"),
+                "matchedSignals": sorted(set(case.get("riskSignals") or []) & set(source_case.get("riskSignals") or [])),
+                "patientSnapshot": source_case.get("patientSnapshot"),
+                "createdAt": row.get("createdAt"),
+            }
+        )
+    return precedents[: max(1, min(limit, 8))]
 
 
 def get_network_kpis() -> dict[str, Any]:
@@ -255,6 +312,7 @@ def get_case_workspace(case_id: str) -> dict[str, Any] | None:
     expert_interventions = list(
         _collection("expert_interventions").find({"caseId": case_id}).sort("createdAt", -1).limit(4)
     )
+    validated_precedents = get_validated_precedents(case, similar_cases)
     knowledge_products = list(
         _collection("knowledge_products").find({"caseId": case_id}).sort("type", 1).limit(12)
     )
@@ -268,6 +326,7 @@ def get_case_workspace(case_id: str) -> dict[str, Any] | None:
         "protocolMatch": protocol_match,
         "similarCases": similar_cases,
         "expertInterventions": expert_interventions,
+        "validatedPrecedents": validated_precedents,
         "knowledgeProducts": knowledge_products,
         "fhirContext": fhir_context,
     }
