@@ -27,7 +27,10 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("PROJECT_SLOT", "APP_SLOT", "PROTOTYPE_SLOT"),
     )
     app_name: str = Field(default="proto1", validation_alias=AliasChoices("APP_NAME"))
-    app_env: str = Field(default="development", validation_alias=AliasChoices("APP_ENV", "NODE_ENV"))
+    app_env: str = Field(
+        default="development",
+        validation_alias=AliasChoices("VERCEL_ENV", "APP_ENV", "NODE_ENV"),
+    )
     project_name: str | None = Field(
         default=None,
         validation_alias=AliasChoices("PROJECT_NAME", "NEXT_PUBLIC_PROJECT_NAME"),
