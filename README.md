@@ -1,86 +1,274 @@
-<p align="center">
-  <a href="https://nextjs-fastapi-starter.vercel.app/">
-    <img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.png" height="96">
-    <h3 align="center">Next.js FastAPI Starter</h3>
-  </a>
-</p>
+# Prototype Sprint Kit
 
-<p align="center">Simple Next.js + MongoDB Atlas boilerplate that uses <a href="https://fastapi.tiangolo.com/">FastAPI</a> as the API backend.</p>
+This repository is a reusable contest-day work kit for building a convincing prototype fast.
 
-<br/>
+It is structured around:
 
-## Introduction
+- Next.js App Router frontend
+- FastAPI backend served through `api/index.py`
+- MongoDB persistence
+- OpenAI chat/completions plus optional OpenAI or Voyage embeddings
+- prepared folders for assets, prompts, briefs, and datasets
+- reserved seams for lightweight auth and multi-tenancy when a prototype needs them
 
-This is a hybrid Next.js + Python app that uses Next.js as the frontend and FastAPI as the API backend. One great use case of this is to write Next.js apps that use Python AI libraries on the backend and seamleslly work with a flexible MongoDB Atlas database.
+## Route Shape
 
-## How It Works
+The frontend is split into three entry points:
 
-The Python/FastAPI server is mapped into to Next.js app under `/api/`.
+- `/` -> landing page / expectation page
+- `/pro` -> professional desktop portal
+- `/app` -> end-user mobile-oriented portal
 
-This is implemented using [`next.config.js` rewrites](https://github.com/digitros/nextjs-fastapi/blob/main/next.config.js) to map any request to `/api/:path*` to the FastAPI API, which is hosted in the `/api` folder.
+That gives you one public URL for the teaser, one desktop flow, and one mobile flow without needing separate repos or deployments.
 
-On localhost, the rewrite will be made to the `127.0.0.1:8000` port, which is where the FastAPI server is running.
+## Project Layout
 
-In production, the FastAPI server is hosted as [Python serverless functions](https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/python) on Vercel.
-
-## Demo
-
-TBD
-
-## Deploy Your Own
-
-You can clone & deploy it to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmongodb-developer%2Fvercel-mongodb-next-fastapi-starter&env=MONGODB_ATLAS_URI)
-
-## Developing Locally
-
-
-
-## Getting Started
-
-Create your MongoDB Deployment and get your connection URI:
-- [Atlas quick start](https://www.mongodb.com/docs/atlas/getting-started/)
-
-Set the needed environment variable :
-```bash
-MONGODB_ATLAS_URI=<your_atlas_uri>
+```text
+backend/
+  auth/
+  config/
+  db/
+  multitenancy/
+  providers/
+  routes/
+  schemas/
+  services/
+api/
+  index.py
+app/
+public/
+  brand/
+  prototype-media/
+data/
+  raw/
+  processed/
+  synthetic/
+docs/
+  briefs/
+prompts/
+scripts/
 ```
 
-If the code fails to create the Atlas Search index dynamically, use the Atlas guide to [create search index](https://www.mongodb.com/docs/atlas/atlas-search/create-index/) on `TaskDB.tasks` collection.
+## Local Setup
 
-First, install the dependencies:
+1. Copy the environment template:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Fill in the values you need:
+
+```bash
+PROJECT_SLOT=1
+PROJECT_NAME="FarupeIB 26 Prototype 1"
+APP_NAME=prototype-sprint-kit
+MONGODB_URI=<your_mongodb_connection_string>
+DATABASE_NAME=proto1
+BACKEND_PORT=8001
+FRONTEND_PORT=3001
+OPENAI_API_KEY=<your_openai_key>
+OPENAI_CHAT_MODEL=gpt-5.4-mini
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+VOYAGE_API_KEY=<your_voyage_key>
+VOYAGE_EMBEDDING_MODEL=voyage-4-lite
+VOYAGE_RERANK_MODEL=rerank-2.5-lite
+NEXT_PUBLIC_DEMO_URL=https://farupeib26-1.vercel.app
+NEXT_PUBLIC_DEMO_URL_PORTAL=https://farupeib26-1.vercel.app/pro
+NEXT_PUBLIC_DEMO_URL_APP=https://farupeib26-1.vercel.app/app
+```
+
+The backend also accepts `PUBLIC_DEMO_URL`, `PUBLIC_DEMO_URL_PORTAL`, and `PUBLIC_DEMO_URL_APP`, and it normalizes bare hostnames like `farupeib26-1.vercel.app` to `https://...` automatically.
+
+3. Install dependencies:
 
 ```bash
 npm install
-# or
-yarn
-# or
-pnpm install
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 ```
 
-Then, run the development server:
+4. Start the local stack:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+npm run demo:start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+With slot `1`, the frontend runs on `http://localhost:3001` and the FastAPI server runs on `http://127.0.0.1:8001`.
 
-The FastApi server will be running on [http://127.0.0.1:8000](http://127.0.0.1:8000) – feel free to change the port in `package.json` (you'll also need to update it in `next.config.js`).
+## Slot Setup
 
-## Learn More
+To generate a slot-specific `.env.local` quickly:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bash scripts/setup-slot.sh 1 "<your_mongodb_connection_string>" "http://localhost:3001"
+```
 
-- [MongoDB PyMongo](https://www.mongodb.com/docs/drivers/pymongo/) The official MongoDB Driver for Python.
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - learn about FastAPI features and API.
-- [MongoDB for Artificial Intelligence](https://www.mongodb.com/use-cases/artificial-intelligence) - set of guides and resources to get started with GenAI and MongoDB.
+Use the same command with `2` and `3` for the sibling repos:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- slot `1`: frontend `3001`, backend `8001`, database `proto1`
+- slot `2`: frontend `3002`, backend `8002`, database `proto2`
+- slot `3`: frontend `3003`, backend `8003`, database `proto3`
+
+## OpenAI Readiness
+
+This repo now validates OpenAI through both chat/completions and embeddings.
+
+Run the preflight:
+
+```bash
+npm run openai:check
+```
+
+That performs:
+
+- a tiny OpenAI chat/completions call
+- a tiny OpenAI embeddings call
+- failure-fast checks for missing `OPENAI_API_KEY` or model configuration
+
+There is also a live API health endpoint:
+
+- `GET /api/health` -> cheap readiness and config status
+- `GET /api/health/openai` -> live OpenAI validation
+
+Optional Voyage validation:
+
+```bash
+npm run voyage:check
+```
+
+That performs a tiny Voyage embeddings request and a tiny Voyage rerank request.
+
+## Demo Scripts
+
+To stop the local stack:
+
+```bash
+npm run demo:stop
+```
+
+The demo scripts:
+
+- start FastAPI first
+- wait for backend readiness
+- start Next.js in the foreground
+- write logs under `logs/`
+- manage PID files under `logs/pids/`
+
+## Starter Endpoints
+
+- `GET /api/health` -> readiness for MongoDB, OpenAI, and Voyage
+- `GET /api/health/openai` -> live OpenAI validation
+- `GET /api/health/voyage` -> live Voyage validation
+- `GET /api/kit` -> workspace manifest and prepared folders
+- `POST /api/ai/openai-check` -> OpenAI runtime validation
+- `POST /api/ai/voyage-check` -> Voyage runtime validation
+- `POST /api/ai/chat` -> OpenAI chat/completions endpoint
+- `POST /api/ai/embed` -> OpenAI or Voyage embeddings endpoint
+- `POST /api/ai/rerank` -> Voyage rerank endpoint
+
+## Secret Safety
+
+The repo includes a secret audit, local git hooks, and CI guardrails so real keys do not end up in git by accident.
+
+Install the hooks once per clone:
+
+```bash
+npm run security:hooks
+```
+
+Run the audit manually:
+
+```bash
+npm run security:check
+```
+
+What is blocked:
+
+- tracked `.env` files
+- tracked `.vercel/` metadata
+- MongoDB URIs with credentials
+- OpenAI keys
+- private key material
+- Vercel tokens
+
+## Prepared Folders
+
+- `public/brand/` -> logos and event visuals
+- `public/prototype-media/` -> screenshots and prototype-specific assets
+- `data/raw/` -> downloaded public datasets
+- `data/processed/` -> cleaned or transformed data
+- `data/synthetic/` -> generated demo data
+- `docs/briefs/` -> short project briefs created during the event
+- `prompts/` -> prompts and quick experiments
+- `logs/` -> runtime logs created by the demo scripts
+
+## Deployment Notes
+
+- The repo is structured for one combined Next.js + FastAPI deployment on Vercel.
+- The recommended setup is one Vercel project per repository.
+- For the three parallel repos, the clean target is `farupeib26-1`, `farupeib26-2`, and `farupeib26-3` mapped to three separate Vercel projects.
+- Put `MONGODB_URI`, `DATABASE_NAME`, `OPENAI_API_KEY`, `OPENAI_CHAT_MODEL`, `OPENAI_EMBEDDING_MODEL`, `VOYAGE_API_KEY`, `VOYAGE_EMBEDDING_MODEL`, and `VOYAGE_RERANK_MODEL` into Vercel Project Settings.
+- Also set `NEXT_PUBLIC_DEMO_URL`, `NEXT_PUBLIC_DEMO_URL_PORTAL`, and `NEXT_PUBLIC_DEMO_URL_APP` so the teaser page and QR code use the right public URLs.
+
+## Vercel Sync
+
+To link the current repo locally:
+
+```bash
+npm run vercel:link
+```
+
+To confirm whether the repo is linked:
+
+```bash
+npm run vercel:status
+```
+
+To push the non-empty keys from `.env.local` to Vercel:
+
+```bash
+npm run vercel:env:push
+```
+
+To pull them back:
+
+```bash
+npm run vercel:env:pull:dev
+npm run vercel:env:pull:preview
+npm run vercel:env:pull:prod
+```
+
+By default, the push helper skips local-only keys:
+
+- `PORT`
+- `FRONTEND_PORT`
+- `BACKEND_PORT`
+
+The fuller guide is in [docs/vercel-workflow.md](/Users/francesc.mateu/Documents/GitHub/farupeib26-1/docs/vercel-workflow.md:1).
+
+## Deployment Cycle
+
+To verify the local deployment path end to end:
+
+```bash
+npm run deploy:check
+```
+
+That script:
+
+- runs the secret audit
+- validates OpenAI chat/completions and embeddings
+- validates Voyage embeddings and rerank when configured
+- compiles the Python backend
+- builds the Next.js app
+- starts the local stack
+- checks `/`, `/app`, `/pro`, `/api/health`, `/api/health/openai`, and `/api/health/voyage`
+- runs `vercel pull` and `vercel build` when the repo is linked locally
+
+If you want the script to also create a Vercel deployment:
+
+```bash
+npm run deploy:preview
+npm run deploy:prod
+```

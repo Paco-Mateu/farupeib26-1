@@ -25,10 +25,23 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
+
+# python
+.venv/
+__pycache__/
+*.py[cod]
+
+# local prototype data
+data/tmp/
+
+# demo runtime
+logs/
 
 # typescript
 *.tsbuildinfo

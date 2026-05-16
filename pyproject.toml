@@ -1,0 +1,5 @@
+[project]
+name = "app"
+version = "0.1.0"
+dependencies = [ "fastapi==0.110.0", "openai", "pydantic-settings", "pymongo", "python-dotenv", "uvicorn[standard]==0.28.0", "voyageai" ]
+requires-python = "~=3.12.0"
