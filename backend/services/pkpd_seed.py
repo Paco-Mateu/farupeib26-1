@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+import json
+from pathlib import Path
 from random import Random
 from typing import Any
 
@@ -14,30 +16,36 @@ from backend.services.pkpd_fhir import fetch_fhir_patient_refs
 
 PKPD_NETWORK_ID = "CAT-PKPD-NET"
 PKPD_REFERENCE_HOSPITAL_ID = "HOSP-REF-01"
-PKPD_DATASET_VERSION = "pkpd-nexus-ai-demo-v2"
+PKPD_DATASET_VERSION = "pkpd-nexus-ai-demo-v4"
 PKPD_DEMO_ANCHOR = datetime(2026, 5, 16, 12, 0, tzinfo=UTC)
+SUPPLEMENTAL_DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "synthetic" / "pkpd_nexus_demo_data"
 
 PKPD_COLLECTIONS = {
     "networks": "pkpd_networks",
     "hospitals": "pkpd_hospitals",
+    "users": "pkpd_users",
     "patients": "pkpd_patients",
     "cases": "pkpd_cases",
     "protocols": "pkpd_protocols",
     "retrieval_chunks": "pkpd_retrieval_chunks",
     "knowledge_products": "pkpd_knowledge_products",
     "expert_interventions": "pkpd_expert_interventions",
+    "drug_dictionary": "pkpd_drug_dictionary",
+    "observation_dictionary": "pkpd_observation_dictionary",
+    "unit_dictionary": "pkpd_unit_dictionary",
+    "official_drug_information": "pkpd_official_drug_information",
 }
 
 SATELLITE_HOSPITALS = [
-    {"_id": "HOSP-001", "name": "Delta Metropolitan Hospital", "city": "L'Hospitalet", "lat": 41.35, "lon": 2.11},
-    {"_id": "HOSP-002", "name": "North Regional Hospital", "city": "Barcelona North", "lat": 41.46, "lon": 2.18},
-    {"_id": "HOSP-003", "name": "Coastal General Hospital", "city": "Maresme", "lat": 41.54, "lon": 2.44},
-    {"_id": "HOSP-004", "name": "Valley University Hospital", "city": "Valles", "lat": 41.55, "lon": 2.11},
-    {"_id": "HOSP-005", "name": "South Clinical Hospital", "city": "Baix Llobregat", "lat": 41.31, "lon": 2.02},
-    {"_id": "HOSP-006", "name": "Riverlands Medical Center", "city": "Tarragona Corridor", "lat": 41.12, "lon": 1.24},
-    {"_id": "HOSP-007", "name": "Mountain District Hospital", "city": "Interior Network", "lat": 41.71, "lon": 1.82},
-    {"_id": "HOSP-008", "name": "West Innovation Hospital", "city": "Penedes", "lat": 41.35, "lon": 1.69},
-    {"_id": "HOSP-009", "name": "Central Community Hospital", "city": "Catalonia Central", "lat": 41.72, "lon": 1.83},
+    {"_id": "HOSP-001", "name": "Hospital de Viladecans", "city": "Viladecans", "lat": 41.32, "lon": 2.01},
+    {"_id": "HOSP-002", "name": "H. U. Moisès Broggi", "city": "Sant Joan Despí", "lat": 41.37, "lon": 2.07},
+    {"_id": "HOSP-003", "name": "Hospital General de l'Hospitalet", "city": "L'Hospitalet de Ll.", "lat": 41.36, "lon": 2.10},
+    {"_id": "HOSP-004", "name": "Hospital General de Sant Boi", "city": "Sant Boi de Ll.", "lat": 41.34, "lon": 2.03},
+    {"_id": "HOSP-005", "name": "H. Sant Joan de Déu Martorell", "city": "Martorell", "lat": 41.47, "lon": 1.93},
+    {"_id": "HOSP-006", "name": "Hospital Residència Sant Camil", "city": "Sant Pere de Ribes", "lat": 41.23, "lon": 1.76},
+    {"_id": "HOSP-007", "name": "H. Comarcal de l'Alt Penedès", "city": "Vilafranca del Penedès", "lat": 41.34, "lon": 1.70},
+    {"_id": "HOSP-008", "name": "Hospital Universitari d'Igualada", "city": "Igualada", "lat": 41.58, "lon": 1.62},
+    {"_id": "HOSP-009", "name": "H. Sociosanitari de l'Hospitalet", "city": "L'Hospitalet de Ll.", "lat": 41.36, "lon": 2.12},
 ]
 
 THERAPEUTIC_AREAS = {
@@ -268,6 +276,197 @@ PROTOCOL_LIBRARY = [
 ]
 
 
+def _load_json_rows(filename: str) -> list[dict[str, Any]]:
+    path = SUPPLEMENTAL_DATA_DIR / filename
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    return payload if isinstance(payload, list) else []
+
+
+def _normalize_text(value: str | None) -> str:
+    return str(value or "").strip().lower()
+
+
+def _build_users(hospitals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    defaults = [
+        {"_id": "USR-REF-001", "name": "Reference PK/PD Pharmacist A", "role": "reference_pharmacist", "hospitalId": PKPD_REFERENCE_HOSPITAL_ID},
+        {"_id": "USR-REF-002", "name": "Reference PK/PD Pharmacist B", "role": "reference_pharmacist", "hospitalId": PKPD_REFERENCE_HOSPITAL_ID},
+        {"_id": "USR-REF-003", "name": "Reference Clinical Pharmacologist", "role": "clinical_pharmacologist", "hospitalId": PKPD_REFERENCE_HOSPITAL_ID},
+        {"_id": "USR-REF-004", "name": "Reference Antimicrobial Pharmacist", "role": "reference_pharmacist", "hospitalId": PKPD_REFERENCE_HOSPITAL_ID},
+        {"_id": "USR-REF-005", "name": "Reference Oncology Pharmacist", "role": "reference_pharmacist", "hospitalId": PKPD_REFERENCE_HOSPITAL_ID},
+    ]
+    for hospital in hospitals:
+        if hospital.get("_id") == PKPD_REFERENCE_HOSPITAL_ID:
+            continue
+        defaults.append(
+            {
+                "_id": f"USR-{hospital['_id']}-LOCAL",
+                "name": f"Local PK/PD Pharmacist · {hospital['city']}",
+                "role": "local_pharmacist",
+                "hospitalId": hospital["_id"],
+            }
+        )
+
+    merged = {row["_id"]: row for row in defaults}
+    for row in _load_json_rows("users.json"):
+        if row.get("_id"):
+            merged[row["_id"]] = {**merged.get(row["_id"], {}), **row}
+    return [merged[key] for key in sorted(merged)]
+
+
+def _fallback_drug_entry(blueprint: DrugBlueprint) -> dict[str, Any]:
+    return {
+        "_id": f"DRUG-{blueprint.drug_name.upper()}",
+        "name": blueprint.drug_name,
+        "normalizedName": _normalize_text(blueprint.drug_name),
+        "class": humanize_class(blueprint.therapeutic_area),
+        "therapeuticArea": blueprint.therapeutic_area,
+        "monitoringType": "therapeutic_drug_monitoring",
+        "aliases": [],
+        "typicalPkpdSignals": list(blueprint.risk_signals),
+        "unit": blueprint.unit,
+        "targetRange": {"min": blueprint.target_min, "max": blueprint.target_max},
+        "terminology": {
+            "rxnormRxcui": None,
+            "atc": None,
+            "sourceNote": "Fallback demo entry generated locally because the supplemental drug dictionary was unavailable.",
+        },
+    }
+
+
+def humanize_class(value: str) -> str:
+    return value.replace("_", " ").rstrip("s")
+
+
+def _build_drug_dictionary() -> list[dict[str, Any]]:
+    source_rows = {
+        _normalize_text(row.get("name") or row.get("normalizedName")): row
+        for row in _load_json_rows("drug_dictionary.json")
+        if row.get("name") or row.get("normalizedName")
+    }
+    documents: list[dict[str, Any]] = []
+    for blueprint in DRUG_BLUEPRINTS.values():
+        key = _normalize_text(blueprint.drug_name)
+        row = dict(source_rows.get(key) or _fallback_drug_entry(blueprint))
+        row.setdefault("normalizedName", key)
+        row.setdefault("therapeuticArea", blueprint.therapeutic_area)
+        row.setdefault("monitoringType", "therapeutic_drug_monitoring")
+        row.setdefault("unit", blueprint.unit)
+        row.setdefault("targetRange", {"min": blueprint.target_min, "max": blueprint.target_max})
+        documents.append(row)
+    return documents
+
+
+def _build_observation_dictionary() -> list[dict[str, Any]]:
+    rows = _load_json_rows("observation_dictionary.json")
+    if rows:
+        return rows
+    return [
+        {
+            "_id": "OBS-DRUG-LEVEL",
+            "name": "Drug level / concentration",
+            "category": "pkpd",
+            "allowedUnits": ["ug/mL", "mg/L", "ng/mL"],
+            "usedFor": ["therapeutic_drug_monitoring"],
+            "terminology": {"loinc": None},
+        },
+        {
+            "_id": "OBS-ANTI-DRUG-AB",
+            "name": "Anti-drug antibodies",
+            "category": "immunogenicity",
+            "allowedUnits": ["positive/negative", "AU/mL"],
+            "usedFor": ["biologic_loss_of_response"],
+            "terminology": {"loinc": None},
+        },
+        {
+            "_id": "OBS-CREATININE",
+            "name": "Creatinine",
+            "category": "renal_function",
+            "allowedUnits": ["mg/dL", "umol/L"],
+            "usedFor": ["renal_clearance", "toxicity_risk"],
+            "terminology": {"loinc": None},
+        },
+    ]
+
+
+def _build_unit_dictionary() -> list[dict[str, Any]]:
+    rows = _load_json_rows("unit_dictionary.json")
+    if rows:
+        return rows
+    return [
+        {"_id": "UNIT-UG-ML", "ucum": "ug/mL", "display": "microgram per milliliter", "category": "concentration"},
+        {"_id": "UNIT-MG-L", "ucum": "mg/L", "display": "milligram per liter", "category": "concentration"},
+        {"_id": "UNIT-NG-ML", "ucum": "ng/mL", "display": "nanogram per milliliter", "category": "concentration"},
+    ]
+
+
+def _fallback_official_document(blueprint: DrugBlueprint) -> dict[str, Any]:
+    return {
+        "_id": f"REGDOC-{blueprint.drug_name.upper()}-DEMO",
+        "drugName": blueprint.drug_name,
+        "documentType": "official_drug_information_manifest",
+        "status": "download_required",
+        "preferredSources": [
+            {"source": "EMA", "sourceType": "download_medicine_data", "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"},
+            {"source": "AEMPS CIMA", "sourceType": "cima_rest_api", "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"},
+            {"source": "DailyMed", "sourceType": "spl_all_drug_labels", "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"},
+            {"source": "openFDA", "sourceType": "drug_label_api", "url": "https://open.fda.gov/apis/drug/label/"},
+        ],
+        "demoExtract": {
+            "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+            "sections": [
+                {"heading": "Indications and usage", "text": f"Synthetic demo section for {blueprint.drug_name}."},
+                {"heading": "Monitoring considerations", "text": "Synthetic demo section to be replaced with official label and local protocol content."},
+            ],
+        },
+        "synthetic": True,
+    }
+
+
+def _build_official_drug_information() -> list[dict[str, Any]]:
+    source_rows = {
+        _normalize_text(row.get("drugName")): row
+        for row in _load_json_rows("official_drug_information_manifest.json")
+        if row.get("drugName")
+    }
+    documents: list[dict[str, Any]] = []
+    for blueprint in DRUG_BLUEPRINTS.values():
+        row = dict(source_rows.get(_normalize_text(blueprint.drug_name)) or _fallback_official_document(blueprint))
+        row.setdefault("drugName", blueprint.drug_name)
+        row.setdefault("documentType", "official_drug_information_manifest")
+        row.setdefault("status", "download_required")
+        row.setdefault("synthetic", True)
+        documents.append(row)
+    return documents
+
+
+def _local_protocol_sections(drug_name: str) -> list[tuple[str, str]]:
+    if drug_name == "Infliximab":
+        return [
+            ("Target levels", "Local teams review the same target window but may repeat a trough sample if the patient is clinically stable before requesting Bellvitge review."),
+            ("Referral criteria", "Escalate after one local verification step unless anti-drug antibodies are positive or the inflammatory picture is worsening, in which case Bellvitge review should be requested directly."),
+            ("Required evidence", "Attach infusion chronology, the latest inflammatory trend, anti-drug antibody result, and the local response assessment used before referral."),
+            ("Documentation", "Document both the local interpretation and whether Bellvitge validation was requested in the same review packet."),
+        ]
+    if drug_name == "Vancomycin":
+        return [
+            ("Target levels", "Local review uses the same exposure window but requires explicit confirmation of sampling quality before interpretation."),
+            ("Referral criteria", "Bellvitge escalation is immediate when supratherapeutic levels coincide with renal decline; otherwise local teams may repeat sampling once if timing quality is uncertain."),
+            ("Required evidence", "Attach infusion time, blood-draw time, serum creatinine trend, infection context, and the local dosing record."),
+            ("Documentation", "Record whether timing quality was confirmed locally and whether Bellvitge urgent review was triggered."),
+        ]
+    return [
+        ("Target levels", "Local interpretation follows the network reference range but allows one structured local check before escalation when the patient is clinically stable."),
+        ("Referral criteria", "Bellvitge review is requested when the reference criteria are met or when local interpretation remains uncertain after the first structured review."),
+        ("Required evidence", "Attach dose chronology, the latest relevant biomarker trend, and the local interpretation note prepared before escalation."),
+        ("Documentation", "Record the local protocol view alongside any Bellvitge confirmation so the decision path remains auditable."),
+    ]
+
+
 def _iso(value: datetime) -> str:
     return value.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -406,6 +605,25 @@ def _build_protocol_documents() -> list[dict[str, Any]]:
                 "updatedAt": created_at,
             }
         )
+        for hospital in SATELLITE_HOSPITALS:
+            documents.append(
+                {
+                    "_id": f"{item['_id']}-{hospital['_id']}",
+                    "title": f"Local protocol for {item['drugName']} review - {hospital['name']}",
+                    "hospitalId": hospital["_id"],
+                    "networkId": PKPD_NETWORK_ID,
+                    "drugName": item["drugName"],
+                    "therapeuticArea": item["therapeuticArea"],
+                    "version": "2026.1-local",
+                    "status": "active",
+                    "approved": True,
+                    "scope": "local_variant",
+                    "parentProtocolId": item["_id"],
+                    "sections": [{"heading": heading, "text": text} for heading, text in _local_protocol_sections(item["drugName"])],
+                    "createdAt": created_at,
+                    "updatedAt": created_at,
+                }
+            )
     return documents
 
 
@@ -419,6 +637,11 @@ def _build_retrieval_chunks(protocols: list[dict[str, Any]]) -> list[dict[str, A
         "Documentation pattern",
     ]
     for protocol in protocols:
+        variants = (
+            ["Deterministic signal", "Reference escalation", "Evidence packet", "Documentation pattern"]
+            if protocol.get("hospitalId") == PKPD_REFERENCE_HOSPITAL_ID
+            else ["Local workflow", "Escalation threshold", "Evidence packet", "Documentation pattern"]
+        )
         for section in protocol["sections"]:
             for variant in variants:
                 chunks.append(
@@ -550,6 +773,47 @@ def _build_case(
         f"requires network review."
     )
 
+    timeline = [
+        {
+            "type": "dose",
+            "datetime": _event_time(case_index, 14, 9, 0),
+            "drug": blueprint.drug_name,
+            "doseMg": dose_value,
+        },
+        {
+            "type": "level",
+            "datetime": _event_time(case_index, 2, 8, 30),
+            "drug": blueprint.drug_name,
+            "value": level_value,
+            "unit": blueprint.unit,
+        },
+        {
+            "type": "biomarker",
+            "datetime": _event_time(case_index, 2, 8, 45),
+            "name": blueprint.biomarker_name,
+            "value": biomarker_value,
+            "unit": "mg/L" if blueprint.biomarker_name not in {"Seizure log"} else "events",
+        },
+        {
+            "type": "renal_function",
+            "datetime": _event_time(case_index, 2, 8, 50),
+            "name": "Creatinine",
+            "value": creatinine_value,
+            "unit": "mg/dL",
+        },
+    ]
+    if "positive_antidrug_antibodies" in blueprint.risk_signals:
+        timeline.insert(
+            2,
+            {
+                "type": "antibody",
+                "datetime": _event_time(case_index, 2, 8, 40),
+                "name": "Anti-drug antibodies",
+                "value": "positive",
+                "unit": None,
+            },
+        )
+
     return {
         "_id": case_id,
         "networkId": PKPD_NETWORK_ID,
@@ -569,35 +833,7 @@ def _build_case(
         "priority": priority,
         "caseReason": blueprint.hero_reason,
         "clinicalQuestion": blueprint.intervention_template,
-        "timeline": [
-            {
-                "type": "dose",
-                "datetime": _event_time(case_index, 14, 9, 0),
-                "drug": blueprint.drug_name,
-                "doseMg": dose_value,
-            },
-            {
-                "type": "level",
-                "datetime": _event_time(case_index, 2, 8, 30),
-                "drug": blueprint.drug_name,
-                "value": level_value,
-                "unit": blueprint.unit,
-            },
-            {
-                "type": "biomarker",
-                "datetime": _event_time(case_index, 2, 8, 45),
-                "name": blueprint.biomarker_name,
-                "value": biomarker_value,
-                "unit": "mg/L" if blueprint.biomarker_name not in {"Seizure log"} else "events",
-            },
-            {
-                "type": "renal_function",
-                "datetime": _event_time(case_index, 2, 8, 50),
-                "name": "Creatinine",
-                "value": creatinine_value,
-                "unit": "mg/dL",
-            },
-        ],
+        "timeline": timeline,
         "targets": {
             "levelMin": blueprint.target_min,
             "levelMax": blueprint.target_max,
@@ -764,22 +1000,32 @@ def build_pkpd_demo_dataset() -> dict[str, list[dict[str, Any]]]:
         raise RuntimeError("No FHIR patients were found for the PK/PD demo seed.")
 
     hospitals = _build_hospitals()
+    users = _build_users(hospitals)
     protocols = _build_protocol_documents()
     patients = _build_patients(fhir_patients)
     cases = _build_cases(patients, hospitals)
     retrieval_chunks = _build_retrieval_chunks(protocols)
     expert_interventions = _build_expert_interventions(cases)
     knowledge_products = _build_knowledge_products(cases)
+    drug_dictionary = _build_drug_dictionary()
+    observation_dictionary = _build_observation_dictionary()
+    unit_dictionary = _build_unit_dictionary()
+    official_drug_information = _build_official_drug_information()
 
     return {
         PKPD_COLLECTIONS["networks"]: [_build_network_document()],
         PKPD_COLLECTIONS["hospitals"]: hospitals,
+        PKPD_COLLECTIONS["users"]: users,
         PKPD_COLLECTIONS["patients"]: patients,
         PKPD_COLLECTIONS["cases"]: cases,
         PKPD_COLLECTIONS["protocols"]: protocols,
         PKPD_COLLECTIONS["retrieval_chunks"]: retrieval_chunks,
         PKPD_COLLECTIONS["knowledge_products"]: knowledge_products,
         PKPD_COLLECTIONS["expert_interventions"]: expert_interventions,
+        PKPD_COLLECTIONS["drug_dictionary"]: drug_dictionary,
+        PKPD_COLLECTIONS["observation_dictionary"]: observation_dictionary,
+        PKPD_COLLECTIONS["unit_dictionary"]: unit_dictionary,
+        PKPD_COLLECTIONS["official_drug_information"]: official_drug_information,
     }
 
 
@@ -793,6 +1039,9 @@ def ensure_pkpd_indexes() -> None:
     db[PKPD_COLLECTIONS["knowledge_products"]].create_index([("caseId", 1), ("type", 1), ("version", -1)])
     db[PKPD_COLLECTIONS["retrieval_chunks"]].create_index([("drugName", 1), ("therapeuticArea", 1), ("hospitalId", 1)])
     db[PKPD_COLLECTIONS["expert_interventions"]].create_index([("caseId", 1), ("createdAt", -1)])
+    db[PKPD_COLLECTIONS["users"]].create_index([("hospitalId", 1), ("role", 1)])
+    db[PKPD_COLLECTIONS["drug_dictionary"]].create_index([("normalizedName", 1)])
+    db[PKPD_COLLECTIONS["official_drug_information"]].create_index([("drugName", 1), ("status", 1)])
 
 
 def seed_pkpd_demo_dataset() -> dict[str, Any]:

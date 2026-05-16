@@ -1,0 +1,224 @@
+[
+  {
+    "_id": "HOSP-REF-01",
+    "name": "Hospital Universitari de Bellvitge",
+    "role": "reference_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "pkpd_expert_review",
+      "biologics",
+      "antibiotics",
+      "antifungals",
+      "immunosuppressants"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 12,
+      "monthlyInterventions": 5,
+      "avgResponseHours": 4.7
+    },
+    "geo": {
+      "lat": 41.3579,
+      "lon": 2.1046
+    }
+  },
+  {
+    "_id": "HOSP-001",
+    "name": "Hospital de Viladecans",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "biologics",
+      "antibiotics",
+      "sample_collection"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 9,
+      "monthlyInterventions": 8,
+      "avgResponseHours": 6.2
+    },
+    "geo": {
+      "lat": 41.3199,
+      "lon": 2.0143
+    }
+  },
+  {
+    "_id": "HOSP-002",
+    "name": "H. U. Moisès Broggi",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "antifungals",
+      "biologics",
+      "immunosuppressants"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 11,
+      "monthlyInterventions": 10,
+      "avgResponseHours": 4.8
+    },
+    "geo": {
+      "lat": 41.3693,
+      "lon": 2.0721
+    }
+  },
+  {
+    "_id": "HOSP-003",
+    "name": "Hospital General de l'Hospitalet",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "immunosuppressants",
+      "biologics",
+      "antibiotics"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 13,
+      "monthlyInterventions": 14,
+      "avgResponseHours": 5.5
+    },
+    "geo": {
+      "lat": 41.3581,
+      "lon": 2.1031
+    }
+  },
+  {
+    "_id": "HOSP-004",
+    "name": "Hospital General de Sant Boi",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "sample_collection",
+      "biologics",
+      "antibiotics"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 8,
+      "monthlyInterventions": 7,
+      "avgResponseHours": 9.1
+    },
+    "geo": {
+      "lat": 41.3437,
+      "lon": 2.0341
+    }
+  },
+  {
+    "_id": "HOSP-005",
+    "name": "H. Sant Joan de Déu Martorell",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "sample_collection",
+      "biologics",
+      "immunosuppressants"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 7,
+      "monthlyInterventions": 6,
+      "avgResponseHours": 13.3
+    },
+    "geo": {
+      "lat": 41.4723,
+      "lon": 1.9315
+    }
+  },
+  {
+    "_id": "HOSP-006",
+    "name": "Hospital Residència Sant Camil",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "biologics",
+      "local_follow_up",
+      "antifungals"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 6,
+      "monthlyInterventions": 5,
+      "avgResponseHours": 18.4
+    },
+    "geo": {
+      "lat": 41.2298,
+      "lon": 1.7617
+    }
+  },
+  {
+    "_id": "HOSP-007",
+    "name": "H. Comarcal de l'Alt Penedès",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "sample_collection",
+      "immunosuppressants",
+      "antibiotics"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 5,
+      "monthlyInterventions": 4,
+      "avgResponseHours": 16.2
+    },
+    "geo": {
+      "lat": 41.3423,
+      "lon": 1.7038
+    }
+  },
+  {
+    "_id": "HOSP-008",
+    "name": "Hospital Universitari d'Igualada",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "biologics",
+      "antibiotics",
+      "antifungals"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 7,
+      "monthlyInterventions": 6,
+      "avgResponseHours": 22.1
+    },
+    "geo": {
+      "lat": 41.5783,
+      "lon": 1.6191
+    }
+  },
+  {
+    "_id": "HOSP-009",
+    "name": "H. Sociosanitari de l'Hospitalet",
+    "role": "satellite_center",
+    "networkId": "CAT-PKPD-NET",
+    "capabilities": [
+      "immunosuppressants",
+      "antibiotics",
+      "antifungals"
+    ],
+    "collaborationStatus": "active",
+    "operationalSince": "2025-05-01",
+    "kpi": {
+      "activeCases": 6,
+      "monthlyInterventions": 5,
+      "avgResponseHours": 7.8
+    },
+    "geo": {
+      "lat": 41.3612,
+      "lon": 2.1083
+    }
+  }
+]
