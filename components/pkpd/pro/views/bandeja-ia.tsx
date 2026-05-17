@@ -656,61 +656,49 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
 
       {/* ── Right: main panel ───────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        {/* Compact email header + stepper + next action */}
-        <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-4 space-y-4">
-          {/* Email meta */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#152520]">{selected.subject}</p>
-              <p className="mt-0.5 text-xs text-[#4a7068]">
-                {selected.from} · {formatReceivedAt(selected.receivedAt)} · {selected.centerName}
-              </p>
-              {selected.programSuggestion && (
-                <p className="mt-0.5 text-xs text-[#4a7068]">
-                  Programa: <span className="font-medium text-[#152520]">{selected.programSuggestion}</span>
-                  {selected.confidence ? ` · Confianza IA: ${selected.confidence}%` : ''}
-                </p>
-              )}
-            </div>
+        {/* Slim header: email meta + inline action bar */}
+        <div className="shrink-0 border-b border-slate-100 bg-white px-5 py-3 space-y-2">
+          {/* Row 1: subject + status */}
+          <div className="flex items-center justify-between gap-3">
+            <p className="truncate text-sm font-semibold text-[#152520]">{selected.subject}</p>
             <AgentStatusBadge status={selected.agentStatus} />
           </div>
 
-          {/* Horizontal stepper */}
-          <HorizontalStepper
-            processState={processState}
-            createState={createState}
-            openState={openState}
-          />
+          {/* Row 2: from / date / center / program confidence */}
+          <p className="text-xs text-[#4a7068]">
+            {selected.from} · {formatReceivedAt(selected.receivedAt)} · {selected.centerName}
+            {selected.programSuggestion
+              ? ` · ${selected.programSuggestion}${selected.confidence ? ` · IA ${selected.confidence}%` : ''}`
+              : ''}
+          </p>
 
-          {/* Next action callout */}
-          <div className="rounded-2xl border border-[#8dc63f]/20 bg-[#f0f7e3] p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="rounded-full bg-[#8dc63f]/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#5a7820]">
-                    Paso {nextAction.step}
-                  </span>
-                  <span className="text-[10px] text-[#4a7068]">
-                    {nextAction.who === 'Agente IA' ? '🤖 Acción del agente' : '👤 Tu turno'}
-                  </span>
-                </div>
-                <p className="text-sm font-semibold text-[#152520]">{nextAction.title}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-[#4a7068]">{nextAction.detail}</p>
-              </div>
-              <Button
-                size="lg"
-                className={`h-11 shrink-0 gap-1.5 rounded-2xl px-5 text-sm font-semibold text-white ${nextAction.color}`}
-                onClick={nextAction.action}
-                disabled={busyAction !== null}
-              >
-                {nextAction.busy ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <NextIcon className="h-4 w-4" />
-                )}
-                {nextAction.label}
-              </Button>
+          {/* Row 3: compact action bar — stepper + single-line CTA */}
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+            {/* Inline stepper */}
+            <div className="flex items-center gap-1.5">
+              <HorizontalStepper
+                processState={processState}
+                createState={createState}
+                openState={openState}
+              />
+              <span className="ml-2 text-[10px] text-[#4a7068]">
+                {nextAction.who === 'Agente IA' ? '🤖' : '👤'}{' '}
+                <span className="font-medium text-[#152520]">{nextAction.title}</span>
+              </span>
             </div>
+            <Button
+              size="sm"
+              className={`h-7 shrink-0 gap-1 rounded-xl px-3 text-xs font-semibold text-white ${nextAction.color}`}
+              onClick={nextAction.action}
+              disabled={busyAction !== null}
+            >
+              {nextAction.busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <NextIcon className="h-3.5 w-3.5" />
+              )}
+              {nextAction.label}
+            </Button>
           </div>
 
           {error ? (

@@ -2,14 +2,17 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
+  Award,
   Bot,
   BrainCircuit,
   Building2,
   ClipboardCheck,
   FileText,
   GraduationCap,
+  Lightbulb,
   Microscope,
   ShieldCheck,
+  Sparkles,
   Stethoscope,
   Users2,
 } from 'lucide-react'
@@ -139,6 +142,24 @@ const TAGLINES = [
   'Farmacia Hospitalaria como motor de decisión clínica avanzada.',
 ]
 
+const WHY_NOW = [
+  {
+    icon: BrainCircuit,
+    title: 'La complejidad terapéutica exige más',
+    text: 'Las decisiones sobre biológicos en Crohn requieren integrar exposición, respuesta, biomarcadores, inmunogenicidad e historia terapéutica. No puede resolverse con una calculadora ni con un correo.',
+  },
+  {
+    icon: Stethoscope,
+    title: 'Farmacia está evolucionando',
+    text: 'El farmacéutico hospitalario está asumiendo un rol más consultivo, más clínico y más presente en la toma de decisiones. La plataforma amplifica ese papel de forma estructurada y trazable.',
+  },
+  {
+    icon: Lightbulb,
+    title: 'La IA hace posible lo que antes no era viable',
+    text: 'La IA generativa y los agentes inteligentes permiten estructurar casos, detectar gaps, coordinar tareas y preparar interpretaciones en el tiempo real de la práctica clínica, sin aumentar la carga administrativa.',
+  },
+]
+
 export function DemoIntro() {
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#152520]">
@@ -168,20 +189,24 @@ export function DemoIntro() {
               </span>
             </div>
 
-            <h1 className="mt-5 max-w-5xl text-4xl font-semibold tracking-tight text-[#152520]">
-              Xarxa PK/PD Intelligence Hub impulsa una nueva forma de optimizar tratamientos complejos: colaborativa, trazable, basada en conocimiento experto y aumentada por IA.
+            <p className="mt-5 max-w-2xl text-lg font-medium leading-8 text-[#4a7068]">
+              La innovación sanitaria no empieza con la tecnología. Empieza con profesionales que identifican una necesidad real y se atreven a imaginar una forma mejor de trabajar.
+            </p>
+
+            <h1 className="mt-4 max-w-5xl text-4xl font-semibold tracking-tight text-[#152520]">
+              Xarxa PK/PD Intelligence Hub materializa esa visión: una plataforma colaborativa donde cada caso de optimización terapéutica se convierte en conocimiento compartido, trazable y aumentado por IA.
             </h1>
 
             <p className="mt-5 max-w-4xl text-base leading-8 text-[#4a7068]">
-              La plataforma nace con Crohn como primer programa clínico activo, pero está diseñada para crecer hacia nuevas especialidades, enfermedades, fármacos, determinantes, workflows y protocolos configurables.
+              Nace del proyecto &quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;, liderado por la Dra. María Badia en la 10ª Jornada FARUPEIB, y desarrollado como prototipo conceptual por Francesc Mateu, Principal, Healthcare Industry Solutions at MongoDB.
             </p>
 
             <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
-              Su objetivo no es automatizar la decisión clínica. Su objetivo es amplificar el papel del farmacéutico hospitalario como consultor experto, facilitando que participe de forma activa, estructurada y documentada en decisiones de inicio, optimización, pérdida de respuesta, cambio de medicación, ratificación y desintensificación de tratamientos.
+              En lugar de presentar la PK/PD como un cálculo aislado, la plataforma la convierte en una experiencia colaborativa: casos estructurados, agentes IA supervisados, tareas compartidas, interpretación PK/PD, validación humana, documentación clínica y aprendizaje de red.
             </p>
 
             <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
-              La IA actúa como una capa de apoyo inteligente: estructura casos, detecta gaps, coordina tareas, interpreta señales PK/PD, prepara borradores de recomendación y genera notas para HCE. La decisión final siempre permanece en manos del equipo clínico.
+              La IA estructura, detecta gaps y prepara borradores. El farmacéutico hospitalario revisa, ajusta, valida y decide. La decisión final siempre permanece en manos del equipo clínico.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -204,27 +229,89 @@ export function DemoIntro() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-[#8dc63f]/20 bg-[#f0f7e3] p-8 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5a7820]">
-              Posicionamiento ejecutivo
-            </p>
+          <div className="overflow-hidden rounded-[32px] border border-[#7b3fa0]/15 bg-[#faf6fd] shadow-sm">
+            <Image
+              src="/brand/Jornades-FARUPEIB_14-05.png"
+              alt="10ª Jornadas FARUPEIB Lazareto — Illa Llatzeret, Menorca"
+              width={800}
+              height={400}
+              className="h-40 w-full object-cover"
+            />
+            <div className="p-8">
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-[#7b3fa0]" />
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">
+                Origen del prototipo
+              </p>
+            </div>
             <p className="mt-4 text-sm leading-7 text-[#4a7068]">
-              Xarxa PK/PD Intelligence Hub es una plataforma colaborativa para optimizar tratamientos complejos mediante inteligencia PK/PD, coordinación multidisciplinar y aprendizaje de red.
+              Este prototipo surge de la actividad <strong className="text-[#152520]">Networking Lazareto, Proyectos de Innovación</strong>, celebrada en el marco de la <strong className="text-[#152520]">10ª Jornada FARUPEIB</strong>, con el patrocinio de AbbVie.
             </p>
-            <p className="mt-4 text-sm leading-7 text-[#4a7068]">
-              Empieza con Crohn como primer programa clínico, conectando Farmacia Hospitalaria, Digestivo, Enfermería y Laboratorio en torno a un caso clínico compartido. La IA estructura la información, detecta gaps, coordina tareas y prepara interpretaciones y borradores, mientras el equipo sanitario mantiene siempre el control de la decisión.
+            <p className="mt-3 text-sm leading-7 text-[#4a7068]">
+              En la sesión se presentaron 14 proyectos de innovación sanitaria. El proyecto <strong className="text-[#152520]">&quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;</strong>, liderado por la{' '}
+              <strong className="text-[#152520]">Dra. María Badia, Jefa del Servicio de Farmacia del Hospital Universitari de Bellvitge</strong>, fue seleccionado como proyecto ganador por su capacidad para impulsar una nueva forma de colaboración clínica en torno a la optimización terapéutica.
             </p>
-            <p className="mt-4 text-sm leading-7 text-[#4a7068]">
-              El resultado es una nueva forma de trabajar: más colaborativa, más trazable y orientada a elevar el papel del farmacéutico hospitalario como consultor experto en farmacoterapia de precisión.
+            <p className="mt-3 text-sm leading-7 text-[#4a7068]">
+              Como siguiente paso, <strong className="text-[#152520]">Francesc Mateu, Principal, Healthcare Industry Solutions at MongoDB</strong>, desarrolló este prototipo conceptual mostrando cómo la IA generativa, los agentes inteligentes y el desarrollo acelerado pueden convertir una visión clínica en una experiencia digital tangible.
             </p>
-
-            <div className="mt-6 space-y-2">
+            <div className="mt-5 space-y-2">
               {TAGLINES.map((tagline) => (
                 <div
                   key={tagline}
-                  className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-sm font-medium text-[#152520]"
+                  className="rounded-2xl border border-[#7b3fa0]/10 bg-white px-4 py-3 text-sm font-medium text-[#152520]"
                 >
                   {tagline}
+                </div>
+              ))}
+            </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-10">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {WHY_NOW.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h2 className="mt-5 text-base font-semibold text-[#152520]">{title}</h2>
+              <p className="mt-2 text-sm leading-7 text-[#4a7068]">{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-10">
+        <div className="rounded-[32px] border border-[#8dc63f]/20 bg-[#f0f7e3] p-8 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[#5a7820]" />
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5a7820]">
+              Qué demuestra este prototipo
+            </p>
+          </div>
+          <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_1fr]">
+            <div>
+              <p className="text-base leading-8 text-[#4a7068]">
+                Este prototipo demuestra que una red de profesionales puede convertir la experiencia PK/PD en una plataforma colaborativa de conocimiento clínico, y que construir esa experiencia no requiere meses de desarrollo ni equipos técnicos grandes.
+              </p>
+              <p className="mt-4 text-base leading-8 text-[#4a7068]">
+                Permite visualizar cómo una solicitud se transforma en un caso estructurado, cómo los agentes IA preparan el trabajo, cómo el farmacéutico valida y enriquece la recomendación, cómo el equipo multidisciplinar colabora sobre un mismo objeto clínico y cómo cada caso alimenta el aprendizaje de la red.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {[
+                'No es un producto final. Es una demostración de posibilidades.',
+                'Una forma de hacer visible una visión y compartirla con equipos clínicos.',
+                'Desarrollado en aproximadamente cinco horas como prototipo conceptual usando IA generativa, agentes inteligentes y desarrollo acelerado asistido por IA.',
+                'La plataforma empieza con Crohn pero está diseñada para crecer a nuevas especialidades, enfermedades, fármacos y protocolos.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-[#8dc63f]/20 bg-white/80 px-4 py-3 text-sm leading-7 text-[#152520]"
+                >
+                  {item}
                 </div>
               ))}
             </div>

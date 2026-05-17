@@ -58,15 +58,11 @@ export function AgentesIa() {
   const summary = useMemo(() => {
     const totalRuns = agents.reduce((sum, agent) => sum + (agent.metrics?.totalRuns ?? 0), 0)
     const casesTouched = agents.reduce((sum, agent) => sum + (agent.metrics?.casesTouched ?? 0), 0)
-    const minutesSaved = agents.reduce(
-      (sum, agent) => sum + (agent.metrics?.estimatedMinutesSaved ?? 0),
-      0
-    )
     const draftsPrepared = agents.reduce(
       (sum, agent) => sum + (agent.metrics?.draftsPrepared ?? 0),
       0
     )
-    return { totalRuns, casesTouched, minutesSaved, draftsPrepared }
+    return { totalRuns, casesTouched, draftsPrepared }
   }, [agents])
 
   return (
@@ -101,14 +97,14 @@ export function AgentesIa() {
                   Los agentes no solo dejan traza: ya están absorbiendo trabajo operativo real.
                 </h2>
                 <p className="mt-2 text-sm leading-7 text-[#4a7068]">
-                  Aquí se ve qué automatiza cada agente, cuántas veces ha intervenido, cuántos casos ha tocado y cuánto tiempo manual está desplazando antes de la validación profesional.
+                  Aquí se ve qué automatiza cada agente, cuántas veces ha intervenido, cuántos casos ha tocado y cuántos borradores deja preparados antes de la validación profesional.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
                 <ImpactCard label="Pasos IA ejecutados" value={String(summary.totalRuns)} note="Ejecuciones registradas" />
                 <ImpactCard label="Casos tocados" value={String(summary.casesTouched)} note="Casos con intervención de agentes" />
                 <ImpactCard label="Borradores preparados" value={String(summary.draftsPrepared)} note="Salidas clínicas en borrador" />
-                <ImpactCard label="Minutos automatizados" value={`${summary.minutesSaved}`} note="Ahorro operativo estimado" />
+                <ImpactCard label="Agentes activos" value={String(agents.filter((agent) => agent.status === 'Activo').length)} note="Capacidades supervisadas en red" />
               </div>
             </div>
           </div>
@@ -147,7 +143,7 @@ export function AgentesIa() {
                     <div className="mt-4 grid gap-2 sm:grid-cols-2">
                       <MiniMetric label="Runs" value={String(ag.metrics?.totalRuns ?? 0)} />
                       <MiniMetric label="Casos" value={String(ag.metrics?.casesTouched ?? 0)} />
-                      <MiniMetric label="Ahorro" value={`${ag.metrics?.estimatedMinutesSaved ?? 0} min`} />
+                      <MiniMetric label="Validación" value={ag.requiresHumanValidation ? 'Sí' : 'No'} />
                       <MiniMetric label="Borradores" value={String(ag.metrics?.draftsPrepared ?? 0)} />
                     </div>
 
@@ -194,7 +190,7 @@ export function AgentesIa() {
                 <div className="mb-5 grid gap-3 sm:grid-cols-2">
                   <ImpactCard label="Ejecuciones" value={String(selected.metrics?.totalRuns ?? 0)} note="Runs acumulados" />
                   <ImpactCard label="Casos" value={String(selected.metrics?.casesTouched ?? 0)} note="Casos tocados" />
-                  <ImpactCard label="Ahorro" value={`${selected.metrics?.estimatedMinutesSaved ?? 0} min`} note="Tiempo manual evitado" />
+                  <ImpactCard label="Validación humana" value={selected.requiresHumanValidation ? 'Obligatoria' : 'No'} note="Nivel de supervisión" />
                   <ImpactCard label="Borradores" value={String(selected.metrics?.draftsPrepared ?? 0)} note="Salidas preparadas" />
                 </div>
 

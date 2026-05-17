@@ -86,7 +86,6 @@ export function Reporting({
   const automationRuns = getKpiValue('Pasos IA ejecutados')
   const automationCases = getKpiValue('Casos preparados por IA')
   const automationDrafts = getKpiValue('Borradores clínicos')
-  const automationMinutes = getKpiValue('Minutos automatizados')
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -131,14 +130,14 @@ export function Reporting({
                 La red ya puede cuantificar cuánto trabajo preparan los agentes antes de la validación profesional.
               </h3>
               <p className="mt-2 text-sm leading-7 text-[#4a7068]">
-                Este panel resume cuántos pasos IA se han ejecutado, cuántos casos han llegado ya estructurados, cuántos borradores clínicos se han preparado y qué ahorro operativo estimado está generando el circuito.
+                Este panel resume cuántos pasos IA se han ejecutado, cuántos casos han llegado ya estructurados y cuántos borradores clínicos se han preparado antes de la validación humana.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
               <AutomationImpactCard label="Pasos IA" value={String(automationRuns)} note="Ejecuciones registradas" />
               <AutomationImpactCard label="Casos preparados" value={String(automationCases)} note="Casos tocados por IA" />
               <AutomationImpactCard label="Borradores" value={String(automationDrafts)} note="Recomendaciones y notas" />
-              <AutomationImpactCard label="Ahorro estimado" value={`${automationMinutes} min`} note="Tiempo manual desplazado" />
+              <AutomationImpactCard label="Cobertura IA" value={`${automationCases}/${getKpiValue('Casos activos') || 0}`} note="Casos activos con apoyo automatizado" />
             </div>
           </div>
         </div>

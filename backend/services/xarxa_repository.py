@@ -10,6 +10,38 @@ from pymongo import ReturnDocument
 
 _professional_requests_seeded = False
 
+SYSTEM_ACTOR = {
+    "name": "Sistema Xarxa PK/PD",
+    "role": "Motor de workflow",
+    "center": "Plataforma de demo",
+    "type": "system",
+}
+
+DEFAULT_DEMO_ACTOR = {
+    "name": "Farmacéutico referente",
+    "role": "Farmacéutico experto",
+    "center": "H.U. Bellvitge",
+    "type": "human",
+}
+
+ALLOWED_STAGE_TRANSITIONS: dict[str, set[str]] = {
+    "Solicitud recibida": {"Caso creado por IA", "Datos incompletos", "Pendiente de determinantes", "Determinantes recibidos"},
+    "Caso creado por IA": {"Datos incompletos", "Pendiente de determinantes", "Determinantes recibidos"},
+    "Datos incompletos": {"Pendiente de determinantes", "Determinantes recibidos", "Revisión farmacéutica"},
+    "Pendiente de determinantes": {"Datos incompletos", "Determinantes recibidos", "Revisión farmacéutica"},
+    "Determinantes recibidos": {"Datos incompletos", "Análisis PK/PD generado", "Revisión farmacéutica"},
+    "Análisis PK/PD generado": {"Datos incompletos", "Revisión farmacéutica", "Revisión médica", "Discusión en red", "Informe generado"},
+    "Revisión farmacéutica": {"Datos incompletos", "Revisión médica", "Discusión en red", "Informe generado"},
+    "Revisión médica": {"Datos incompletos", "Discusión en red", "Informe generado"},
+    "Discusión en red": {"Revisión farmacéutica", "Revisión médica", "Informe generado"},
+    "Informe generado": {"Datos incompletos", "Informe validado", "Registrado en HCE"},
+    "Informe validado": {"Registrado en HCE"},
+    "Registrado en HCE": {"Seguimiento 4 semanas", "Seguimiento 8 semanas", "Cerrado con resultado"},
+    "Seguimiento 4 semanas": {"Seguimiento 8 semanas", "Cerrado con resultado"},
+    "Seguimiento 8 semanas": {"Cerrado con resultado"},
+    "Cerrado con resultado": set(),
+}
+
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,7 +92,37 @@ def _touch_case(case_id: str, fields: dict[str, Any] | None = None) -> dict:
     return result
 
 
-def _append_event(case_id: str, lane: str, event_type: str, label: str) -> None:
+def _normalize_actor(actor: dict[str, Any] | None = None, fallback: dict[str, Any] | None = None) -> dict[str, Any]:
+    base = fallback or SYSTEM_ACTOR
+    payload = actor or {}
+    return {
+        "name": payload.get("name") or base["name"],
+        "role": payload.get("role") or base["role"],
+        "center": payload.get("center") or base["center"],
+        "type": payload.get("type") or base.get("type", "system"),
+    }
+
+
+def _extract_actor(payload: dict[str, Any] | None = None, fallback: dict[str, Any] | None = None) -> dict[str, Any]:
+    source = payload or {}
+    actor = {
+        "name": source.get("actorName"),
+        "role": source.get("actorRole"),
+        "center": source.get("actorCenter"),
+        "type": source.get("actorType"),
+    }
+    return _normalize_actor(actor, fallback or DEFAULT_DEMO_ACTOR)
+
+
+def _append_event(
+    case_id: str,
+    lane: str,
+    event_type: str,
+    label: str,
+    actor: dict[str, Any] | None = None,
+    meta: dict[str, Any] | None = None,
+) -> None:
+    normalized_actor = _normalize_actor(actor)
     _col("xarxa_events").insert_one(
         {
             "_id": _event_id(case_id),
@@ -69,8 +131,24 @@ def _append_event(case_id: str, lane: str, event_type: str, label: str) -> None:
             "lane": lane,
             "type": event_type,
             "label": label,
+            "actorName": normalized_actor["name"],
+            "actorRole": normalized_actor["role"],
+            "actorCenter": normalized_actor["center"],
+            "actorType": normalized_actor["type"],
+            "meta": meta or {},
         }
     )
+
+
+def _validate_stage_transition(current_stage: str | None, next_stage: str | None) -> None:
+    if not next_stage or not current_stage or current_stage == next_stage:
+        return
+
+    allowed_targets = ALLOWED_STAGE_TRANSITIONS.get(current_stage, set())
+    if next_stage not in allowed_targets:
+        raise ValueError(
+            f"No se permite mover el caso de «{current_stage}» a «{next_stage}» sin una transición clínica válida."
+        )
 
 
 def _append_agent_run(case_id: str, agent: str, message: str, status: str = "Completado") -> None:
@@ -135,11 +213,6 @@ def _build_automation_summary(case: dict, agent_runs: list[dict] | None = None) 
     if note.get("text"):
         drafts_ready += 1
 
-    estimated_minutes_saved = max(
-        4,
-        len(unique_agents) * 3 + len(tasks) * 2 + drafts_ready * 3,
-    )
-
     if pending_tasks:
         headline = (
             "La IA ya ha preparado el caso y ha detectado qué falta antes de validar."
@@ -155,7 +228,6 @@ def _build_automation_summary(case: dict, agent_runs: list[dict] | None = None) 
         "tasksCreated": len(tasks),
         "pendingTasks": len(pending_tasks),
         "draftsReady": drafts_ready,
-        "estimatedMinutesSaved": estimated_minutes_saved,
         "highlights": highlights[:4],
         "agentsInvolved": unique_agents,
         "lastRunAt": runs[0].get("timestamp") if runs else None,
@@ -242,6 +314,8 @@ def _derive_tasks(case_id: str, gaps: list[dict]) -> list[dict]:
 def _derive_case_state(stage: str | None, tasks: list[dict], fallback_next_action: str | None = None) -> tuple[str, str]:
     unresolved = [task for task in tasks if task.get("status") != "Resuelta"]
     protected_stages = {
+        "Análisis PK/PD generado",
+        "Revisión farmacéutica",
         "Revisión médica",
         "Discusión en red",
         "Informe generado",
@@ -254,6 +328,9 @@ def _derive_case_state(stage: str | None, tasks: list[dict], fallback_next_actio
 
     if unresolved and stage not in protected_stages:
         return "Datos incompletos", unresolved[0]["title"]
+
+    if unresolved and stage in protected_stages:
+        return stage or "Revisión farmacéutica", "Resolver gaps detectados antes de continuar la validación"
 
     if not unresolved and stage in {"Solicitud recibida", "Caso creado por IA", "Datos incompletos", "Pendiente de determinantes"}:
         return "Determinantes recibidos", "Revisión farmacéutica"
@@ -742,6 +819,11 @@ def create_xarxa_case(data: dict) -> dict:
             "lane": data.get("creationLane", "Decisiones"),
             "type": data.get("creationType", "Solicitud"),
             "label": data.get("creationEventLabel", "Caso creado desde el asistente de alta estructurada"),
+            "actorName": data.get("requesterName") or DEFAULT_DEMO_ACTOR["name"],
+            "actorRole": data.get("requesterRole") or "Profesional solicitante",
+            "actorCenter": data.get("centerName") or DEFAULT_DEMO_ACTOR["center"],
+            "actorType": "human",
+            "meta": {},
         }
     )
 
@@ -984,7 +1066,7 @@ def _attach_case_to_next_session(case_id: str) -> dict:
     _seed_xarxa_sessions_if_empty()
     session = _col("xarxa_sessions").find_one({"status": {"$in": ["scheduled", "live"]}}, sort=[("date", 1)])
     if not session:
-        session = create_xarxa_session()
+        raise ValueError("No hay ninguna sesión de red programada. Crea una sesión antes de enviar casos a discusión.")
 
     case = _col("xarxa_cases").find_one(_case_query(case_id), {"caseId": 1, "title": 1, "centerName": 1})
     if not case:
@@ -1073,6 +1155,7 @@ def bulk_act_on_xarxa_cases(
     assigned_to: str | None = None,
     assigned_name: str | None = None,
     priority: str | None = None,
+    actor: dict[str, Any] | None = None,
 ) -> list[dict]:
     updated_cases: list[dict] = []
     for case_id in case_ids:
@@ -1084,6 +1167,7 @@ def bulk_act_on_xarxa_cases(
                     "assignedName": assigned_name,
                     "eventLabel": f"Caso asignado a {assigned_name or 'responsable pendiente'}",
                     "type": "Asignación",
+                    **({"actorName": actor.get("name"), "actorRole": actor.get("role"), "actorCenter": actor.get("center"), "actorType": actor.get("type")} if actor else {}),
                 },
             )
         elif action == "request_data":
@@ -1094,6 +1178,7 @@ def bulk_act_on_xarxa_cases(
                     "nextAction": "Completar datos solicitados por el equipo revisor",
                     "eventLabel": "Solicitud de datos enviada desde la cola de casos",
                     "type": "Estado",
+                    **({"actorName": actor.get("name"), "actorRole": actor.get("role"), "actorCenter": actor.get("center"), "actorType": actor.get("type")} if actor else {}),
                 },
             )
         elif action == "send_session":
@@ -1104,6 +1189,7 @@ def bulk_act_on_xarxa_cases(
                     "nextAction": "Preparar resumen para sesión de red",
                     "eventLabel": "Caso enviado a sesión de red desde la cola",
                     "type": "Estado",
+                    **({"actorName": actor.get("name"), "actorRole": actor.get("role"), "actorCenter": actor.get("center"), "actorType": actor.get("type")} if actor else {}),
                 },
             )
         elif action == "set_priority":
@@ -1113,6 +1199,7 @@ def bulk_act_on_xarxa_cases(
                     "priority": priority,
                     "eventLabel": f"Prioridad actualizada a {priority or 'sin definir'}",
                     "type": "Priorización",
+                    **({"actorName": actor.get("name"), "actorRole": actor.get("role"), "actorCenter": actor.get("center"), "actorType": actor.get("type")} if actor else {}),
                 },
             )
         elif action == "mark_review":
@@ -1123,6 +1210,7 @@ def bulk_act_on_xarxa_cases(
                     "nextAction": "Revisión farmacéutica",
                     "eventLabel": "Caso marcado como listo para revisión",
                     "type": "Estado",
+                    **({"actorName": actor.get("name"), "actorRole": actor.get("role"), "actorCenter": actor.get("center"), "actorType": actor.get("type")} if actor else {}),
                 },
             )
         else:
@@ -1136,7 +1224,6 @@ def update_xarxa_case(case_id: str, patch: dict) -> dict:
         "title",
         "clinicalSummary",
         "nextAction",
-        "pipelineStage",
         "priority",
         "caseType",
         "diseaseContext",
@@ -1149,11 +1236,33 @@ def update_xarxa_case(case_id: str, patch: dict) -> dict:
     if not update_doc:
         return get_xarxa_case(case_id)
 
+    previous_case = get_xarxa_case(case_id)
+    actor = _extract_actor(patch)
     update_doc["updatedAt"] = _now_iso()
     _touch_case(case_id, update_doc)
-    _append_event(case_id, "Decisiones", "Actualización", "Caso actualizado desde el editor clínico")
+    _append_event(
+        case_id,
+        "Decisiones",
+        "Actualización",
+        "Caso actualizado desde el editor clínico",
+        actor=actor,
+    )
     _append_agent_run(case_id, "Agente de gaps", "Se ha reevaluado la completitud del caso tras editar datos clínicos.")
-    return _recompute_case_state(case_id)
+    updated_case = _recompute_case_state(case_id)
+    if updated_case.get("pipelineStage") != previous_case.get("pipelineStage"):
+        _append_event(
+            case_id,
+            "Decisiones",
+            "Workflow automático",
+            (
+                f"La etapa del caso se ha reajustado automáticamente de "
+                f"«{previous_case.get('pipelineStage')}» a «{updated_case.get('pipelineStage')}» "
+                "tras reevaluar gaps y determinantes."
+            ),
+            actor=SYSTEM_ACTOR,
+            meta={"triggeredBy": actor},
+        )
+    return updated_case
 
 
 def transition_xarxa_case(case_id: str, patch: dict) -> dict:
@@ -1164,6 +1273,12 @@ def transition_xarxa_case(case_id: str, patch: dict) -> dict:
         "assignedTo",
         "assignedName",
     }
+    current_case = get_xarxa_case(case_id)
+    actor = _extract_actor(patch)
+    requested_stage = patch.get("pipelineStage")
+    _validate_stage_transition(current_case.get("pipelineStage"), requested_stage)
+    if requested_stage == "Discusión en red":
+        _attach_case_to_next_session(case_id)
     update_doc = {key: value for key, value in patch.items() if key in mutable_fields and value is not None}
     _touch_case(case_id, update_doc)
     _append_event(
@@ -1171,21 +1286,23 @@ def transition_xarxa_case(case_id: str, patch: dict) -> dict:
         patch.get("lane", "Decisiones"),
         patch.get("type", "Estado"),
         patch.get("eventLabel", "Caso actualizado"),
+        actor=actor,
     )
-    if patch.get("pipelineStage") == "Discusión en red":
-        _attach_case_to_next_session(case_id)
+    if requested_stage == "Discusión en red":
         _append_agent_run(case_id, "Agente de sesión", "Caso añadido a la próxima sesión de red para revisión colaborativa.")
-    elif patch.get("pipelineStage") == "Datos incompletos":
+    elif requested_stage == "Datos incompletos":
         _append_agent_run(case_id, "Agente de gaps", "Caso devuelto para completar determinantes y confirmar coherencia temporal.")
     return _recompute_case_state(
         case_id,
-        stage_override=patch.get("pipelineStage"),
+        stage_override=requested_stage,
         next_action_override=patch.get("nextAction"),
     )
 
 
 def update_xarxa_task(case_id: str, task_id: str, patch: dict) -> dict:
     mutable_fields = {"status", "ownerRole", "ownerId", "dueDate", "title", "priority"}
+    previous_case = get_xarxa_case(case_id)
+    actor = _extract_actor(patch)
     update_doc = {key: value for key, value in patch.items() if key in mutable_fields and value is not None}
     update_doc["updatedAt"] = _now_iso()
 
@@ -1203,14 +1320,30 @@ def update_xarxa_task(case_id: str, task_id: str, patch: dict) -> dict:
         "Tareas",
         "Tarea actualizada",
         patch.get("eventLabel") or f"Tarea actualizada: {result['title']} ({result['status']})",
+        actor=actor,
     )
     if patch.get("status") == "Resuelta":
         _append_agent_run(case_id, "Agente de gaps", "Se ha refrescado la completitud tras resolver una tarea pendiente.")
-    return _recompute_case_state(case_id)
+    updated_case = _recompute_case_state(case_id)
+    if updated_case.get("pipelineStage") != previous_case.get("pipelineStage"):
+        _append_event(
+            case_id,
+            "Decisiones",
+            "Workflow automático",
+            (
+                f"La etapa del caso se ha reajustado automáticamente de "
+                f"«{previous_case.get('pipelineStage')}» a «{updated_case.get('pipelineStage')}» "
+                "tras actualizar tareas y gaps."
+            ),
+            actor=SYSTEM_ACTOR,
+            meta={"triggeredBy": actor},
+        )
+    return updated_case
 
 
 def save_xarxa_recommendation(case_id: str, payload: dict) -> dict:
     case = get_xarxa_case(case_id)
+    actor = _extract_actor(payload)
     recommendation = {
         "caseId": case_id,
         "status": payload.get("status") or case.get("recommendation", {}).get("status", "Borrador IA"),
@@ -1226,6 +1359,7 @@ def save_xarxa_recommendation(case_id: str, payload: dict) -> dict:
         if payload.get(key) is not None
     }
     if case_updates:
+        _validate_stage_transition(case.get("pipelineStage"), case_updates.get("pipelineStage"))
         _touch_case(case_id, case_updates)
 
     _append_event(
@@ -1233,6 +1367,7 @@ def save_xarxa_recommendation(case_id: str, payload: dict) -> dict:
         "Decisiones",
         "Recomendación",
         payload.get("eventLabel") or f"Recomendación actualizada: {recommendation['status']}",
+        actor=actor,
     )
     _append_agent_run(case_id, "Agente de recomendación", f"Se ha actualizado la propuesta clínica en estado {recommendation['status']}.")
     return get_xarxa_case(case_id)
@@ -1393,7 +1528,13 @@ def orchestrate_xarxa_case(case_id: str) -> dict:
     _upsert_singleton_case_doc("xarxa_notes", case["caseId"], "note", note)
     _touch_case(case_id, {"clinicalNote": note})
 
-    _append_event(case["caseId"], "Decisiones", "IA", "Orquestación IA ejecutada sobre el caso")
+    _append_event(
+        case["caseId"],
+        "Decisiones",
+        "IA",
+        "Orquestación IA de demostración ejecutada sobre el caso",
+        actor=SYSTEM_ACTOR,
+    )
     _append_agent_run(
         case["caseId"],
         "Agente de gaps",
@@ -1407,12 +1548,12 @@ def orchestrate_xarxa_case(case_id: str) -> dict:
     _append_agent_run(
         case["caseId"],
         "Agente de recomendación",
-        "Borrador de recomendación clínica preparado para validación farmacéutica.",
+        "Borrador clínico de demostración preparado para validación farmacéutica.",
     )
     _append_agent_run(
         case["caseId"],
         "Agente de informe HCE",
-        "Borrador de nota HCE preparado para revisión profesional.",
+        "Borrador de nota HCE de demostración preparado para revisión profesional.",
     )
 
     return _recompute_case_state(
@@ -1424,6 +1565,7 @@ def orchestrate_xarxa_case(case_id: str) -> dict:
 
 def save_xarxa_note(case_id: str, payload: dict) -> dict:
     case = get_xarxa_case(case_id)
+    actor = _extract_actor(payload)
     note = {
         "caseId": case_id,
         "status": payload.get("status") or case.get("clinicalNote", {}).get("status", "Borrador"),
@@ -1439,6 +1581,7 @@ def save_xarxa_note(case_id: str, payload: dict) -> dict:
         if payload.get(key) is not None
     }
     if case_updates:
+        _validate_stage_transition(case.get("pipelineStage"), case_updates.get("pipelineStage"))
         _touch_case(case_id, case_updates)
 
     _append_event(
@@ -1446,6 +1589,7 @@ def save_xarxa_note(case_id: str, payload: dict) -> dict:
         "Decisiones",
         "Informe HCE",
         payload.get("eventLabel") or f"Informe HCE actualizado: {note['status']}",
+        actor=actor,
     )
     _append_agent_run(case_id, "Agente de informe HCE", f"Se ha actualizado el informe HCE con estado {note['status']}.")
     return get_xarxa_case(case_id)
@@ -1471,6 +1615,8 @@ def save_xarxa_followup(case_id: str, payload: dict) -> dict:
     if not label:
         raise ValueError("Follow-up label is required")
 
+    case = get_xarxa_case(case_id)
+    actor = _extract_actor(payload)
     follow_up = {
         "caseId": case_id,
         "label": label,
@@ -1491,6 +1637,7 @@ def save_xarxa_followup(case_id: str, payload: dict) -> dict:
         if payload.get(key) is not None
     }
     if case_updates:
+        _validate_stage_transition(case.get("pipelineStage"), case_updates.get("pipelineStage"))
         _touch_case(case_id, case_updates)
 
     _append_event(
@@ -1498,6 +1645,7 @@ def save_xarxa_followup(case_id: str, payload: dict) -> dict:
         "Decisiones",
         "Seguimiento",
         payload.get("eventLabel") or f"Seguimiento actualizado: {label} ({follow_up['status']})",
+        actor=actor,
     )
     _append_agent_run(case_id, "Agente de aprendizaje", f"Se ha registrado {label.lower()} con estado {follow_up['status']}.")
     return get_xarxa_case(case_id)
@@ -1511,82 +1659,104 @@ def get_xarxa_kpis(
     days: int | None = None,
 ) -> dict:
     reporting = _col("xarxa_reporting").find_one({}, {"_id": 0})
-    cases = list(_col("xarxa_cases").find({}, {"_id": 0, "createdAt": 1, "pipelineStage": 1, "gaps": 1}))
-    followups = list(_col("xarxa_followups").find({}, {"_id": 0, "dueDate": 1, "status": 1}))
-    full_cases = list(
-        _col("xarxa_cases").find(
-            {},
-            {
-                "_id": 0,
-                "caseId": 1,
-                "centerName": 1,
-                "centerId": 1,
-                "programId": 1,
-                "createdAt": 1,
-                "updatedAt": 1,
-                "pipelineStage": 1,
-                "caseType": 1,
-                "gaps": 1,
-                "priority": 1,
-                "tasks": 1,
-                "clinicalSummary": 1,
-                "recommendation": 1,
-                "clinicalNote": 1,
-            },
-        )
-    )
-    agent_runs = list(
-        _col("xarxa_agent_runs").find({}, {"_id": 0, "agent": 1, "caseId": 1, "timestamp": 1, "message": 1})
-    )
+    case_match: dict[str, Any] = {}
+    if center_id:
+        case_match["centerId"] = center_id
+    if program_id:
+        case_match["programId"] = program_id
+    if days:
+        threshold = (datetime.now(UTC) - timedelta(days=days)).isoformat()
+        case_match["updatedAt"] = {"$gte": threshold}
+
+    cases_col = _col("xarxa_cases")
+    valid_case_ids = cases_col.distinct("caseId", case_match)
+    agent_match = {"caseId": {"$in": valid_case_ids}} if valid_case_ids else {"caseId": {"$in": []}}
     sessions = list(_col("xarxa_sessions").find({}, {"_id": 0, "status": 1, "caseIds": 1}))
     today = datetime.now(UTC).date().isoformat()
 
-    def case_matches(case: dict[str, Any]) -> bool:
-        if center_id and case.get("centerId") != center_id:
-            return False
-        if program_id and case.get("programId") != program_id:
-            return False
-        if days and not _within_last_days(case.get("updatedAt") or case.get("createdAt"), days):
-            return False
-        return True
+    def count_by(field: str) -> list[dict[str, Any]]:
+        pipeline = [
+            {"$match": case_match},
+            {"$group": {"_id": {"$ifNull": [f"${field}", "No clasificado"]}, "value": {"$sum": 1}}},
+            {"$project": {"_id": 0, "label": "$_id", "value": 1}},
+            {"$sort": {"value": -1, "label": 1}},
+        ]
+        return list(cases_col.aggregate(pipeline))
 
-    cases = [case for case in cases if case_matches(case)]
-    full_cases = [case for case in full_cases if case_matches(case)]
-    valid_case_ids = {case.get("caseId") for case in full_cases if case.get("caseId")}
-    agent_runs = [run for run in agent_runs if run.get("caseId") in valid_case_ids] if full_cases else []
+    active_cases = cases_col.count_documents({**case_match, "pipelineStage": {"$ne": "Cerrado con resultado"}})
+    new_today = cases_col.count_documents({**case_match, "createdAt": {"$regex": f"^{today}"}})
+    pending_determinants = cases_col.count_documents(
+        {**case_match, "pipelineStage": {"$in": ["Datos incompletos", "Pendiente de determinantes"]}}
+    )
+    ready_for_review = cases_col.count_documents(
+        {**case_match, "pipelineStage": {"$in": ["Determinantes recibidos", "Revisión farmacéutica"]}}
+    )
+    critical_gap_result = list(
+        cases_col.aggregate(
+            [
+                {"$match": case_match},
+                {"$unwind": "$gaps"},
+                {"$match": {"gaps.severity": "Crítico"}},
+                {"$group": {"_id": "$caseId"}},
+                {"$count": "total"},
+            ]
+        )
+    )
+    critical_gap_cases = critical_gap_result[0]["total"] if critical_gap_result else 0
+    overdue_followups_pipeline: list[dict[str, Any]] = [
+        {
+            "$lookup": {
+                "from": "xarxa_cases",
+                "localField": "caseId",
+                "foreignField": "caseId",
+                "as": "case",
+            }
+        },
+        {"$unwind": "$case"},
+        {"$match": {"dueDate": {"$lt": today}, "status": {"$ne": "Completado"}}},
+    ]
+    if center_id:
+        overdue_followups_pipeline.append({"$match": {"case.centerId": center_id}})
+    if program_id:
+        overdue_followups_pipeline.append({"$match": {"case.programId": program_id}})
+    if days:
+        overdue_followups_pipeline.append({"$match": {"case.updatedAt": {"$gte": threshold}}})
+    overdue_followups_pipeline.append({"$count": "total"})
+    overdue_followups_result = list(_col("xarxa_followups").aggregate(overdue_followups_pipeline))
+    overdue_followups = overdue_followups_result[0]["total"] if overdue_followups_result else 0
 
     live_kpis = [
-        {"label": "Casos activos", "value": len([case for case in cases if case.get("pipelineStage") != "Cerrado con resultado"])},
-        {"label": "Nuevos hoy", "value": len([case for case in cases if str(case.get("createdAt", "")).startswith(today)])},
-        {"label": "Pendientes de determinantes", "value": len([case for case in cases if case.get("pipelineStage") in {"Datos incompletos", "Pendiente de determinantes"}])},
-        {"label": "Listos para revisión", "value": len([case for case in cases if case.get("pipelineStage") in {"Determinantes recibidos", "Revisión farmacéutica"}])},
-        {"label": "Con gaps críticos", "value": len([case for case in cases if any(gap.get("severity") == "Crítico" for gap in case.get("gaps", []))])},
-        {"label": "Seguimiento vencido", "value": len([item for item in followups if item.get("dueDate") and item.get("dueDate") < today and item.get("status") != "Completado"])},
+        {"label": "Casos activos", "value": active_cases},
+        {"label": "Nuevos hoy", "value": new_today},
+        {"label": "Pendientes de determinantes", "value": pending_determinants},
+        {"label": "Listos para revisión", "value": ready_for_review},
+        {"label": "Con gaps críticos", "value": critical_gap_cases},
+        {"label": "Seguimiento vencido", "value": overdue_followups},
     ]
 
-    def count_by(key: str) -> list[dict[str, Any]]:
-        counts: dict[str, int] = {}
-        for case in full_cases:
-            label = case.get(key) or "No clasificado"
-            counts[label] = counts.get(label, 0) + 1
-        return [{"label": label, "value": value} for label, value in sorted(counts.items(), key=lambda item: (-item[1], item[0]))]
+    top_gaps = list(
+        cases_col.aggregate(
+            [
+                {"$match": case_match},
+                {"$unwind": "$gaps"},
+                {"$group": {"_id": {"$ifNull": ["$gaps.label", "Gap no clasificado"]}, "value": {"$sum": 1}}},
+                {"$project": {"_id": 0, "label": "$_id", "value": 1}},
+                {"$sort": {"value": -1, "label": 1}},
+                {"$limit": 5},
+            ]
+        )
+    )
 
-    gap_counts: dict[str, int] = {}
-    for case in full_cases:
-        for gap in case.get("gaps", []):
-            label = gap.get("label", "Gap no clasificado")
-            gap_counts[label] = gap_counts.get(label, 0) + 1
-
-    top_gaps = sorted(gap_counts.items(), key=lambda item: (-item[1], item[0]))[:5]
-
-    runs_by_case: dict[str, list[dict[str, Any]]] = {}
-    agent_counts: dict[str, int] = {}
-    for run in agent_runs:
-        label = run.get("agent", "Agente no clasificado")
-        agent_counts[label] = agent_counts.get(label, 0) + 1
-        case_id = run.get("caseId")
-        if case_id:
-            runs_by_case.setdefault(case_id, []).append(run)
+    agent_counts = list(
+        _col("xarxa_agent_runs").aggregate(
+            [
+                {"$match": agent_match},
+                {"$group": {"_id": {"$ifNull": ["$agent", "Agente no clasificado"]}, "value": {"$sum": 1}}},
+                {"$project": {"_id": 0, "label": "$_id", "value": 1}},
+                {"$sort": {"value": -1, "label": 1}},
+            ]
+        )
+    )
 
     session_counts = {
         "Programadas": len([session for session in sessions if session.get("status") == "scheduled"]),
@@ -1594,43 +1764,32 @@ def get_xarxa_kpis(
         "Completadas": len([session for session in sessions if session.get("status") == "done"]),
     }
 
-    cases_prepared_by_ai = 0
-    recommendation_drafts = 0
-    note_drafts = 0
-    total_minutes_saved = 0
-    automated_by_center: dict[str, int] = {}
-
-    for case in full_cases:
-        case_id = case.get("caseId")
-        case_runs = runs_by_case.get(case_id, [])
-        if case_runs:
-            cases_prepared_by_ai += 1
-            center_label = case.get("centerName") or "Centro no clasificado"
-            automated_by_center[center_label] = automated_by_center.get(center_label, 0) + 1
-
-        summary = _build_automation_summary(case, case_runs)
-        total_minutes_saved += summary.get("estimatedMinutesSaved", 0)
-        if summary.get("hasRecommendationDraft"):
-            recommendation_drafts += 1
-        if summary.get("hasNoteDraft"):
-            note_drafts += 1
+    prepared_case_ids = _col("xarxa_agent_runs").distinct("caseId", agent_match)
+    cases_prepared_by_ai = len(prepared_case_ids)
+    recommendation_drafts = cases_col.count_documents(
+        {**case_match, "recommendation.text": {"$exists": True, "$nin": ["", None]}}
+    )
+    note_drafts = cases_col.count_documents(
+        {**case_match, "clinicalNote.text": {"$exists": True, "$nin": ["", None]}}
+    )
+    automated_by_center = list(
+        cases_col.aggregate(
+            [
+                {"$match": {**case_match, "caseId": {"$in": prepared_case_ids}}},
+                {"$group": {"_id": {"$ifNull": ["$centerName", "Centro no clasificado"]}, "value": {"$sum": 1}}},
+                {"$project": {"_id": 0, "label": "$_id", "value": 1}},
+                {"$sort": {"value": -1, "label": 1}},
+            ]
+        )
+    ) if prepared_case_ids else []
 
     live_charts = [
         {"label": "Casos por tipo", "data": count_by("caseType")},
         {"label": "Casos por estado", "data": count_by("pipelineStage")},
         {"label": "Casos por centro", "data": count_by("centerName")},
-        {
-            "label": "Gaps más frecuentes",
-            "data": [{"label": label, "value": value} for label, value in top_gaps],
-        },
-        {
-            "label": "Actividad de agentes",
-            "data": [{"label": label, "value": value} for label, value in sorted(agent_counts.items(), key=lambda item: (-item[1], item[0]))],
-        },
-        {
-            "label": "Impacto de automatización por centro",
-            "data": [{"label": label, "value": value} for label, value in sorted(automated_by_center.items(), key=lambda item: (-item[1], item[0]))],
-        },
+        {"label": "Gaps más frecuentes", "data": top_gaps},
+        {"label": "Actividad de agentes", "data": agent_counts},
+        {"label": "Impacto de automatización por centro", "data": automated_by_center},
         {
             "label": "Borradores y salidas IA",
             "data": [
@@ -1647,10 +1806,9 @@ def get_xarxa_kpis(
 
     live_kpis.extend(
         [
-            {"label": "Pasos IA ejecutados", "value": len(agent_runs)},
+            {"label": "Pasos IA ejecutados", "value": sum(item["value"] for item in agent_counts)},
             {"label": "Casos preparados por IA", "value": cases_prepared_by_ai},
             {"label": "Borradores clínicos", "value": recommendation_drafts + note_drafts},
-            {"label": "Minutos automatizados", "value": total_minutes_saved},
         ]
     )
 
@@ -1846,42 +2004,46 @@ def update_xarxa_professional(
 
 def list_xarxa_agents() -> list[dict]:
     agents = [_keep_id(agent) for agent in _col("xarxa_agents").find({})]
-    minutes_weight = {
-        "Agente de ingesta": 6,
-        "Agente de gaps": 4,
-        "Agente de laboratorio": 4,
-        "Agente PK/PD": 7,
-        "Agente de recomendación": 6,
-        "Agente de informe HCE": 5,
-        "Agente de sesión": 4,
-        "Agente de aprendizaje": 3,
-    }
     for agent in agents:
-        all_runs = list(
-            _col("xarxa_agent_runs")
-            .find({"agent": agent["label"]}, {"_id": 0})
-            .sort("timestamp", -1)
-        )
+        all_runs = list(_col("xarxa_agent_runs").find({"agent": agent["label"]}, {"_id": 0}).sort("timestamp", -1))
         recent_runs = all_runs[:5]
-        cases_touched = len({run.get("caseId") for run in all_runs if run.get("caseId")})
-        drafts_prepared = len(
-            [
-                run
-                for run in all_runs
-                if any(
-                    token in str(run.get("message", "")).lower()
-                    for token in ("borrador", "paquete", "nota hce", "propuesta clínica")
-                )
-            ]
+        metrics = list(
+            _col("xarxa_agent_runs").aggregate(
+                [
+                    {"$match": {"agent": agent["label"]}},
+                    {
+                        "$group": {
+                            "_id": "$agent",
+                            "totalRuns": {"$sum": 1},
+                            "caseIds": {"$addToSet": "$caseId"},
+                            "draftsPrepared": {
+                                "$sum": {
+                                    "$cond": [
+                                        {
+                                            "$regexMatch": {
+                                                "input": {"$toLower": {"$ifNull": ["$message", ""]}},
+                                                "regex": "borrador|paquete|nota hce|propuesta clínica",
+                                            }
+                                        },
+                                        1,
+                                        0,
+                                    ]
+                                }
+                            },
+                        }
+                    },
+                ]
+            )
         )
+        agent_metric = metrics[0] if metrics else {"totalRuns": 0, "caseIds": [], "draftsPrepared": 0}
+        cases_touched = len([case_id for case_id in agent_metric.get("caseIds", []) if case_id])
 
         agent["recentRuns"] = recent_runs
         agent["metrics"] = {
-            "totalRuns": len(all_runs),
+            "totalRuns": agent_metric.get("totalRuns", 0),
             "casesTouched": cases_touched,
-            "estimatedMinutesSaved": len(all_runs) * minutes_weight.get(agent["label"], 4),
             "lastRunAt": recent_runs[0].get("timestamp") if recent_runs else None,
-            "draftsPrepared": drafts_prepared,
+            "draftsPrepared": agent_metric.get("draftsPrepared", 0),
         }
     return agents
 

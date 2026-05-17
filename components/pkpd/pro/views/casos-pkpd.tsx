@@ -51,6 +51,13 @@ type BulkActionResponse = {
   total: number
 }
 
+const DEMO_ACTOR = {
+  actorName: 'Farmacéutico referente',
+  actorRole: 'Farmacéutico experto',
+  actorCenter: 'H.U. Bellvitge',
+  actorType: 'human',
+} as const
+
 type Props = {
   casos: CasoResumen[]
   kpis: Array<{ label: string; value: number }>
@@ -171,6 +178,7 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
         body: JSON.stringify({
           caseIds,
           action,
+          ...DEMO_ACTOR,
           ...extra,
         }),
       })
@@ -192,7 +200,7 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
       await fetchJson<CasoResumen>(`/api/xarxa/cases/${caseId}/orchestrate`, {
         method: 'POST',
       })
-      setActionNotice(`La IA ha preparado el paquete automático para ${caseId}.`)
+      setActionNotice(`La preparación IA de demostración ha dejado listo el paquete automático para ${caseId}.`)
       await onCasesChanged?.()
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'No se ha podido preparar el caso con IA.')
@@ -249,7 +257,7 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
     () => ({
       steps: filtered.reduce((sum, caso) => sum + (caso.automationSummary?.stepsCompleted ?? 0), 0),
       drafts: filtered.reduce((sum, caso) => sum + (caso.automationSummary?.draftsReady ?? 0), 0),
-      minutes: filtered.reduce((sum, caso) => sum + (caso.automationSummary?.estimatedMinutesSaved ?? 0), 0),
+      tasks: filtered.reduce((sum, caso) => sum + (caso.automationSummary?.tasksCreated ?? 0), 0),
       casesReady: filtered.filter((caso) => (caso.automationSummary?.stepsCompleted ?? 0) > 0).length,
     }),
     [filtered]
@@ -416,7 +424,7 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
               <QueueAutomationPill label="Casos preparados" value={String(automationTotals.casesReady)} />
               <QueueAutomationPill label="Pasos IA" value={String(automationTotals.steps)} />
               <QueueAutomationPill label="Borradores" value={String(automationTotals.drafts)} />
-              <QueueAutomationPill label="Min evitados" value={String(automationTotals.minutes)} />
+              <QueueAutomationPill label="Tareas creadas" value={String(automationTotals.tasks)} />
             </div>
           </div>
         </div>
@@ -672,8 +680,8 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
                             </p>
                             <div className="mt-3 grid grid-cols-2 gap-2">
                               <QueueAutomationMini label="Pasos" value={String(caso.automationSummary?.stepsCompleted ?? 0)} />
-                              <QueueAutomationMini label="Min evitados" value={String(caso.automationSummary?.estimatedMinutesSaved ?? 0)} />
                               <QueueAutomationMini label="Tareas IA" value={String(caso.automationSummary?.tasksCreated ?? 0)} />
+                              <QueueAutomationMini label="Pendientes" value={String(caso.automationSummary?.pendingTasks ?? 0)} />
                               <QueueAutomationMini label="Borradores" value={String(caso.automationSummary?.draftsReady ?? 0)} />
                             </div>
                             {(caso.automationSummary?.highlights?.length ?? 0) > 0 ? (
@@ -722,7 +730,7 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
                                 void orchestrateCase(caso.caseId)
                               }}
                             >
-                              Preparar con IA
+                              Preparar con IA demo
                             </Button>
                             <select
                               value={rowAssignee[caso.caseId] ?? ''}

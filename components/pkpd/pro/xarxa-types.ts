@@ -23,6 +23,10 @@ export type TimelineEvent = {
   lane: string
   type: string
   label: string
+  actorName?: string
+  actorRole?: string
+  actorCenter?: string
+  actorType?: string
 }
 
 export type LabDeterminant = {
@@ -49,7 +53,6 @@ export type AutomationSummary = {
   tasksCreated: number
   pendingTasks: number
   draftsReady: number
-  estimatedMinutesSaved: number
   highlights: string[]
   agentsInvolved: string[]
   lastRunAt?: string | null
@@ -149,7 +152,6 @@ export type Agent = {
   metrics?: {
     totalRuns: number
     casesTouched: number
-    estimatedMinutesSaved: number
     lastRunAt?: string | null
     draftsPrepared: number
   }

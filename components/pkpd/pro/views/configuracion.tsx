@@ -35,6 +35,11 @@ export function Configuracion() {
   const [notifCaso, setNotifCaso] = useState(true)
   const [notifSesion, setNotifSesion] = useState(false)
   const [notifAgent, setNotifAgent] = useState(true)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  function showPreview(message: string) {
+    setNotice(message)
+  }
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -61,6 +66,11 @@ export function Configuracion() {
 
       {/* content */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
+        {notice ? (
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {notice}
+          </div>
+        ) : null}
         {active === 'notificaciones' && (
           <div className="max-w-lg">
             <h2 className="mb-1 text-sm font-semibold text-[#152520]">Notificaciones</h2>
@@ -82,7 +92,11 @@ export function Configuracion() {
               ))}
             </div>
             <div className="mt-6">
-              <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]">
+              <Button
+                size="sm"
+                className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+                onClick={() => showPreview('La persistencia completa de configuración global sigue en vista previa. Los cambios visuales de esta pantalla son demostrativos.')}
+              >
                 Guardar cambios
               </Button>
             </div>
@@ -102,8 +116,13 @@ export function Configuracion() {
                 <p className="text-sm font-medium text-[#152520]">Última sesión</p>
                 <p className="mt-0.5 text-xs text-[#4a7068]">Hoy a las 08:30 · Barcelona, España</p>
               </div>
-              <Button size="sm" variant="outline" className="rounded-xl text-xs">
-                Cambiar contraseña
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-xl text-xs"
+                onClick={() => showPreview('El cambio de contraseña sigue en vista previa en este entorno demo.')}
+              >
+                Cambiar contraseña · vista previa
               </Button>
             </div>
           </div>
@@ -117,8 +136,13 @@ export function Configuracion() {
               <p className="text-xs text-[#4a7068] leading-6">
                 Todos los datos de pacientes están seudonimizados según la normativa RGPD. Los datos clínicos no se usan para entrenar modelos sin consentimiento explícito.
               </p>
-              <Button size="sm" variant="outline" className="mt-3 rounded-xl text-xs">
-                Ver política completa
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3 rounded-xl text-xs"
+                onClick={() => showPreview('La política extendida de privacidad se mostrará en una siguiente iteración. Por ahora esta sección funciona como vista previa.')}
+              >
+                Ver política completa · vista previa
               </Button>
             </div>
           </div>
@@ -139,7 +163,14 @@ export function Configuracion() {
                     <p className="text-sm font-medium text-[#152520]">{intg.name}</p>
                     <p className={`text-xs font-medium ${intg.cls}`}>{intg.status}</p>
                   </div>
-                  <Button size="sm" variant="outline" className="rounded-xl text-xs">Configurar</Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl text-xs"
+                    onClick={() => showPreview(`La configuración detallada de «${intg.name}» sigue en vista previa dentro de la demo.`)}
+                  >
+                    Configurar · vista previa
+                  </Button>
                 </div>
               ))}
             </div>

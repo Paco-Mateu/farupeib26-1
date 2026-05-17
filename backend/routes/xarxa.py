@@ -94,6 +94,10 @@ class UpdateCaseRequest(BaseModel):
     diseaseContext: dict[str, Any] | None = None
     therapyContext: dict[str, Any] | None = None
     labDeterminants: list[DeterminantPayload] | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class TransitionCaseRequest(BaseModel):
@@ -105,6 +109,10 @@ class TransitionCaseRequest(BaseModel):
     eventLabel: str
     lane: str = "Decisiones"
     type: str = "Estado"
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class UpdateTaskRequest(BaseModel):
@@ -115,6 +123,10 @@ class UpdateTaskRequest(BaseModel):
     title: str | None = None
     priority: str | None = None
     eventLabel: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class RecommendationUpdateRequest(BaseModel):
@@ -123,6 +135,10 @@ class RecommendationUpdateRequest(BaseModel):
     pipelineStage: str | None = None
     nextAction: str | None = None
     eventLabel: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class ClinicalNoteUpdateRequest(BaseModel):
@@ -131,6 +147,10 @@ class ClinicalNoteUpdateRequest(BaseModel):
     pipelineStage: str | None = None
     nextAction: str | None = None
     eventLabel: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class FollowUpUpdateRequest(BaseModel):
@@ -140,6 +160,10 @@ class FollowUpUpdateRequest(BaseModel):
     pipelineStage: str | None = None
     nextAction: str | None = None
     eventLabel: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class CreateSessionRequest(BaseModel):
@@ -153,6 +177,10 @@ class BulkCaseActionRequest(BaseModel):
     assignedTo: str | None = None
     assignedName: str | None = None
     priority: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+    actorType: str | None = None
 
 
 class ApproveProfessionalRequest(BaseModel):
@@ -179,6 +207,13 @@ class ProgramPayload(BaseModel):
     sharingPolicy: str | None = None
 
 router = APIRouter(prefix="/api/xarxa", tags=["xarxa"])
+
+
+def _error_status(exc: ValueError) -> int:
+    message = str(exc)
+    if "not found" in message.lower():
+        return 404
+    return 400
 
 
 @router.post("/seed")
@@ -230,10 +265,16 @@ async def post_bulk_case_action(body: BulkCaseActionRequest):
             assigned_to=body.assignedTo,
             assigned_name=body.assignedName,
             priority=body.priority,
+            actor={
+                "name": body.actorName,
+                "role": body.actorRole,
+                "center": body.actorCenter,
+                "type": body.actorType,
+            },
         )
         return {"items": items, "total": len(items)}
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.get("/cases/{case_id}")
@@ -249,7 +290,7 @@ async def patch_case(case_id: str, body: UpdateCaseRequest):
     try:
         return update_xarxa_case(case_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.post("/cases/{case_id}/transition")
@@ -257,7 +298,7 @@ async def transition_case(case_id: str, body: TransitionCaseRequest):
     try:
         return transition_xarxa_case(case_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.post("/cases/{case_id}/orchestrate")
@@ -265,7 +306,7 @@ async def post_orchestrate_case(case_id: str):
     try:
         return orchestrate_xarxa_case(case_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.patch("/cases/{case_id}/tasks/{task_id}")
@@ -273,7 +314,7 @@ async def patch_task(case_id: str, task_id: str, body: UpdateTaskRequest):
     try:
         return update_xarxa_task(case_id, task_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.put("/cases/{case_id}/recommendation")
@@ -281,7 +322,7 @@ async def put_recommendation(case_id: str, body: RecommendationUpdateRequest):
     try:
         return save_xarxa_recommendation(case_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.put("/cases/{case_id}/note")
@@ -289,7 +330,7 @@ async def put_note(case_id: str, body: ClinicalNoteUpdateRequest):
     try:
         return save_xarxa_note(case_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.post("/cases/{case_id}/note/generate")
@@ -297,7 +338,7 @@ async def post_generate_note(case_id: str):
     try:
         return generate_xarxa_note(case_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.put("/cases/{case_id}/followup")
@@ -305,7 +346,7 @@ async def put_followup(case_id: str, body: FollowUpUpdateRequest):
     try:
         return save_xarxa_followup(case_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.get("/inbox")

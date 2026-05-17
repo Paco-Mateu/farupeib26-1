@@ -166,11 +166,13 @@ function Sidebar({
   onNavigate,
   bandejaCount,
   onOpenIntro,
+  onPreviewAction,
 }: {
   active: Vista
   onNavigate: (v: Vista) => void
   bandejaCount: number
   onOpenIntro: () => void
+  onPreviewAction: (message: string) => void
 }) {
   const isAdminVista = ADMIN_VISTAS.includes(active)
   const [adminOpen, setAdminOpen] = useState(isAdminVista)
@@ -308,7 +310,10 @@ function Sidebar({
               <p className="truncate text-[11px] font-medium text-[#152520]">Farmacéutico referente</p>
               <p className="truncate text-[10px] text-[#4a7068]">H.U. Bellvitge</p>
             </div>
-            <button className="text-[#4a7068]/40 hover:text-[#4a7068]">
+            <button
+              onClick={() => onPreviewAction('La gestión completa de sesión y salida del usuario sigue en vista previa dentro de la demo.')}
+              className="text-[#4a7068]/40 hover:text-[#4a7068]"
+            >
               <LogOut className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -729,6 +734,7 @@ export function XarraPro() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [paletteQuery, setPaletteQuery] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [shellNotice, setShellNotice] = useState<string | null>(null)
 
   const seededRef = useRef(false)
   const notificationContainerRef = useRef<HTMLDivElement>(null)
@@ -1479,6 +1485,7 @@ export function XarraPro() {
         onNavigate={navigate}
         bandejaCount={bandejaCount}
         onOpenIntro={openIntro}
+        onPreviewAction={setShellNotice}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -1507,7 +1514,14 @@ export function XarraPro() {
           />
         ) : null}
 
-        <main className="flex-1 overflow-hidden">{renderView()}</main>
+        <main className="flex flex-1 flex-col overflow-hidden">
+          {shellNotice ? (
+            <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 text-sm text-amber-800">
+              {shellNotice}
+            </div>
+          ) : null}
+          <div className="min-h-0 flex-1 overflow-hidden">{renderView()}</div>
+        </main>
       </div>
 
       <CommandPalette
