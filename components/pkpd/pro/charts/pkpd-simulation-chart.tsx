@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, CheckCircle2, FlaskConical, TrendingUp } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Download, FlaskConical, ShieldCheck, TrendingUp } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import {
   CartesianGrid,
@@ -15,7 +15,8 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { CasoCompleto } from '@/components/pkpd/pro/xarxa-types'
+import { deriveProtocolSemanticFrame, formatProtocolReviewDate, getProgramProtocol } from '@/components/pkpd/pro/protocol-guidance'
+import type { CasoCompleto, Program } from '@/components/pkpd/pro/xarxa-types'
 
 type ScenarioKind = 'exposure' | 'diagnostic' | 'decision'
 type CurveKey = 'current' | 'maintain' | 'raise-light' | 'raise-strong' | 'lower-light' | 'lower-strong'
@@ -74,9 +75,11 @@ const MOMENTS = ['Postdosis', '24 h', '48 h', '72 h', 'Valle', '96 h', '120 h']
 
 export function PkpdSimulationChart({
   caso,
+  program,
   preferredScenario,
 }: {
   caso: CasoCompleto
+  program?: Program | null
   preferredScenario?: string | null
 }) {
   const scenarios = buildScenarioDescriptors(caso)
@@ -91,14 +94,74 @@ export function PkpdSimulationChart({
 
   const scenario = scenarios.find((item) => item.label === selectedScenario) ?? scenarios[0]
   const model = buildSimulationModel(caso, scenario)
+  const observed = buildObservedData(caso)
+  const inputQuality = buildInputQuality(caso)
+  const protocol = getProgramProtocol(program)
+  const semanticFrame = deriveProtocolSemanticFrame(caso)
+
+  function exportSimulationPackage() {
+    const payload = {
+      caseId: caso.caseId,
+      title: caso.title,
+      generatedAt: new Date().toISOString(),
+      preview: true,
+      note: 'Paquete de trabajo para motor PK/PD externo. La simulación visual del cockpit es indicativa hasta integrar el algoritmo final.',
+      therapyContext: caso.therapyContext,
+      patientProfile: caso.patientProfile,
+      determinants: caso.labDeterminants,
+      interpretation: caso.pkpdInterpretation,
+      selectedScenario: scenario,
+      model,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${caso.caseId.toLowerCase()}-paquete-pkpd.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_340px]">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-800">
+                Simulación indicativa
+              </span>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-medium text-[#4a7068] ring-1 ring-amber-200">
+                Pendiente de motor bayesiano
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-amber-900">
+              Este bloque ya sirve como workbench de decisión y exporta el paquete del caso, pero la curva y las proyecciones siguen siendo una vista previa hasta conectar el algoritmo PK/PD externo.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={exportSimulationPackage}
+            className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-50"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Exportar paquete JSON
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard label="Tratamiento actual" value={observed.drugLine} accent="text-[#152520]" icon={FlaskConical} />
+            <MetricCard label="Muestra observada" value={observed.sampleLine} accent="text-[#152520]" icon={TrendingUp} />
+            <MetricCard label="Lectura protocolaria" value={semanticFrame.label} accent="text-[#152520]" icon={ShieldCheck} />
+            <MetricCard label="Decisión en foco" value={classifyDecision(scenario)} accent={riskAccent(scenario.risk)} icon={CheckCircle2} />
+          </div>
+
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_360px]">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Comparador de escenarios</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Workbench PK/PD</p>
               <h3 className="mt-1 text-lg font-semibold text-[#152520]">{scenario.label}</h3>
               <p className="mt-1 text-sm text-[#4a7068]">{scenario.outcome}</p>
             </div>
@@ -187,7 +250,7 @@ export function PkpdSimulationChart({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <SmallInsight
               label="Lectura clínica"
-              value={model.readout}
+              value={semanticFrame.rationale}
               tone="emerald"
             />
             <SmallInsight
@@ -196,12 +259,31 @@ export function PkpdSimulationChart({
               tone="slate"
             />
           </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <WorkbenchPanel
+              title="Datos observados"
+              items={[
+                ['Fármaco y pauta', observed.drugLine],
+                ['Nivel o valle', observed.sampleLine],
+                ['Intervalo actual', observed.intervalLine],
+                ['Biomarcadores', observed.biomarkerLine],
+              ]}
+            />
+            <WorkbenchPanel
+              title="Calidad del input"
+              items={inputQuality.map((item) => [item.label, item.value] as [string, string])}
+            />
+          </div>
         </div>
 
         <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Escenarios de optimización</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Decisión terapéutica</p>
             <h3 className="mt-1 text-lg font-semibold text-[#152520]">Comparador de estrategias</h3>
+            <p className="mt-1 text-sm leading-6 text-[#4a7068]">
+              Usa este panel para contrastar ratificación, intensificación, desintensificación, repetición de determinantes o cambio de mecanismo.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -235,6 +317,50 @@ export function PkpdSimulationChart({
               )
             })}
           </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Decisión en foco</p>
+            <p className="mt-2 text-base font-semibold text-[#152520]">{scenario.label}</p>
+            <div className="mt-3 space-y-2 text-sm">
+              <DecisionRow label="Tipo de decisión" value={classifyDecision(scenario)} />
+              <DecisionRow label="Aprobación principal" value={scenario.validationOwner} />
+              <DecisionRow label="Acción sugerida" value={scenario.requirement} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Semántica del protocolo</p>
+            <p className="mt-2 text-base font-semibold text-[#152520]">{semanticFrame.label}</p>
+            <p className="mt-2 text-sm leading-6 text-[#4a7068]">{semanticFrame.rationale}</p>
+            {semanticFrame.caution ? (
+              <p className="mt-2 text-xs font-medium text-amber-700">{semanticFrame.caution}</p>
+            ) : null}
+          </div>
+
+          {protocol ? (
+            <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Protocolo y fuentes</p>
+              <p className="mt-2 text-base font-semibold text-[#152520]">{protocol.title}</p>
+              <p className="mt-1 text-xs text-[#4a7068]">Última revisión: {formatProtocolReviewDate(protocol.lastReview)}</p>
+              {protocol.alignment ? <p className="mt-2 text-sm leading-6 text-[#4a7068]">{protocol.alignment}</p> : null}
+              {protocol.references?.length ? (
+                <div className="mt-3 space-y-2">
+                  {protocol.references.map((reference) => (
+                    <a
+                      key={`${reference.label}-${reference.url}`}
+                      href={reference.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block rounded-xl border border-slate-200 bg-white px-3 py-2 transition hover:border-[#7b3fa0]/20 hover:bg-[#faf6fd]"
+                    >
+                      <p className="text-sm font-semibold text-[#152520]">{reference.label}</p>
+                      {reference.source ? <p className="mt-0.5 text-[11px] text-[#4a7068]">{reference.source}</p> : null}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="rounded-2xl border border-[#7b3fa0]/10 bg-[#faf6fd]/60 px-4 py-3">
             <p className="text-xs text-[#7b3fa0]">{model.sampleMessage}</p>
@@ -433,6 +559,63 @@ function bestCurveForScenario(scenario: ScenarioDescriptor, direction: 'low' | '
   return scenario.curveKey ?? 'maintain'
 }
 
+function buildObservedData(caso: CasoCompleto) {
+  const therapy = caso.therapyContext ?? {}
+  const determinants = caso.labDeterminants ?? []
+  const trough = determinants.find((item) =>
+    String(item.relationToDose ?? '').toLowerCase().includes('valle') ||
+    /concentraci[oó]n|trough|nivel/i.test(item.label)
+  )
+  const biomarkers = determinants
+    .filter((item) => /pcr|calprotectina|alb[uú]mina|anticuerpo/i.test(item.label.toLowerCase()))
+    .slice(0, 3)
+    .map((item) => `${item.label}: ${item.value}${item.unit ? ` ${item.unit}` : ''}`)
+
+  return {
+    drugLine: [therapy.currentDrug, therapy.currentDose, therapy.interval].filter(Boolean).join(' · ') || 'Pendiente de revisar',
+    sampleLine: trough ? `${trough.value}${trough.unit ? ` ${trough.unit}` : ''}` : 'Sin nivel interpretable',
+    intervalLine: String(therapy.interval ?? 'Sin intervalo documentado'),
+    biomarkerLine: biomarkers.length > 0 ? biomarkers.join(' · ') : 'Biomarcadores no priorizados',
+  }
+}
+
+function buildInputQuality(caso: CasoCompleto) {
+  const determinants = caso.labDeterminants ?? []
+  const confirmed = determinants.filter((item) => item.status === 'Confirmado').length
+  const troughItem = determinants.find((item) =>
+    String(item.relationToDose ?? '').toLowerCase().includes('valle') ||
+    /concentraci[oó]n|trough|nivel/i.test(item.label)
+  )
+  return [
+    {
+      label: 'Temporalidad de muestra',
+      value: troughItem?.relationToDose ? String(troughItem.relationToDose) : 'Pendiente de confirmar',
+    },
+    {
+      label: 'Determinantes confirmados',
+      value: `${confirmed}/${determinants.length || 0}`,
+    },
+    {
+      label: 'Confianza del caso',
+      value: caso.pkpdInterpretation?.confidence || 'Media',
+    },
+    {
+      label: 'Origen del cálculo',
+      value: 'Vista previa estructurada del workbench',
+    },
+  ]
+}
+
+function classifyDecision(scenario: ScenarioDescriptor) {
+  const normalized = scenario.label.toLowerCase()
+  if (normalized.includes('mantener') || normalized.includes('confirmar')) return 'Ratificación de pauta actual'
+  if (normalized.includes('acortar') || normalized.includes('aument') || normalized.includes('intensif')) return 'Aumentar exposición'
+  if (normalized.includes('alargar') || normalized.includes('reduc') || normalized.includes('desintens')) return 'Reducir exposición'
+  if (normalized.includes('cambiar')) return 'Cambiar medicación / mecanismo'
+  if (normalized.includes('repetir')) return 'Repetir determinantes'
+  return 'Discusión clínica'
+}
+
 function riskAccent(risk: string) {
   if (risk.toLowerCase().includes('alto')) return 'text-red-600'
   if (risk.toLowerCase().includes('medio')) return 'text-amber-600'
@@ -511,6 +694,43 @@ function SmallInsight({
     <div className={`rounded-2xl border p-3 ${styles[tone]}`}>
       <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{label}</p>
       <p className="mt-2 text-sm leading-6 text-[#152520]">{value}</p>
+    </div>
+  )
+}
+
+function WorkbenchPanel({
+  title,
+  items,
+}: {
+  title: string
+  items: Array<[string, string]>
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-[#f8faf9] p-4">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{title}</p>
+      <div className="mt-3 space-y-2.5">
+        {items.map(([label, value]) => (
+          <div key={label} className="flex flex-col gap-0.5 rounded-xl border border-white bg-white px-3 py-2.5 shadow-sm">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-slate-400">{label}</span>
+            <span className="text-sm text-[#152520]">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DecisionRow({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white px-3 py-2.5">
+      <p className="text-[10px] uppercase tracking-[0.12em] text-slate-400">{label}</p>
+      <p className="mt-1 text-sm text-[#152520]">{value}</p>
     </div>
   )
 }

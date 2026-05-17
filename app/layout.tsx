@@ -17,6 +17,11 @@ export function generateMetadata() {
   return {
     title,
     description: `${title} — built on Next.js, FastAPI, and MongoDB.`,
+    icons: {
+      icon: '/icon.png',
+      shortcut: '/icon.png',
+      apple: '/icon.png',
+    },
   }
 }
 

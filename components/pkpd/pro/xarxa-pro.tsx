@@ -56,14 +56,25 @@ import {
 import { AdminClinico } from '@/components/pkpd/pro/views/admin-clinico'
 import { AgentesIa } from '@/components/pkpd/pro/views/agentes-ia'
 import { BandejaIa } from '@/components/pkpd/pro/views/bandeja-ia'
-import { CaseCockpit } from '@/components/pkpd/pro/views/case-cockpit'
-import { CasosPkpd } from '@/components/pkpd/pro/views/casos-pkpd'
+import { CaseCockpit, type CaseCockpitLaunchPreset } from '@/components/pkpd/pro/views/case-cockpit'
+import { CasosPkpd, CasesQueueSkeleton } from '@/components/pkpd/pro/views/casos-pkpd'
 import { Configuracion } from '@/components/pkpd/pro/views/configuracion'
 import { NuevoCasoWizard } from '@/components/pkpd/pro/views/nuevo-caso-wizard'
 import { Profesionales } from '@/components/pkpd/pro/views/profesionales'
 import { Reporting } from '@/components/pkpd/pro/views/reporting'
 import { Sesiones } from '@/components/pkpd/pro/views/sesiones'
+import { MobileShell } from '@/components/pkpd/pro/mobile-shell'
+import { PersonAvatar } from '@/components/pkpd/pro/person-avatar'
 import { fetchJson } from '@/lib/fetch-json'
+
+// Demo-only: in production this comes from the authenticated session
+const DEMO_CURRENT_USER = {
+  name: 'Farmacéutico referente',
+  shortName: 'Farmacia referente',
+  center: 'H.U. Bellvitge',
+  centerShort: 'Bellvitge',
+  avatarUrl: '/avatars/farmaceutico-referente.jpg',
+} as const
 
 type NavItem = {
   vista: Vista
@@ -110,11 +121,10 @@ type PaletteSection = {
 
 const MAIN_NAV: NavItem[] = [
   { vista: 'casos', label: 'Casos PK/PD', icon: LayoutDashboard },
-  { vista: 'nuevo', label: 'Nuevo caso', icon: FilePlus2 },
   { vista: 'bandeja', label: 'Bandeja IA', icon: Inbox },
+  { vista: 'profesionales', label: 'Red de profesionales', icon: Users2 },
   { vista: 'sesiones', label: 'Sesiones de red', icon: Video },
   { vista: 'reporting', label: 'Informes y actividad', icon: BarChart3 },
-  { vista: 'profesionales', label: 'Red de centros', icon: Users2 },
 ]
 
 const ADMIN_NAV: NavItem[] = [
@@ -136,17 +146,6 @@ const VALID_VISTAS: Vista[] = [
   'admin',
   'config',
 ]
-
-const DATE_RANGES = [
-  { value: 7, label: 'Últimos 7 días' },
-  { value: 30, label: 'Últimos 30 días' },
-  { value: 90, label: 'Últimos 90 días' },
-  { value: 0, label: 'Todo el período' },
-]
-
-function formatDateRangeLabel(days: number) {
-  return DATE_RANGES.find((item) => item.value === days)?.label ?? 'Últimos 30 días'
-}
 
 function metricToneClass(tone: HeaderMetric['tone']) {
   switch (tone) {
@@ -295,20 +294,13 @@ function Sidebar({
 
         <div className={collapsed ? 'flex justify-center' : 'px-1'}>
         {collapsed ? (
-          <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[11px] font-bold text-[#7b3fa0]"
-            title="Farmacéutico referente · H.U. Bellvitge"
-          >
-            FM
-          </div>
+          <PersonAvatar name={DEMO_CURRENT_USER.name} avatarUrl={DEMO_CURRENT_USER.avatarUrl} size="sm" />
         ) : (
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[11px] font-bold text-[#7b3fa0]">
-              FM
-            </div>
+            <PersonAvatar name={DEMO_CURRENT_USER.name} avatarUrl={DEMO_CURRENT_USER.avatarUrl} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-medium text-[#152520]">Farmacéutico referente</p>
-              <p className="truncate text-[10px] text-[#4a7068]">H.U. Bellvitge</p>
+              <p className="truncate text-[11px] font-medium text-[#152520]">{DEMO_CURRENT_USER.name}</p>
+              <p className="truncate text-[10px] text-[#4a7068]">{DEMO_CURRENT_USER.center}</p>
             </div>
             <button
               onClick={() => onPreviewAction('La gestión completa de sesión y salida del usuario sigue en vista previa dentro de la demo.')}
@@ -372,48 +364,34 @@ function DesktopOnlyNotice() {
 
 function TopHeader({
   vistaLabel,
-  metrics,
   programs,
-  centers,
   selectedProgramId,
-  selectedCenterId,
-  dateRangeDays,
-  onProgramChange,
-  onCenterChange,
-  onDateRangeChange,
   onOpenPalette,
   notifications,
   notificationsOpen,
   onToggleNotifications,
   onNavigateNotification,
   notificationContainerRef,
-  shellLoading,
 }: {
   vistaLabel: string
-  metrics: HeaderMetric[]
   programs: Program[]
-  centers: Center[]
   selectedProgramId: string
-  selectedCenterId: string
-  dateRangeDays: number
-  onProgramChange: (programId: string) => void
-  onCenterChange: (centerId: string) => void
-  onDateRangeChange: (days: number) => void
   onOpenPalette: () => void
   notifications: ShellNotification[]
   notificationsOpen: boolean
   onToggleNotifications: () => void
   onNavigateNotification: (vista: Vista) => void
   notificationContainerRef: RefObject<HTMLDivElement>
-  shellLoading: boolean
 }) {
+  const activeProgramLabel =
+    programs.find((program) => program._id === selectedProgramId)?.label
+    ?? programs.find((program) => program.status === 'Activo')?.label
+    ?? 'Crohn PK/PD'
+
   return (
     <header className="shrink-0 border-b border-slate-100 bg-white">
       <div className="flex items-center justify-between gap-4 px-5 py-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
-            Xarxa PK/PD
-          </p>
           <h1 className="truncate text-base font-semibold text-[#152520]">{vistaLabel}</h1>
         </div>
 
@@ -431,45 +409,9 @@ function TopHeader({
             </button>
           </div>
 
-          <select
-            value={selectedProgramId}
-            onChange={(event) => onProgramChange(event.target.value)}
-            disabled={shellLoading && programs.length === 0}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none"
-          >
-            {programs.length === 0 ? <option value="">Programa: Crohn PK/PD</option> : null}
-            {programs.map((program) => (
-              <option key={program._id} value={program._id}>
-                Programa: {program.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedCenterId}
-            onChange={(event) => onCenterChange(event.target.value)}
-            disabled={shellLoading && centers.length === 0}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none"
-          >
-            <option value="">Centro: Todos los centros</option>
-            {centers.map((center) => (
-              <option key={center._id} value={center._id}>
-                Centro: {center.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={dateRangeDays}
-            onChange={(event) => onDateRangeChange(Number(event.target.value))}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none"
-          >
-            {DATE_RANGES.map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
-          </select>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-[#152520]">
+            {activeProgramLabel}
+          </div>
 
           <button
             onClick={onOpenPalette}
@@ -530,16 +472,6 @@ function TopHeader({
               </div>
             ) : null}
           </div>
-
-          <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-2.5 py-1.5 text-left transition hover:bg-slate-50">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[11px] font-bold text-[#7b3fa0]">
-              FM
-            </div>
-            <div className="hidden text-left md:block">
-              <p className="text-xs font-semibold text-[#152520]">Farmacia referente</p>
-              <p className="text-[10px] text-[#4a7068]">Bellvitge</p>
-            </div>
-          </button>
         </div>
       </div>
 
@@ -711,11 +643,12 @@ export function XarraPro() {
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([])
   const [selectedProgramId, setSelectedProgramId] = useState('prog-crohn')
   const [selectedCenterId, setSelectedCenterId] = useState('')
-  const [dateRangeDays, setDateRangeDays] = useState(30)
+  const [caseDateRangeDays, setCaseDateRangeDays] = useState(30)
   const [openCaseId, setOpenCaseId] = useState<string | null>(null)
   const [openCase, setOpenCase] = useState<CasoCompleto | null>(null)
+  const [caseLaunchPreset, setCaseLaunchPreset] = useState<CaseCockpitLaunchPreset | null>(null)
   const [shellStatus, setShellStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [queueStatus, setQueueStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [queueStatus, setQueueStatus] = useState<'idle' | 'loading' | 'refreshing' | 'ready' | 'error'>('idle')
   const [queueError, setQueueError] = useState<string | null>(null)
   const [caseStatus, setCaseStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [caseError, setCaseError] = useState<string | null>(null)
@@ -730,17 +663,44 @@ export function XarraPro() {
   async function loadShellContext() {
     setShellStatus('loading')
 
+    try {
+      const payload = await fetchJson<{
+        professionals?: Professional[]
+        centers?: Center[]
+        roles?: Array<{ _id: string; label: string }>
+        pendingApprovals?: ProfessionalApproval[]
+        programs?: Program[]
+        forms?: ClinicalForm[]
+        agents?: Agent[]
+        sessions?: SessionItem[]
+        inboxItems?: InboxItem[]
+      }>('/api/xarxa/shell-context')
+
+      setProfessionals(payload.professionals ?? [])
+      setCenters(payload.centers ?? [])
+      setPendingApprovals(payload.pendingApprovals ?? [])
+      setPrograms(payload.programs ?? [])
+      setForms(payload.forms ?? [])
+      setAgents(payload.agents ?? [])
+      setSessions(payload.sessions ?? [])
+      setInboxItems(payload.inboxItems ?? [])
+      setShellStatus('ready')
+      return
+    } catch {
+      // Fallback for local dev servers that have not reloaded the consolidated endpoint yet.
+    }
+
     const [professionalsResult, programsResult, agentsResult, sessionsResult, inboxResult] =
       await Promise.allSettled([
         fetchJson<{
           professionals?: Professional[]
           centers?: Center[]
           pendingApprovals?: ProfessionalApproval[]
-        }>('/api/xarxa/professionals'),
-        fetchJson<{ items?: Program[]; forms?: ClinicalForm[] }>('/api/xarxa/programs'),
-        fetchJson<{ items?: Agent[] }>('/api/xarxa/agents'),
-        fetchJson<{ items?: SessionItem[] }>('/api/xarxa/sessions'),
-        fetchJson<{ items?: InboxItem[] }>('/api/xarxa/inbox'),
+        }>('/api/xarxa/professionals', { timeoutMs: 9000 }),
+        fetchJson<{ items?: Program[]; forms?: ClinicalForm[] }>('/api/xarxa/programs', { timeoutMs: 9000 }),
+        fetchJson<{ items?: Agent[] }>('/api/xarxa/agents', { timeoutMs: 9000 }),
+        fetchJson<{ items?: SessionItem[] }>('/api/xarxa/sessions', { timeoutMs: 9000 }),
+        fetchJson<{ items?: InboxItem[] }>('/api/xarxa/inbox', { timeoutMs: 9000 }),
       ])
 
     let successCount = 0
@@ -777,34 +737,47 @@ export function XarraPro() {
   }
 
   const loadQueue = useCallback(async () => {
-    setQueueStatus('loading')
+    setQueueStatus((current) => (current === 'idle' ? 'loading' : 'refreshing'))
     setQueueError(null)
 
     try {
       const query = new URLSearchParams()
       if (selectedCenterId) query.set('center', selectedCenterId)
       if (selectedProgramId) query.set('program', selectedProgramId)
-      if (dateRangeDays > 0) query.set('days', String(dateRangeDays))
+      if (caseDateRangeDays > 0) query.set('days', String(caseDateRangeDays))
 
       const suffix = query.toString() ? `?${query.toString()}` : ''
-      const [kpisData, casesData] = await Promise.all([
-        fetchJson<{ kpis?: Array<{ label: string; value: number }> }>(`/api/xarxa/kpis${suffix}`),
-        fetchJson<{ items?: CasoResumen[] }>(`/api/xarxa/cases${suffix}`),
-      ])
+      const kpisRequest = fetchJson<{ kpis?: Array<{ label: string; value: number }> }>(
+        `/api/xarxa/kpis${suffix}`,
+        { timeoutMs: 9000 }
+      )
+        .then((kpisData) => {
+          setKpis(kpisData.kpis ?? [])
+        })
+        .catch(() => {
+          // Keep previous KPI snapshot if the metrics request fails or arrives late.
+        })
 
-      setKpis(kpisData.kpis ?? [])
+      const casesData = await fetchJson<{ items?: CasoResumen[] }>(`/api/xarxa/cases${suffix}`, {
+        timeoutMs: 9000,
+      })
+
       setCasos(casesData.items ?? [])
       setQueueStatus('ready')
+      void kpisRequest
     } catch (error) {
       setQueueStatus('error')
       setQueueError(
         error instanceof Error ? error.message : 'No se ha podido cargar la cola de casos.'
       )
     }
-  }, [dateRangeDays, selectedCenterId, selectedProgramId])
+  }, [caseDateRangeDays, selectedCenterId, selectedProgramId])
 
   useEffect(() => {
-    void loadShellContext()
+    const timer = window.setTimeout(() => {
+      void loadShellContext()
+    }, 120)
+    return () => window.clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -889,6 +862,7 @@ export function XarraPro() {
 
   const navigate = useCallback((vista: Vista) => {
     router.push(`/?vista=${vista}`)
+    setCaseLaunchPreset(null)
     setOpenCaseId(null)
     setOpenCase(null)
     setCaseStatus('idle')
@@ -898,6 +872,7 @@ export function XarraPro() {
 
   const openIntro = useCallback(() => {
     router.push('/')
+    setCaseLaunchPreset(null)
     setOpenCaseId(null)
     setOpenCase(null)
     setCaseStatus('idle')
@@ -971,9 +946,9 @@ export function XarraPro() {
         { label: 'En procesamiento', value: processingInboxCount, tone: 'warning' },
         { label: 'Casos creados', value: createdInboxCount, tone: 'default' },
         {
-          label: 'Gaps detectados',
-          value: inboxItems.reduce((sum, item) => sum + (item.detectedGaps?.length ?? 0), 0),
-          tone: 'danger',
+          label: 'Borradores estructurados',
+          value: inboxItems.filter(item => item.agentStatus === 'ready' || item.agentStatus === 'created').length,
+          tone: 'default',
         },
       ]
     }
@@ -1131,15 +1106,15 @@ export function XarraPro() {
     const actionItems: PaletteItem[] = [
       {
         id: 'action-new-case',
-        label: 'Crear caso PK/PD',
-        description: 'Abrir el asistente completo para registrar un nuevo caso clínico.',
+        label: 'Crear nuevo caso',
+        description: 'Abrir el asistente para registrar un nuevo caso clínico.',
         icon: FilePlus2,
         onSelect: () => navigate('nuevo'),
       },
       {
         id: 'action-open-inbox',
         label: 'Abrir Bandeja IA',
-        description: 'Revisar solicitudes recibidas por email y casos preparados por agentes.',
+        description: 'Revisar emails entrantes y estructurarlos antes de crear el caso.',
         icon: Inbox,
         onSelect: () => navigate('bandeja'),
       },
@@ -1197,6 +1172,7 @@ export function XarraPro() {
         icon: LayoutDashboard,
         onSelect: () => {
           router.push('/?vista=casos')
+          setCaseLaunchPreset(null)
           setOpenCaseId(caso.caseId)
         },
       }))
@@ -1300,11 +1276,16 @@ export function XarraPro() {
           />
         )
       }
-      return (
-        <CaseCockpit
-          caso={openCase}
-          onCaseUpdated={handleCaseUpdated}
+        return (
+          <CaseCockpit
+            caso={openCase}
+            program={programs.find((program) => program._id === openCase.programId) ?? null}
+            launchPreset={caseLaunchPreset?.caseId === openCase.caseId ? caseLaunchPreset : undefined}
+            onLaunchPresetConsumed={() => setCaseLaunchPreset(null)}
+            onCaseUpdated={handleCaseUpdated}
+          onCaseDeleted={handleCaseDeleted}
           onBack={() => {
+            setCaseLaunchPreset(null)
             setOpenCaseId(null)
             setOpenCase(null)
             setCaseStatus('idle')
@@ -1317,12 +1298,7 @@ export function XarraPro() {
     switch (activeVista) {
       case 'casos':
         if (queueStatus === 'loading' && casos.length === 0) {
-          return (
-            <WorkspaceLoadingState
-              title="Cargando cola de casos…"
-              detail="Recuperando KPIs y casos activos del programa."
-            />
-          )
+          return <CasesQueueSkeleton />
         }
         if (queueStatus === 'error' && casos.length === 0) {
           return (
@@ -1337,7 +1313,15 @@ export function XarraPro() {
           <CasosPkpd
             casos={casos}
             kpis={kpis}
-            onOpenCaso={(id) => setOpenCaseId(id)}
+            dateRangeDays={caseDateRangeDays}
+            onDateRangeChange={setCaseDateRangeDays}
+            professionals={professionals}
+            loadingProfessionals={shellStatus === 'loading' && professionals.length === 0}
+            isRefreshing={queueStatus === 'refreshing'}
+            onOpenCaso={(id) => {
+              setCaseLaunchPreset(null)
+              setOpenCaseId(id)
+            }}
             onNuevoCaso={() => navigate('nuevo')}
             onCasesChanged={loadQueue}
           />
@@ -1352,13 +1336,15 @@ export function XarraPro() {
       case 'bandeja':
         return <BandejaIa onCaseCreated={handleCaseCreated} />
       case 'sesiones':
-        return <Sesiones onOpenCaso={(id) => setOpenCaseId(id)} />
+        return <Sesiones onOpenCaso={(id) => {
+          setCaseLaunchPreset(null)
+          setOpenCaseId(id)
+        }} />
       case 'reporting':
         return (
           <Reporting
             centerId={selectedCenterId}
             programId={selectedProgramId}
-            dateRangeDays={dateRangeDays}
           />
         )
       case 'profesionales':
@@ -1374,14 +1360,24 @@ export function XarraPro() {
     }
   }
 
-  async function handleCaseCreated(caseId: string) {
+  async function handleCaseCreated(
+    caseId: string,
+    options?: Omit<CaseCockpitLaunchPreset, 'caseId'>,
+  ) {
+    router.push('/?vista=casos')
+    if (caseId) {
+      if (options) {
+        setCaseLaunchPreset({ caseId, ...options })
+      } else {
+        setCaseLaunchPreset(null)
+      }
+      setOpenCaseId(caseId)
+    }
     try {
       await Promise.all([loadQueue(), loadShellContext()])
     } catch {
       // Keep the current snapshots if the background refresh fails.
     }
-    router.push('/?vista=casos')
-    if (caseId) setOpenCaseId(caseId)
   }
 
   async function handleCaseUpdated(updatedCase: CasoCompleto) {
@@ -1391,6 +1387,9 @@ export function XarraPro() {
         item.caseId === updatedCase.caseId
           ? {
               ...item,
+              demoSeedTag: updatedCase.demoSeedTag,
+              demoLocked: updatedCase.demoLocked,
+              deletable: updatedCase.deletable,
               title: updatedCase.title,
               patientCode: updatedCase.patientCode,
               centerName: updatedCase.centerName,
@@ -1416,9 +1415,23 @@ export function XarraPro() {
     }
   }
 
+  async function handleCaseDeleted(caseId: string) {
+    setCaseLaunchPreset(null)
+    setOpenCaseId(null)
+    setOpenCase(null)
+    setCaseStatus('idle')
+    setCaseError(null)
+    setCasos((current) => current.filter((item) => item.caseId !== caseId))
+    try {
+      await Promise.all([loadQueue(), loadShellContext()])
+    } catch {
+      // Keep the current snapshots if the background refresh fails.
+    }
+  }
+
   return (
     <>
-      <DesktopOnlyNotice />
+      <MobileShell />
       <div className="hidden h-screen overflow-hidden bg-white lg:flex">
       <Sidebar
         active={activeVista}
@@ -1432,15 +1445,8 @@ export function XarraPro() {
         {!openCaseId ? (
           <TopHeader
             vistaLabel={vistaLabel}
-            metrics={headerMetrics}
             programs={programs}
-            centers={centers}
             selectedProgramId={selectedProgramId}
-            selectedCenterId={selectedCenterId}
-            dateRangeDays={dateRangeDays}
-            onProgramChange={setSelectedProgramId}
-            onCenterChange={setSelectedCenterId}
-            onDateRangeChange={setDateRangeDays}
             onOpenPalette={() => openPalette()}
             notifications={notifications}
             notificationsOpen={notificationsOpen}
@@ -1450,7 +1456,6 @@ export function XarraPro() {
               navigate(vista)
             }}
             notificationContainerRef={notificationContainerRef}
-            shellLoading={shellStatus === 'loading' && programs.length === 0 && centers.length === 0}
           />
         ) : null}
 

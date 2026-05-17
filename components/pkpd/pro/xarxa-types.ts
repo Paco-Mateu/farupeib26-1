@@ -47,6 +47,12 @@ export type PatientProfile = {
   specialPopulation?: string[]
 }
 
+export type FieldReviewMeta = {
+  origin: 'llm' | 'manual'
+  state: 'pending' | 'confirmed' | 'edited'
+  sourceLabel?: string
+}
+
 export type AutomationSummary = {
   headline: string
   stepsCompleted: number
@@ -60,9 +66,30 @@ export type AutomationSummary = {
   hasNoteDraft?: boolean
 }
 
+export type CaseOutcome = {
+  recommendationAccepted?: string
+  clinicalResponse?: string
+  treatmentDecision?: string
+  adverseEvents?: string
+  networkLearning?: string
+  summary?: string
+}
+
+export type FollowUpPlan = {
+  label: string
+  status: string
+  dueDate?: string
+  controlType?: string
+  rationale?: string
+  intervalDays?: number
+}
+
 export type CasoResumen = {
   _id?: string
   caseId: string
+  demoSeedTag?: string
+  demoLocked?: boolean
+  deletable?: boolean
   title: string
   patientCode: string
   programId: string
@@ -88,6 +115,7 @@ export type CasoResumen = {
 export type CasoCompleto = CasoResumen & {
   clinicalSummary: string
   emailOriginal?: string
+  fieldReview?: Record<string, FieldReviewMeta>
   patientProfile?: PatientProfile
   diseaseContext: Record<string, string>
   therapyContext: Record<string, string | null>
@@ -97,9 +125,29 @@ export type CasoCompleto = CasoResumen & {
   simulation?: { currentScenario: string; preferredScenario: string; scenarios: string[] }
   recommendation: { status: string; text: string }
   clinicalNote: { status: string; text: string }
-  followUps: Array<{ label: string; status: string; dueDate?: string }>
+  caseOutcome?: CaseOutcome
+  followUps: FollowUpPlan[]
   agentRuns?: Array<{ agent: string; status: string; message: string; timestamp: string }>
   automationSummary?: AutomationSummary
+}
+
+export type PatientHistoryItem = {
+  caseId: string
+  title: string
+  caseType: string
+  pipelineStage: string
+  updatedAt: string
+  centerName: string
+  priority: string
+}
+
+export type PatientHistoryPayload = {
+  patientCode: string
+  items: PatientHistoryItem[]
+  latestCase?: Pick<
+    CasoCompleto,
+    'caseId' | 'title' | 'patientProfile' | 'diseaseContext' | 'therapyContext' | 'clinicalSummary'
+  > | null
 }
 
 export type KpiCard = { label: string; value: number }
@@ -128,6 +176,7 @@ export type Professional = {
   requestReason?: string
   requestedDate?: string
   expertise?: string[]
+  avatarUrl?: string
 }
 
 export type Center = {
@@ -171,7 +220,6 @@ export type InboxItem = {
   programSuggestion?: string
   caseTypeSuggestion?: string
   confidence?: number
-  detectedGaps?: string[]
   centerId?: string
   centerName?: string
   requesterId?: string
@@ -210,6 +258,18 @@ export type Program = {
   caseTypes?: string[]
   workflowStages?: string[]
   sharingPolicy?: string
+  protocol?: {
+    title?: string
+    summary?: string
+    alignment?: string
+    lastReview?: string
+    semantics?: string[]
+    references?: Array<{
+      label: string
+      url: string
+      source?: string
+    }>
+  }
 }
 
 export type ClinicalForm = {

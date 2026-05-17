@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import { Bot, CheckCircle2, Clock, Loader2, Sparkles, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { WorkspaceEmptyState, WorkspaceErrorState, WorkspaceLoadingState } from '@/components/pkpd/pro/workspace-state'
@@ -17,6 +17,99 @@ function RunStatusIcon({ status }: { status: string }) {
   if (status === 'Completado') return <CheckCircle2 className="h-3.5 w-3.5 text-teal-500" />
   if (status === 'Error') return <XCircle className="h-3.5 w-3.5 text-red-500" />
   return <Clock className="h-3.5 w-3.5 text-amber-500" />
+}
+
+function buildAgentSteps(agentLabel: string) {
+  if (/ingesta/i.test(agentLabel)) {
+    return ['Leyendo entrada clínica', 'Clasificando el caso', 'Extrayendo entidades', 'Preparando borrador estructurado']
+  }
+  if (/gaps/i.test(agentLabel)) {
+    return ['Revisando completitud', 'Comparando determinantes', 'Generando tareas', 'Actualizando workflow']
+  }
+  if (/pk\/pd/i.test(agentLabel)) {
+    return ['Revisando tratamiento', 'Leyendo determinantes', 'Preparando patrón PK/PD', 'Dejando escenario listo']
+  }
+  if (/recomend/i.test(agentLabel)) {
+    return ['Leyendo interpretación', 'Alineando contexto clínico', 'Redactando propuesta', 'Preparando borrador validable']
+  }
+  if (/hce|informe/i.test(agentLabel)) {
+    return ['Leyendo caso validado', 'Ordenando hechos clínicos', 'Redactando nota', 'Preparando salida para revisión']
+  }
+  return ['Leyendo contexto', 'Estructurando datos', 'Preparando salida', 'Dejando resultado trazable']
+}
+
+function AgentLlmStream({ agent }: { agent: Agent }) {
+  const steps = useMemo(() => buildAgentSteps(agent.label), [agent.label])
+  const [activeStep, setActiveStep] = useState(0)
+  const [visibleChars, setVisibleChars] = useState(0)
+  const sourceText = agent.recentRuns?.[0]?.message || agent.function
+
+  useEffect(() => {
+    setActiveStep(0)
+    const timer = window.setInterval(() => {
+      setActiveStep((current) => (current + 1) % steps.length)
+    }, 950)
+    return () => window.clearInterval(timer)
+  }, [steps])
+
+  useEffect(() => {
+    setVisibleChars(0)
+    const timer = window.setInterval(() => {
+      setVisibleChars((current) => {
+        if (current >= sourceText.length) return current
+        return current + 3
+      })
+    }, 24)
+    return () => window.clearInterval(timer)
+  }, [sourceText, agent._id])
+
+  return (
+    <div className="rounded-2xl border border-[#7b3fa0]/15 bg-[#faf6fd] p-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#7b3fa0]/10">
+          <Bot className="h-4 w-4 text-[#7b3fa0]" />
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">Canal de Agentes</p>
+          <p className="text-sm font-semibold text-[#152520]">{agent.label}</p>
+        </div>
+      </div>
+      <div className="mt-3 grid gap-2">
+        {steps.map((step, index) => {
+          const isDone = index < activeStep
+          const isRunning = index === activeStep
+          return (
+            <div
+              key={step}
+              className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] transition ${
+                isRunning
+                  ? 'border-[#7b3fa0]/20 bg-white text-[#7b3fa0]'
+                  : isDone
+                    ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                    : 'border-slate-100 bg-slate-50 text-slate-400'
+              }`}
+            >
+              {isDone ? (
+                <Sparkles className="h-3.5 w-3.5 shrink-0" />
+              ) : isRunning ? (
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+              ) : (
+                <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-200" />
+              )}
+              <span className={isRunning ? 'font-semibold' : ''}>{step}</span>
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-3 rounded-xl border border-white bg-white/90 p-3 shadow-sm">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068]">Salida de Agentes</p>
+        <p className="mt-2 min-h-[64px] text-sm leading-6 text-[#152520]">
+          {sourceText.slice(0, visibleChars)}
+          {visibleChars < sourceText.length ? <span className="animate-pulse text-[#7b3fa0]">▍</span> : null}
+        </p>
+      </div>
+    </div>
+  )
 }
 
 export function AgentesIa() {
@@ -177,6 +270,10 @@ export function AgentesIa() {
                   <ImpactCard label="Casos" value={String(selected.metrics?.casesTouched ?? 0)} note="Casos tocados" />
                   <ImpactCard label="Validación humana" value={selected.requiresHumanValidation ? 'Obligatoria' : 'No'} note="Nivel de supervisión" />
                   <ImpactCard label="Borradores" value={String(selected.metrics?.draftsPrepared ?? 0)} note="Salidas preparadas" />
+                </div>
+
+                <div className="mb-5">
+                  <AgentLlmStream agent={selected} />
                 </div>
 
                 <div className="mb-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">

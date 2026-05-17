@@ -1,9 +1,9 @@
 'use client'
 
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, FlaskConical, Loader2, Plus, Sparkles, Stethoscope } from 'lucide-react'
+import { AlertCircle, Bot, CheckCircle2, ChevronLeft, ChevronRight, Clock3, FlaskConical, Loader2, Plus, Sparkles, Stethoscope, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import type { Center, Professional, Program } from '@/components/pkpd/pro/xarxa-types'
+import type { Center, PatientHistoryPayload, Professional, Program } from '@/components/pkpd/pro/xarxa-types'
 import { WorkspaceErrorState, WorkspaceLoadingState } from '@/components/pkpd/pro/workspace-state'
 import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetch-json'
@@ -91,6 +91,80 @@ function parseNumber(value: string) {
   return Number.isFinite(next) ? next : undefined
 }
 
+type AgentSuggestion = {
+  id: string
+  label: string
+  detail: string
+  kind: 'determinant' | 'warning' | 'history'
+  actionLabel?: string
+}
+
+const DRUG_DETERMINANT_LIBRARY: Array<{
+  match: RegExp
+  labels: string[]
+}> = [
+  {
+    match: /infliximab|adalimumab/i,
+    labels: ['Concentración sérica del fármaco', 'Anticuerpos anti-fármaco', 'PCR', 'Calprotectina fecal', 'Albúmina'],
+  },
+  {
+    match: /ustekinumab|vedolizumab/i,
+    labels: ['Concentración sérica del fármaco', 'PCR', 'Calprotectina fecal', 'Albúmina'],
+  },
+  {
+    match: /vancomicina|vancomycin/i,
+    labels: ['Concentración sérica del fármaco', 'Creatinina', 'eGFR', 'Última administración'],
+  },
+]
+
+function buildDeterminantSuggestions(form: FormState) {
+  const labels = new Set<string>()
+  const drug = form.currentDrug.trim()
+  for (const item of DRUG_DETERMINANT_LIBRARY) {
+    if (item.match.test(drug)) {
+      item.labels.forEach((label) => labels.add(label))
+    }
+  }
+
+  if (/pérdida de respuesta/i.test(form.caseType)) {
+    labels.add('Calprotectina fecal')
+    labels.add('PCR')
+  }
+  if (/desintensificación/i.test(form.caseType)) {
+    labels.add('Concentración sérica del fármaco')
+  }
+  if (/debutante/i.test(form.caseType)) {
+    labels.add('Albúmina')
+    labels.add('PCR')
+  }
+
+  return Array.from(labels)
+}
+
+function buildTherapyWarnings(form: FormState) {
+  const warnings: string[] = []
+  const drug = form.currentDrug.trim().toLowerCase()
+  const dose = form.currentDose.trim().toLowerCase()
+  const interval = form.interval.trim().toLowerCase()
+
+  if (!form.currentDrug.trim()) {
+    warnings.push('El caso todavía no tiene fármaco principal informado.')
+  }
+  if (/infliximab|adalimumab|ustekinumab|vedolizumab/.test(drug) && !interval) {
+    warnings.push('Conviene documentar el intervalo de administración antes de revisar el caso.')
+  }
+  if (/mg\/kg/.test(dose) && !form.weightKg.trim()) {
+    warnings.push('La pauta está expresada en mg/kg y falta el peso actual del paciente.')
+  }
+  if (/infliximab/.test(drug) && /(12|16)\s*sem/.test(interval)) {
+    warnings.push('El intervalo actual parece amplio para infliximab y merece validación humana.')
+  }
+  if (/pérdida de respuesta/i.test(form.caseType) && !form.summary.trim()) {
+    warnings.push('Para pérdida de respuesta conviene resumir claramente el contexto clínico y analítico.')
+  }
+  return warnings
+}
+
 export function NuevoCasoWizard({
   onCancel,
   onCreated,
@@ -106,34 +180,35 @@ export function NuevoCasoWizard({
   const [refsError, setRefsError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [patientHistory, setPatientHistory] = useState<PatientHistoryPayload | null>(null)
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [assistBusy, setAssistBusy] = useState(false)
+  const [assistNotice, setAssistNotice] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>({
-    trigger: 'Pérdida de respuesta secundaria con sospecha de baja exposición',
+    trigger: '',
     centerId: '',
     requesterId: '',
-    caseType: 'Pérdida de respuesta',
-    priority: 'Alta',
+    caseType: '',
+    priority: 'Media',
     entrySource: 'Formulario normalizado',
     patientCode: '',
     age: '',
-    sex: 'Varón',
+    sex: '',
     weightKg: '',
     heightCm: '',
-    specialPopulation: ['Inmunosuprimido'],
+    specialPopulation: [],
     summary: '',
-    diagnosis: 'Enfermedad de Crohn',
-    phenotype: 'Ileocolónico',
-    activity: 'Moderada',
-    currentDrug: 'Infliximab',
+    diagnosis: '',
+    phenotype: '',
+    activity: '',
+    currentDrug: '',
     currentDose: '',
     interval: '',
-    route: 'Intravenosa',
+    route: '',
     previousTherapies: '',
-    adherence: 'No documentada',
+    adherence: '',
     caseMode: 'Nuevo caso',
-    determinants: [
-      createDeterminant('Concentración sérica del fármaco'),
-      createDeterminant('PCR'),
-    ],
+    determinants: [],
   })
 
   useEffect(() => {
@@ -159,11 +234,6 @@ export function NuevoCasoWizard({
         setProfessionals(nextProfessionals)
         setPrograms(nextPrograms)
 
-        setForm((current) => ({
-          ...current,
-          centerId: current.centerId || nextCenters[0]?._id || '',
-          requesterId: current.requesterId || nextProfessionals[0]?._id || '',
-        }))
       } catch (error) {
         if (cancelled) return
         setRefsError(error instanceof Error ? error.message : 'No se han podido cargar los datos de referencia.')
@@ -210,6 +280,101 @@ export function NuevoCasoWizard({
     return { missing, warnings, score, suggestedStage, suggestedNextAction }
   }, [form])
 
+  useEffect(() => {
+    const patientCode = form.patientCode.trim()
+    if (!patientCode || patientCode.length < 3) {
+      setPatientHistory(null)
+      setHistoryLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setHistoryLoading(true)
+    const timer = window.setTimeout(() => {
+      fetchJson<PatientHistoryPayload>(`/api/xarxa/patients/${encodeURIComponent(patientCode)}/history`)
+        .then((payload) => {
+          if (!cancelled) setPatientHistory(payload)
+        })
+        .catch(() => {
+          if (!cancelled) setPatientHistory(null)
+        })
+        .finally(() => {
+          if (!cancelled) setHistoryLoading(false)
+        })
+    }, 350)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [form.patientCode])
+
+  const suggestedDeterminants = useMemo(() => buildDeterminantSuggestions(form), [form])
+  const therapyWarnings = useMemo(() => buildTherapyWarnings(form), [form])
+  const missingSuggestedDeterminants = useMemo(() => {
+    const currentLabels = new Set(form.determinants.map((item) => item.label.trim().toLowerCase()).filter(Boolean))
+    return suggestedDeterminants.filter((label) => !currentLabels.has(label.toLowerCase()))
+  }, [form.determinants, suggestedDeterminants])
+
+  const agentSuggestions = useMemo<AgentSuggestion[]>(() => {
+    const suggestions: AgentSuggestion[] = []
+
+    missingSuggestedDeterminants.forEach((label) => {
+      suggestions.push({
+        id: `det-${label}`,
+        label,
+        detail: 'Determinante sugerido por Agentes para este fármaco y tipo de caso.',
+        kind: 'determinant',
+        actionLabel: 'Añadir',
+      })
+    })
+
+    therapyWarnings.forEach((warning, index) => {
+      suggestions.push({
+        id: `warn-${index}`,
+        label: warning,
+        detail: 'Conviene revisarlo antes de enviar el caso a la cola operativa.',
+        kind: 'warning',
+      })
+    })
+
+    if (patientHistory?.latestCase) {
+      suggestions.push({
+        id: 'history-latest',
+        label: `Reutilizar contexto del último caso ${patientHistory.latestCase.caseId}`,
+        detail: 'Edad, diagnóstico, pauta y antecedentes del mismo paciente pueden reaprovecharse como punto de partida.',
+        kind: 'history',
+        actionLabel: 'Aplicar',
+      })
+    }
+
+    return suggestions
+  }, [missingSuggestedDeterminants, patientHistory, therapyWarnings])
+
+  function getStepErrors(step: WizardStep): string[] {
+    if (step === 'trigger') {
+      const errors: string[] = []
+      if (!form.centerId) errors.push('Selecciona un centro solicitante')
+      if (!form.requesterId) errors.push('Selecciona un profesional solicitante')
+      if (!form.caseType) errors.push('Selecciona el tipo de consulta')
+      return errors
+    }
+    if (step === 'patient') {
+      if (!form.patientCode.trim()) return ['El código de paciente es obligatorio']
+      return []
+    }
+    if (step === 'therapy') {
+      if (!form.currentDrug.trim()) return ['Indica el fármaco actual o candidato']
+      return []
+    }
+    if (step === 'labs') {
+      const hasValid = form.determinants.some((d) => d.label.trim() && d.value.trim())
+      if (!hasValid) return ['Añade al menos un determinante con etiqueta y valor']
+      return []
+    }
+    return []
+  }
+
   function setField<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [field]: value }))
   }
@@ -232,6 +397,59 @@ export function NuevoCasoWizard({
       ...current,
       determinants: current.determinants.filter((item) => item.id !== id),
     }))
+  }
+
+  function applyDeterminantSuggestion(label: string) {
+    if (form.determinants.some((item) => item.label.trim().toLowerCase() === label.toLowerCase())) return
+    addDeterminant(label)
+    setAssistNotice(`Se ha añadido «${label}» como determinante sugerido por Agentes.`)
+  }
+
+  function applyAllDeterminantSuggestions() {
+    if (missingSuggestedDeterminants.length === 0) return
+    setAssistBusy(true)
+    window.setTimeout(() => {
+      setForm((current) => ({
+        ...current,
+        determinants: [
+          ...current.determinants,
+          ...missingSuggestedDeterminants.map((label) => createDeterminant(label)),
+        ],
+      }))
+      setAssistBusy(false)
+      setAssistNotice(`Los Agentes han añadido ${missingSuggestedDeterminants.length} determinante(s) sugerido(s).`)
+    }, 850)
+  }
+
+  function applyPatientHistoryPrefill() {
+    if (!patientHistory?.latestCase) return
+    setAssistBusy(true)
+    const latest = patientHistory.latestCase
+    window.setTimeout(() => {
+      setForm((current) => ({
+        ...current,
+        age: current.age || String(latest.patientProfile?.age ?? ''),
+        sex: current.sex || String(latest.patientProfile?.sex ?? ''),
+        weightKg: current.weightKg || String(latest.patientProfile?.weightKg ?? ''),
+        heightCm: current.heightCm || String(latest.patientProfile?.heightCm ?? ''),
+        specialPopulation:
+          current.specialPopulation.length > 0
+            ? current.specialPopulation
+            : latest.patientProfile?.specialPopulation ?? [],
+        summary: current.summary || latest.clinicalSummary || '',
+        diagnosis: current.diagnosis || String(latest.diseaseContext?.diagnosis ?? ''),
+        phenotype: current.phenotype || String(latest.diseaseContext?.phenotype ?? ''),
+        activity: current.activity || String(latest.diseaseContext?.activity ?? ''),
+        currentDrug: current.currentDrug || String(latest.therapyContext?.currentDrug ?? ''),
+        currentDose: current.currentDose || String(latest.therapyContext?.currentDose ?? ''),
+        interval: current.interval || String(latest.therapyContext?.interval ?? ''),
+        route: current.route || String(latest.therapyContext?.route ?? ''),
+        previousTherapies: current.previousTherapies || String(latest.therapyContext?.previousTherapies ?? ''),
+        adherence: current.adherence || String(latest.therapyContext?.adherence ?? ''),
+      }))
+      setAssistBusy(false)
+      setAssistNotice(`Se ha reutilizado el contexto del caso ${latest.caseId} como base de trabajo.`)
+    }, 950)
   }
 
   async function handleSubmit() {
@@ -340,7 +558,7 @@ export function NuevoCasoWizard({
               <ChevronLeft className="h-3.5 w-3.5" />
               Volver a la cola de casos
             </button>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Nuevo caso PK/PD</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Nuevo caso</p>
             <h1 className="mt-1 text-2xl font-semibold text-[#152520]">Alta estructurada con revisión humana</h1>
             <p className="mt-1 max-w-3xl text-sm text-[#4a7068]">
               Captura clínica ampliada para que el caso nazca con contexto útil, determinantes claros y un siguiente paso gobernado.
@@ -391,6 +609,12 @@ export function NuevoCasoWizard({
               </div>
             </div>
 
+            {assistNotice ? (
+              <div className="mb-5 rounded-2xl border border-[#7b3fa0]/20 bg-[#faf6fd] px-4 py-3 text-sm text-[#7b3fa0]">
+                {assistNotice}
+              </div>
+            ) : null}
+
             {activeStep.id === 'trigger' ? (
               <div className="space-y-5">
                 <Field label="Motivo o trigger principal">
@@ -427,6 +651,7 @@ export function NuevoCasoWizard({
                   </Field>
                   <Field label="Tipo de consulta">
                     <select className={inputCls} value={form.caseType} onChange={(event) => setField('caseType', event.target.value)}>
+                      <option value="">Seleccionar tipo…</option>
                       {CASE_TYPES.map((item) => (
                         <option key={item} value={item}>
                           {item}
@@ -470,6 +695,7 @@ export function NuevoCasoWizard({
                   </Field>
                   <Field label="Sexo">
                     <select className={inputCls} value={form.sex} onChange={(event) => setField('sex', event.target.value)}>
+                      <option value="">Seleccionar…</option>
                       <option>Varón</option>
                       <option>Mujer</option>
                       <option>No especificado</option>
@@ -539,6 +765,42 @@ export function NuevoCasoWizard({
 
             {activeStep.id === 'therapy' ? (
               <div className="space-y-5">
+                {(missingSuggestedDeterminants.length > 0 || therapyWarnings.length > 0 || patientHistory?.latestCase) ? (
+                  <div className="rounded-3xl border border-[#7b3fa0]/20 bg-[#faf6fd] p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Asistencia de Agentes</p>
+                        <p className="mt-1 text-sm text-[#4a7068]">
+                          Los Agentes están proponiendo contexto, determinantes y señales de revisión para este tratamiento.
+                        </p>
+                      </div>
+                      <Bot className="h-5 w-5 text-[#7b3fa0]" />
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      {agentSuggestions.slice(0, 4).map((item) => (
+                        <div key={item.id} className="rounded-2xl border border-white bg-white/85 px-4 py-3 shadow-sm">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-[#152520]">{item.label}</p>
+                              <p className="mt-1 text-xs leading-6 text-[#4a7068]">{item.detail}</p>
+                            </div>
+                            {item.kind === 'determinant' ? (
+                              <Button size="sm" variant="outline" className="shrink-0 rounded-xl text-xs" onClick={() => applyDeterminantSuggestion(item.label)}>
+                                Añadir
+                              </Button>
+                            ) : item.kind === 'history' ? (
+                              <Button size="sm" variant="outline" className="shrink-0 rounded-xl text-xs" onClick={applyPatientHistoryPrefill}>
+                                Aplicar
+                              </Button>
+                            ) : (
+                              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field label="Fármaco actual o candidato">
                     <input className={inputCls} value={form.currentDrug} onChange={(event) => setField('currentDrug', event.target.value)} placeholder="Infliximab" />
@@ -592,6 +854,12 @@ export function NuevoCasoWizard({
                         + {suggestion}
                       </button>
                     ))}
+                    {missingSuggestedDeterminants.length > 0 ? (
+                      <Button type="button" variant="outline" className="rounded-full text-xs" onClick={applyAllDeterminantSuggestions} disabled={assistBusy}>
+                        {assistBusy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+                        Aplicar sugerencias de Agentes
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -677,7 +945,9 @@ export function NuevoCasoWizard({
                 <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
                   <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">Resumen de alta</p>
-                    <h3 className="mt-2 text-lg font-semibold text-[#152520]">{form.caseType} · {form.currentDrug || 'Caso PK/PD'}</h3>
+                    <h3 className="mt-2 text-lg font-semibold text-[#152520]">
+                      {form.caseType || 'Tipo pendiente'} · {form.currentDrug || 'Fármaco pendiente'}
+                    </h3>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
                       <SummaryLine label="Paciente" value={form.patientCode || 'Pendiente'} />
                       <SummaryLine label="Centro" value={selectedCenter?.name ?? 'Pendiente'} />
@@ -705,14 +975,27 @@ export function NuevoCasoWizard({
               </div>
             ) : null}
 
-            <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
+            {(() => {
+              const stepErrors = activeStep ? getStepErrors(activeStep.id) : []
+              return stepErrors.length > 0 ? (
+                <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+                  {stepErrors[0]}
+                </div>
+              ) : null
+            })()}
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
               <Button type="button" variant="outline" className="rounded-2xl text-sm" onClick={stepIndex === 0 ? onCancel : () => setStepIndex((value) => value - 1)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 {stepIndex === 0 ? 'Cancelar' : 'Anterior'}
               </Button>
               <div className="flex gap-2">
                 {stepIndex < STEPS.length - 1 ? (
-                  <Button type="button" className="rounded-2xl bg-[#7b3fa0] text-sm text-white hover:bg-[#6a3490]" onClick={() => setStepIndex((value) => value + 1)}>
+                  <Button
+                    type="button"
+                    className="rounded-2xl bg-[#7b3fa0] text-sm text-white hover:bg-[#6a3490] disabled:opacity-50"
+                    disabled={activeStep ? getStepErrors(activeStep.id).length > 0 : false}
+                    onClick={() => setStepIndex((value) => value + 1)}
+                  >
                     Continuar
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -734,7 +1017,7 @@ export function NuevoCasoWizard({
               </div>
               <div className="mt-4 space-y-3">
                 <SummaryLine label="Programa" value={activeProgram?.label ?? 'Crohn PK/PD'} />
-                <SummaryLine label="Tipo" value={form.caseType} />
+                <SummaryLine label="Tipo" value={form.caseType || 'Pendiente'} />
                 <SummaryLine label="Paciente" value={form.patientCode || 'Pendiente'} />
                 <SummaryLine label="Fármaco" value={form.currentDrug || 'Pendiente'} />
                 <SummaryLine label="Prioridad" value={form.priority} />
@@ -756,6 +1039,58 @@ export function NuevoCasoWizard({
                 <InlineStatus label="Advertencias" value={String(completeness.warnings.length)} tone="amber" />
                 <InlineStatus label="Siguiente paso" value={completeness.suggestedNextAction} tone="teal" />
               </div>
+            </div>
+
+            <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-[#7b3fa0]" />
+                <p className="text-sm font-semibold text-[#152520]">Agentes asistiendo la creación</p>
+              </div>
+              {assistBusy || historyLoading ? (
+                <div className="mt-4 space-y-2">
+                  {[
+                    'Revisando el contexto del caso',
+                    'Comparando con patrones terapéuticos',
+                    'Preparando sugerencias aplicables',
+                  ].map((step, index) => (
+                    <div key={step} className="flex items-center gap-2 rounded-2xl border border-slate-100 bg-[#faf6fd] px-3 py-2 text-xs text-[#7b3fa0]">
+                      {index === 1 ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Clock3 className="h-3.5 w-3.5" />}
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="mt-4 space-y-2">
+                    <InlineStatus label="Sugerencias" value={String(agentSuggestions.length)} tone="teal" />
+                    <InlineStatus label="Determinantes propuestos" value={String(missingSuggestedDeterminants.length)} tone="amber" />
+                    <InlineStatus label="Warnings de pauta" value={String(therapyWarnings.length)} tone={therapyWarnings.length > 0 ? 'red' : 'teal'} />
+                  </div>
+
+                  {patientHistory?.items?.length ? (
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4a7068]">Historial del paciente</p>
+                      <p className="mt-1 text-sm font-semibold text-[#152520]">{patientHistory.patientCode}</p>
+                      <div className="mt-3 space-y-2">
+                        {patientHistory.items.slice(0, 3).map((item) => (
+                          <div key={item.caseId} className="rounded-2xl bg-white px-3 py-2 text-xs shadow-sm">
+                            <p className="font-semibold text-[#152520]">{item.caseId}</p>
+                            <p className="mt-0.5 text-[#4a7068]">{item.title}</p>
+                            <p className="mt-1 text-slate-400">{item.pipelineStage} · {item.centerName}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <Button size="sm" variant="outline" className="mt-3 w-full rounded-xl text-xs" onClick={applyPatientHistoryPrefill}>
+                        Reutilizar último contexto
+                      </Button>
+                    </div>
+                  ) : form.patientCode.trim().length >= 3 ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-xs text-[#4a7068]">
+                      No hay casos previos de este paciente en la red.
+                    </div>
+                  ) : null}
+                </>
+              )}
             </div>
           </aside>
         </div>

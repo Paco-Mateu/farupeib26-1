@@ -2,29 +2,40 @@
 
 import {
   Activity, AlertTriangle, ArrowLeft, BookOpen, Bot, CheckCircle2, ChevronDown,
-  Clock, ClipboardEdit, Droplet, Eye, FileText, FlaskConical, LayoutDashboard,
-  MessageCircle, MessageSquareText, Microscope, PencilLine, Pill, Plus, RefreshCw,
+  CircleHelp,
+  Clock, ClipboardEdit, Droplet, Eye, FileText, FlaskConical, Layers, LayoutDashboard, Loader2,
+  Mail, MessageCircle, MessageSquareText, Microscope, PencilLine, Pill, Plus, RefreshCw,
   Save, Shield, Sparkles, Stethoscope, TrendingUp, Users, X, Zap,
+  Trash2,
 } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Cell, Pie, PieChart, PolarAngleAxis, PolarGrid, Radar, RadarChart,
+  ResponsiveContainer, Tooltip,
+} from 'recharts'
 
 import { PkpdSimulationChart } from '@/components/pkpd/pro/charts/pkpd-simulation-chart'
 import { TimelineLaneOverview } from '@/components/pkpd/pro/charts/timeline-lane-overview'
-import type { CasoCompleto } from '@/components/pkpd/pro/xarxa-types'
+import { deriveProtocolSemanticFrame, formatProtocolReviewDate, getProgramProtocol } from '@/components/pkpd/pro/protocol-guidance'
+import type { CasoCompleto, FieldReviewMeta, FollowUpPlan, Program } from '@/components/pkpd/pro/xarxa-types'
 import { PIPELINE_STAGES, PRIORITY_STYLE, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
+import { PersonAvatar } from '@/components/pkpd/pro/person-avatar'
+import { ActionConfirmDialog } from '@/components/ui/action-confirm-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { fetchJson } from '@/lib/fetch-json'
 
 type Tab =
-  | 'resumen' | 'datos' | 'analisis' | 'recomendacion' | 'actividad'
+  | 'resumen' | 'datos' | 'analisis' | 'recomendacion' | 'actividad' | 'flujo'
 
-const TABS: Array<{ id: Tab; label: string; icon: React.ElementType }> = [
-  { id: 'resumen',       label: 'Resumen y Gaps',       icon: LayoutDashboard },
-  { id: 'datos',         label: 'Datos',                icon: FlaskConical },
-  { id: 'analisis',      label: 'Análisis y Sim.',      icon: TrendingUp },
-  { id: 'recomendacion', label: 'Recomendación',        icon: MessageSquareText },
-  { id: 'actividad',     label: 'Actividad',            icon: Clock },
+const TABS: Array<{ id: Tab; label: string; icon: React.ElementType; mobileOnly?: boolean }> = [
+  { id: 'resumen',       label: 'Resumen',    icon: LayoutDashboard },
+  { id: 'datos',         label: 'Datos',      icon: FlaskConical },
+  { id: 'analisis',      label: 'Análisis',   icon: TrendingUp },
+  { id: 'recomendacion', label: 'Recomend.',  icon: MessageSquareText },
+  { id: 'actividad',     label: 'Actividad',  icon: Clock },
+  { id: 'flujo',         label: 'Flujo',      icon: Activity, mobileOnly: true },
 ]
 
 const LANE_COLORS: Record<string, string> = {
@@ -46,7 +57,7 @@ const LANE_DOT_RING: Record<string, string> = {
 }
 
 const RECOMMENDATION_STATUS: Record<string, { style: string; label: string }> = {
-  'Borrador IA': { style: 'bg-slate-100 text-slate-600', label: 'Borrador generado por IA' },
+  'Borrador IA': { style: 'bg-slate-100 text-slate-600', label: 'Borrador preparado por Agentes' },
   'Editado por farmacia': { style: 'bg-blue-50 text-blue-700', label: 'Editado por farmacia' },
   'Pendiente de revisión médica': { style: 'bg-amber-50 text-amber-700', label: 'Pendiente de revisión médica' },
   Validado: { style: 'bg-green-50 text-green-700', label: 'Validado' },
@@ -61,6 +72,8 @@ const NOTE_STATUS: Record<string, { style: string }> = {
   'Registrado en HCE': { style: 'bg-emerald-50 text-emerald-700' },
 }
 
+const PolarAngleAxisCompat = PolarAngleAxis as unknown as React.ComponentType<any>
+
 const DEMO_ACTOR = {
   actorName: 'Farmacéutico referente',
   actorRole: 'Farmacéutico experto',
@@ -70,11 +83,300 @@ const DEMO_ACTOR = {
 
 type Props = {
   caso: CasoCompleto
+  program?: Program | null
   onBack: () => void
   onCaseUpdated?: (caso: CasoCompleto) => void | Promise<void>
+  onCaseDeleted?: (caseId: string) => void | Promise<void>
+  launchPreset?: CaseCockpitLaunchPreset
+  onLaunchPresetConsumed?: () => void
 }
 
-export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
+export type CaseCockpitLaunchPreset = {
+  caseId: string
+  initialTab?: Tab
+  openEditor?: boolean
+  notice?: string
+  source?: 'inbox' | 'wizard'
+}
+
+type CaseOutcomeDraft = {
+  recommendationAccepted: string
+  clinicalResponse: string
+  treatmentDecision: string
+  adverseEvents: string
+  networkLearning: string
+  summary: string
+}
+
+type FollowUpDraft = {
+  label: string
+  dueDate: string
+  controlType: string
+  rationale: string
+  intervalDays: string
+  status: string
+}
+
+function buildOutcomeDraft(caso: CasoCompleto): CaseOutcomeDraft {
+  return {
+    recommendationAccepted: caso.caseOutcome?.recommendationAccepted ?? '',
+    clinicalResponse: caso.caseOutcome?.clinicalResponse ?? '',
+    treatmentDecision: caso.caseOutcome?.treatmentDecision ?? '',
+    adverseEvents: caso.caseOutcome?.adverseEvents ?? '',
+    networkLearning: caso.caseOutcome?.networkLearning ?? '',
+    summary: caso.caseOutcome?.summary ?? '',
+  }
+}
+
+function buildFollowUpDraft(seed?: Partial<FollowUpPlan>): FollowUpDraft {
+  return {
+    label: seed?.label ?? '',
+    dueDate: seed?.dueDate ?? '',
+    controlType: seed?.controlType ?? 'Laboratorio',
+    rationale: seed?.rationale ?? '',
+    intervalDays: seed?.intervalDays ? String(seed.intervalDays) : '',
+    status: seed?.status ?? 'Programado',
+  }
+}
+
+// ── Clinical helpers ─────────────────────────────────────────────────────────
+
+function deriveDrugLine(caso: CasoCompleto): string {
+  const ctx = caso.therapyContext ?? {}
+  const drugKey = Object.keys(ctx).find(k => /fármaco|drug|medicament|biológic|biologic/i.test(k))
+  const doseKey = Object.keys(ctx).find(k => /^dosis|dose|^pauta/i.test(k))
+  const intervalKey = Object.keys(ctx).find(k => /intervalo|interval|cadencia/i.test(k))
+  const drug = drugKey ? ctx[drugKey] : null
+  const dose = doseKey ? ctx[doseKey] : null
+  const interval = intervalKey ? ctx[intervalKey] : null
+  const parts = [drug, dose, interval].filter(Boolean)
+  return parts.length ? parts.join(' · ') : Object.values(ctx).filter(Boolean).slice(0, 3).join(' · ') || '—'
+}
+
+function deriveTrough(caso: CasoCompleto): { value: string; unit: string } | null {
+  const dets = caso.labDeterminants ?? []
+  const hit = dets.find(d =>
+    d.relationToDose === 'Valle' ||
+    /concentraci[oó]n|séric|niveau|trough|sérum|sérique/i.test(d.label)
+  )
+  if (!hit || hit.value === null || hit.value === undefined) return null
+  return { value: String(hit.value), unit: hit.unit ?? '' }
+}
+
+type MedicationHistoryEntry = {
+  label: string
+  doseText: string
+  doseValue: number | null
+  interval: string
+  route: string
+  dateLabel: string
+  periodLabel: string
+  source: string
+  changeLabel: string
+  isCurrent?: boolean
+}
+
+function parseDoseValue(value?: string | null) {
+  if (!value) return null
+  const match = String(value).match(/(\d+(?:[.,]\d+)?)/)
+  return match ? Number(match[1].replace(',', '.')) : null
+}
+
+function extractDoseText(value?: string | null) {
+  if (!value) return '—'
+  const match = String(value).match(/(\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|µg|ml))/i)
+  return match ? match[1] : String(value)
+}
+
+function inferMedicationChange(label: string) {
+  const normalized = label.toLowerCase()
+  if (/mantener|sin cambios|ratific|continuar/i.test(normalized)) return 'Ratificación'
+  if (/aument|intensif|acortar/i.test(normalized)) return 'Intensificación'
+  if (/reduc|desintensif|espaciar/i.test(normalized)) return 'Reducción'
+  if (/cambi|switch|suspender|retirar/i.test(normalized)) return 'Cambio'
+  if (/inicio|debut|start/i.test(normalized)) return 'Inicio'
+  return 'Seguimiento'
+}
+
+function deriveMedicationHistory(caso: CasoCompleto): MedicationHistoryEntry[] {
+  const therapy = (caso.therapyContext ?? {}) as Record<string, any>
+  const rawTimelineEntries = (caso.timeline ?? [])
+    .filter((event) => event.lane === 'Tratamiento' || event.lane === 'Administración')
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  const timelineEntries = rawTimelineEntries
+    .map<MedicationHistoryEntry>((event) => ({
+      label: event.label,
+      doseText: extractDoseText(event.label),
+      doseValue: parseDoseValue(event.label),
+      interval: /cada\s+[0-9]+\s*(?:sem|semanas|días|dias|h|horas)/i.exec(event.label)?.[0] ?? '',
+      route: /iv|intravenosa|subcut|oral/i.exec(event.label)?.[0] ?? '',
+      dateLabel: new Date(event.date).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+      }),
+      periodLabel: '',
+      source: event.lane,
+      changeLabel: inferMedicationChange(event.label),
+    }))
+
+  const previousTherapies = Array.isArray(therapy.previousTherapies)
+    ? therapy.previousTherapies
+    : String(therapy.previousTherapies ?? '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+
+  const previousEntries = previousTherapies.map<MedicationHistoryEntry>((item) => ({
+    label: item,
+    doseText: extractDoseText(item),
+    doseValue: parseDoseValue(item),
+    interval: /cada\s+[0-9]+\s*(?:sem|semanas|días|dias|h|horas)/i.exec(item)?.[0] ?? '',
+    route: /iv|intravenosa|subcut|oral/i.exec(item)?.[0] ?? '',
+    dateLabel: 'Previo',
+    periodLabel: 'Periodo previo',
+    source: 'Historial',
+    changeLabel: 'Antecedente',
+  }))
+
+  const currentEntry: MedicationHistoryEntry = {
+    label: String(therapy.currentDrug ?? 'Tratamiento actual'),
+    doseText: extractDoseText(String(therapy.currentDose ?? '')),
+    doseValue: parseDoseValue(String(therapy.currentDose ?? '')),
+    interval: String(therapy.interval ?? ''),
+    route: String(therapy.route ?? ''),
+    dateLabel: 'Actual',
+    periodLabel: 'En curso',
+    source: 'Tratamiento actual',
+    changeLabel: 'Pauta vigente',
+    isCurrent: true,
+  }
+
+  const enrichedTimelineEntries = timelineEntries.map((entry, index) => {
+    const nextEntry = timelineEntries[index + 1]
+    return {
+      ...entry,
+      periodLabel: nextEntry ? `${entry.dateLabel} → ${nextEntry.dateLabel}` : `${entry.dateLabel} → actual`,
+    }
+  })
+
+  return [...previousEntries, ...enrichedTimelineEntries, currentEntry]
+}
+
+const DEFAULT_MANUAL_REVIEW: FieldReviewMeta = {
+  origin: 'manual',
+  state: 'confirmed',
+  sourceLabel: 'Registrado manualmente',
+}
+
+function getFieldReviewMeta(caso: CasoCompleto, path: string): FieldReviewMeta {
+  const review = caso.fieldReview?.[path]
+  if (!review) return DEFAULT_MANUAL_REVIEW
+  return {
+    origin: review.origin ?? 'manual',
+    state: review.state ?? (review.origin === 'llm' ? 'pending' : 'confirmed'),
+    sourceLabel:
+      review.sourceLabel ??
+      (review.origin === 'llm' ? 'Extraído del email' : 'Registrado manualmente'),
+  }
+}
+
+function getDraftFieldReviewMeta(
+  reviewMap: Record<string, FieldReviewMeta>,
+  path: string,
+): FieldReviewMeta {
+  const review = reviewMap[path]
+  if (!review) return DEFAULT_MANUAL_REVIEW
+  return {
+    origin: review.origin ?? 'manual',
+    state: review.state ?? (review.origin === 'llm' ? 'pending' : 'confirmed'),
+    sourceLabel:
+      review.sourceLabel ??
+      (review.origin === 'llm' ? 'Extraído del email' : 'Registrado manualmente'),
+  }
+}
+
+type PkpdStatus = { label: string; color: string; bg: string; border: string; dot: string }
+function pkpdStatus(pattern: string): PkpdStatus {
+  const p = (pattern ?? '').toLowerCase()
+  if (/infra|bajo|sub|under|low/i.test(p))
+    return { label: 'Infraexposición', color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', dot: 'bg-orange-400' }
+  if (/sobre|supra|alto|over|high/i.test(p))
+    return { label: 'Sobreexposición', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', dot: 'bg-red-500' }
+  if (/rango|range|objetivo|optim|diana/i.test(p))
+    return { label: 'En rango', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', dot: 'bg-emerald-500' }
+  return { label: pattern || '—', color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400' }
+}
+
+function ClinicalIdentityBar({ caso }: { caso: CasoCompleto }) {
+  const drugLine = deriveDrugLine(caso)
+  const trough = deriveTrough(caso)
+  const status = pkpdStatus(caso.pkpdInterpretation?.pattern ?? '')
+  return (
+    <div className="shrink-0 border-b border-slate-100 bg-[#faf6fd]/60 px-6 py-3">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
+        {/* Drug identity */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
+            <Pill className="h-4 w-4 text-[#7b3fa0]" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Tratamiento</p>
+            <p className="text-sm font-semibold text-[#152520]">{drugLine}</p>
+          </div>
+        </div>
+
+        <div className="h-8 w-px bg-slate-200" />
+
+        {/* Trough level */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+            <FlaskConical className="h-4 w-4 text-slate-500" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Concentración (valle)</p>
+            <p className="text-sm font-semibold text-[#152520]">
+              {trough ? `${trough.value} ${trough.unit}`.trim() : '—'}
+            </p>
+          </div>
+        </div>
+
+        <div className="h-8 w-px bg-slate-200" />
+
+        {/* PK/PD status */}
+        <div className={`flex items-center gap-2 rounded-xl border ${status.border} ${status.bg} px-3 py-1.5`}>
+          <span className={`h-2 w-2 rounded-full ${status.dot}`} />
+          <span className={`text-xs font-semibold ${status.color}`}>{status.label}</span>
+          {caso.pkpdInterpretation?.confidence && (
+            <span className="ml-1 text-[10px] text-slate-400">· Confianza {caso.pkpdInterpretation.confidence}</span>
+          )}
+        </div>
+
+        {/* Patient quick info */}
+        {caso.patientProfile && (
+          <>
+            <div className="h-8 w-px bg-slate-200 hidden xl:block" />
+            <div className="hidden xl:flex items-center gap-2 text-xs text-[#4a7068]">
+              {caso.patientProfile.age && <span>{caso.patientProfile.age} años</span>}
+              {caso.patientProfile.sex && <span>· {caso.patientProfile.sex}</span>}
+              {caso.patientProfile.weightKg && <span>· {caso.patientProfile.weightKg} kg</span>}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export function CaseCockpit({
+  caso,
+  program,
+  onBack,
+  onCaseUpdated,
+  onCaseDeleted,
+  launchPreset,
+  onLaunchPresetConsumed,
+}: Props) {
   const [currentCase, setCurrentCase] = useState(caso)
   const [activeTab, setActiveTab] = useState<Tab>('resumen')
   const [recText, setRecText] = useState(caso.recommendation?.text ?? '')
@@ -83,16 +385,43 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
   const [editorSaving, setEditorSaving] = useState(false)
   const [editorError, setEditorError] = useState<string | null>(null)
   const [editorDraft, setEditorDraft] = useState(() => buildEditorDraft(caso))
+  const [closeOutcomeOpen, setCloseOutcomeOpen] = useState(false)
+  const [closeOutcomeDraft, setCloseOutcomeDraft] = useState(() => buildOutcomeDraft(caso))
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [actionBusy, setActionBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionNotice, setActionNotice] = useState<string | null>(null)
+  const appliedPresetRef = useRef<string | null>(null)
 
   useEffect(() => {
     setCurrentCase(caso)
     setRecText(caso.recommendation?.text ?? '')
     setNoteText(caso.clinicalNote?.text ?? '')
     setEditorDraft(buildEditorDraft(caso))
+    setCloseOutcomeDraft(buildOutcomeDraft(caso))
   }, [caso])
+
+  useEffect(() => {
+    if (!launchPreset || launchPreset.caseId !== caso.caseId) return
+
+    const presetKey = JSON.stringify(launchPreset)
+    if (appliedPresetRef.current === presetKey) return
+
+    if (launchPreset.initialTab) {
+      setActiveTab(launchPreset.initialTab)
+    }
+    if (launchPreset.notice) {
+      setActionNotice(launchPreset.notice)
+    }
+    if (launchPreset.openEditor) {
+      setEditorDraft(buildEditorDraft(caso))
+      setEditorError(null)
+      setEditorOpen(true)
+    }
+
+    appliedPresetRef.current = presetKey
+    onLaunchPresetConsumed?.()
+  }, [caso, launchPreset, onLaunchPresetConsumed])
 
   const stageIndex = PIPELINE_STAGES.findIndex((s) => s === currentCase.pipelineStage)
   const criticalGaps = currentCase.gaps?.filter((g) => g.severity === 'Crítico') ?? []
@@ -102,6 +431,11 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
     setEditorDraft(buildEditorDraft(currentCase))
     setEditorError(null)
     setEditorOpen(true)
+  }
+
+  function openCloseOutcome() {
+    setCloseOutcomeDraft(buildOutcomeDraft(currentCase))
+    setCloseOutcomeOpen(true)
   }
 
   async function runCaseMutation(
@@ -144,7 +478,9 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...DEMO_ACTOR,
+          title: editorDraft.title,
           clinicalSummary: editorDraft.clinicalSummary,
+          fieldReview: editorDraft.fieldReview,
           nextAction: editorDraft.nextAction,
           patientProfile: {
             age: editorDraft.age ? Number(editorDraft.age) : null,
@@ -207,6 +543,28 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
       },
       successMessage,
     )
+  }
+
+  async function deleteCurrentCase() {
+    if (currentCase.demoLocked || currentCase.deletable === false) {
+      setActionError('Este caso de demo está protegido y no se puede eliminar.')
+      setActionNotice(null)
+      return
+    }
+
+    setActionBusy('delete')
+    setActionError(null)
+    setActionNotice(null)
+    try {
+      await fetchJson(`/api/xarxa/cases/${currentCase.caseId}`, { method: 'DELETE' })
+      setActionNotice(`El caso ${currentCase.caseId} se ha eliminado.`)
+      setDeleteConfirmOpen(false)
+      await onCaseDeleted?.(currentCase.caseId)
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'No se ha podido eliminar el caso.')
+    } finally {
+      setActionBusy(null)
+    }
   }
 
   async function updateTask(taskId: string, body: Record<string, unknown>, successMessage: string) {
@@ -278,6 +636,32 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
         body: JSON.stringify({ ...DEMO_ACTOR, ...body }),
       },
       successMessage,
+    )
+  }
+
+  async function updateFieldReviewState(path: string, state: FieldReviewMeta['state']) {
+    const currentReview = getFieldReviewMeta(currentCase, path)
+    const nextFieldReview = {
+      ...(currentCase.fieldReview ?? {}),
+      [path]: {
+        ...currentReview,
+        state,
+        sourceLabel: currentReview.sourceLabel ?? (currentReview.origin === 'llm' ? 'Extraído del email' : 'Registrado manualmente'),
+      },
+    }
+
+    return runCaseMutation(
+      `field-review:${path}`,
+      `/api/xarxa/cases/${currentCase.caseId}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...DEMO_ACTOR,
+          fieldReview: nextFieldReview,
+        }),
+      },
+      'Se ha actualizado el estado de validación del campo.',
     )
   }
 
@@ -461,48 +845,95 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
     <div className="flex h-full flex-col">
       {/* Sticky case header */}
       <div className="shrink-0 border-b border-slate-200 bg-white px-6 py-3">
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="flex-1 min-w-0">
-            <button
-              onClick={onBack}
-              className="mb-2 flex items-center gap-1.5 text-xs text-[#4a7068] hover:text-[#7b3fa0]"
-            >
-              <ArrowLeft className="h-3 w-3" /> Volver a casos
-            </button>
-            <div className="flex flex-wrap items-center gap-2">
-	              <span className="text-xs font-semibold text-[#7b3fa0]">{currentCase.caseId}</span>
-	              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${PRIORITY_STYLE[currentCase.priority] ?? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
-	                {currentCase.priority}
-	              </span>
-	              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${STAGE_STYLE[currentCase.pipelineStage] ?? 'bg-slate-100 text-slate-600'}`}>
-	                {currentCase.pipelineStage}
-	              </span>
-	              <Badge className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] text-slate-600">{currentCase.caseType}</Badge>
-	            </div>
-	            <h2 className="mt-1 text-xl font-semibold text-[#152520]">{currentCase.title}</h2>
-	            <p className="mt-0.5 text-sm text-[#4a7068]">
-	              {currentCase.patientCode}
-                {currentCase.patientProfile?.age ? ` · ${currentCase.patientProfile.age}a` : ''}
-                {currentCase.patientProfile?.sex ? ` · ${currentCase.patientProfile.sex}` : ''}
-                {' · '}
-                {currentCase.centerName} · Solicitante: {currentCase.requesterName}
-	            </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-[#4a7068]"><span className="font-medium text-[#152520]">Siguiente paso:</span> {currentCase.nextAction}</span>
-              {criticalGaps.length > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
-                  <AlertTriangle className="h-3 w-3" />
-                  {criticalGaps.length} crítico{criticalGaps.length > 1 ? 's' : ''}
-                </span>
-              )}
-              {totalGaps > criticalGaps.length && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">
-                  {totalGaps - criticalGaps.length} gap{totalGaps - criticalGaps.length > 1 ? 's' : ''}
-                </span>
-              )}
+        <button
+          onClick={onBack}
+          className="mb-1.5 flex items-center gap-1.5 text-xs text-[#4a7068] hover:text-[#7b3fa0]"
+        >
+          <ArrowLeft className="h-3 w-3" /> Volver a casos
+        </button>
+        {/* Title */}
+        <h2 className="text-xl font-semibold text-[#152520] leading-snug">{currentCase.title}</h2>
+        {/* Next action + gap alerts */}
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-[#7b3fa0]">{currentCase.nextAction}</span>
+          {criticalGaps.length > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
+              <AlertTriangle className="h-3 w-3" />
+              {criticalGaps.length} crítico{criticalGaps.length > 1 ? 's' : ''}
+            </span>
+          )}
+          {totalGaps > criticalGaps.length && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">
+              {totalGaps - criticalGaps.length} gap{totalGaps - criticalGaps.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        {/* Compact meta: patient + requester */}
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <span className="text-[10px] text-[#4a7068]">
+            {currentCase.patientCode}
+            {currentCase.patientProfile?.age ? ` · ${currentCase.patientProfile.age}a` : ''}
+            {currentCase.patientProfile?.sex ? ` · ${currentCase.patientProfile.sex}` : ''}
+            {' · '}{currentCase.centerName}
+          </span>
+          <span className="inline-flex items-center gap-1 text-[10px] text-[#4a7068]">
+            <PersonAvatar name={currentCase.requesterName} size="xs" />
+            {currentCase.requesterName}
+          </span>
+          {currentCase.demoLocked || currentCase.deletable === false ? (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 ring-1 ring-slate-200">
+              Demo protegido
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Clinical identity bar */}
+      <ClinicalIdentityBar caso={currentCase} />
+
+      {/* Tabs + content + pipeline panel */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left column: tabs + scrollable content */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="shrink-0 border-b border-slate-200 bg-white px-6">
+            <div className="flex overflow-x-auto">
+              {TABS.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                const hasCritical =
+                  tab.id === 'resumen' ? criticalGaps.length > 0 :
+                  tab.id === 'recomendacion' ? (
+                    currentCase.recommendation?.status === 'Borrador IA' ||
+                    currentCase.recommendation?.status === 'Pendiente de revisión médica'
+                  ) : false
+                const hasWarning =
+                  tab.id === 'resumen' ? (!hasCritical && totalGaps > 0) : false
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 text-xs font-semibold tracking-wide transition ${tab.mobileOnly ? 'lg:hidden' : ''} ${
+                      isActive
+                        ? 'border-[#7b3fa0] text-[#7b3fa0]'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    {tab.label}
+                    {hasCritical && (
+                      <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-red-500" />
+                    )}
+                    {hasWarning && (
+                      <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-amber-400" />
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+
+          {/* Contextual action toolbar — sticky between tab bar and content */}
+          <div className="shrink-0 border-b border-slate-100 bg-[#faf6fd]/70 px-6 py-2">
             <StageActions
               caso={currentCase}
               actionBusy={actionBusy}
@@ -521,42 +952,9 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                   'El caso se ha marcado para sesión de red.',
                 )
               }
-              onClose={() =>
-                void transitionCase(
-                  { pipelineStage: 'Cerrado con resultado', nextAction: 'Caso cerrado', eventLabel: 'Caso cerrado manualmente' },
-                  'El caso se ha cerrado en el flujo demo.',
-                )
-              }
+              onClose={openCloseOutcome}
+              onDelete={() => setDeleteConfirmOpen(true)}
             />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs + content + pipeline panel */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left column: tabs + scrollable content */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="shrink-0 border-b border-slate-200 bg-white px-6">
-            <div className="flex overflow-x-auto">
-              {TABS.map((tab) => {
-                const Icon = tab.icon
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 text-xs font-semibold tracking-wide transition ${
-                      isActive
-                        ? 'border-[#7b3fa0] text-[#7b3fa0]'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5 shrink-0" />
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 py-5">
@@ -575,6 +973,7 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                 <>
                   <TabResumen
                     caso={currentCase}
+                    onOpenTab={setActiveTab}
                     onConfirm={() =>
                       void transitionCase(
                         {
@@ -618,18 +1017,26 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                   />
                 </>
               )}
-              {activeTab === 'datos' && <TabDatos caso={currentCase} onEdit={openEditor} />}
+              {activeTab === 'datos' && (
+                <TabDatos
+                  caso={currentCase}
+                  onEdit={openEditor}
+                  busyKey={actionBusy}
+                  onUpdateDeterminantReview={(path, state) => void updateFieldReviewState(path, state)}
+                />
+              )}
               {activeTab === 'analisis' && (
                 <>
-                  <TabAnalisis caso={currentCase} />
+                  <TabAnalisis caso={currentCase} program={program} />
                   <div className="my-6 border-t border-slate-100" />
-                  <TabSimulacion caso={currentCase} />
+                  <TabSimulacion caso={currentCase} program={program} />
                 </>
               )}
               {activeTab === 'recomendacion' && (
                 <>
                 <TabRecomendacion
                   caso={currentCase}
+                  program={program}
                   recText={recText}
                   onRecChange={setRecText}
                   busy={actionBusy === 'recommendation'}
@@ -696,6 +1103,7 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                 <div className="my-6 border-t border-slate-100" />
                 <TabInforme
                   caso={currentCase}
+                  program={program}
                   noteText={noteText}
                   onNoteChange={setNoteText}
                   busy={actionBusy === 'note' || actionBusy === 'note:generate'}
@@ -738,6 +1146,15 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                 />
                 </>
               )}
+              {activeTab === 'flujo' && (
+                <div className="lg:hidden">
+                  <PipelinePanel
+                    caso={currentCase}
+                    actionBusy={actionBusy}
+                    inline
+                  />
+                </div>
+              )}
               {activeTab === 'actividad' && (
                 <>
                   <TabTimeline caso={currentCase} />
@@ -745,17 +1162,20 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                   <TabAprendizaje
                     caso={currentCase}
                     busyKey={actionBusy}
-                    onRegisterFollowUp={(label, dueDate) =>
+                    onRegisterFollowUp={(plan) =>
                       void saveFollowUp(
                         {
-                          label,
-                          status: 'Programado',
-                          dueDate,
-                          pipelineStage: label,
-                          nextAction: `Esperar ${label.toLowerCase()}`,
-                          eventLabel: `${label} programado`,
+                          label: plan.label,
+                          status: plan.status ?? 'Programado',
+                          dueDate: plan.dueDate,
+                          controlType: plan.controlType,
+                          rationale: plan.rationale,
+                          intervalDays: plan.intervalDays,
+                          pipelineStage: plan.label,
+                          nextAction: `Esperar ${plan.label.toLowerCase()}`,
+                          eventLabel: `${plan.label} programado`,
                         },
-                        `Se ha programado ${label.toLowerCase()}.`,
+                        `Se ha programado ${plan.label.toLowerCase()}.`,
                       )
                     }
                     onCompleteFollowUp={(label) =>
@@ -782,8 +1202,6 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
         {/* Right column: pipeline panel */}
         <PipelinePanel
           caso={currentCase}
-          activeTab={activeTab}
-          onJump={setActiveTab}
           actionBusy={actionBusy}
         />
       </div>
@@ -791,6 +1209,8 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
       {editorOpen ? (
         <CaseEditorSheet
           draft={editorDraft}
+          entrySource={currentCase.entrySource}
+          emailOriginal={currentCase.emailOriginal}
           onChange={setEditorDraft}
           onClose={() => setEditorOpen(false)}
           onSave={saveEditor}
@@ -798,18 +1218,348 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
           error={editorError}
         />
       ) : null}
+
+      {closeOutcomeOpen ? (
+        <CloseOutcomeSheet
+          draft={closeOutcomeDraft}
+          saving={actionBusy === 'transition:Caso cerrado con outcome registrado'}
+          onClose={() => setCloseOutcomeOpen(false)}
+          onChange={setCloseOutcomeDraft}
+          onSave={() =>
+            void transitionCase(
+              {
+                pipelineStage: 'Cerrado con resultado',
+                nextAction: 'Caso cerrado con outcome registrado',
+                eventLabel: 'Caso cerrado con outcome registrado',
+                caseOutcome: closeOutcomeDraft,
+              },
+              'El caso se ha cerrado y el outcome ha quedado registrado.',
+            ).then((updated) => {
+              if (updated) setCloseOutcomeOpen(false)
+            })
+          }
+        />
+      ) : null}
+
+      <ActionConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title={`Eliminar ${currentCase.caseId}`}
+        description={`Se eliminarán el caso «${currentCase.title}», sus tareas, timeline, recomendación, nota clínica, seguimiento y trazas de agentes asociadas.`}
+        confirmLabel="Eliminar caso"
+        cancelLabel="Cancelar"
+        tone="danger"
+        icon={<Trash2 className="h-5 w-5" />}
+        confirmBusy={actionBusy === 'delete'}
+        onConfirm={() => void deleteCurrentCase()}
+      />
 	    </div>
 	  )
+}
+
+// ── Visualization components ──────────────────────────────────────────────────
+
+// 1. Therapeutic window gauge (SVG)
+const DRUG_RANGES: Array<{ pattern: RegExp; lo: number; hi: number; max: number; unit: string }> = [
+  { pattern: /infliximab|inflectra|remsima/i, lo: 3,  hi: 7,   max: 15,  unit: 'µg/mL' },
+  { pattern: /adalimumab|humira/i,            lo: 5,  hi: 12,  max: 25,  unit: 'µg/mL' },
+  { pattern: /vedolizumab|entyvio/i,          lo: 10, hi: 40,  max: 80,  unit: 'µg/mL' },
+  { pattern: /ustekinumab|stelara/i,          lo: 1,  hi: 4.5, max: 10,  unit: 'µg/mL' },
+]
+const DEFAULT_RANGE = { lo: 3, hi: 7, max: 15, unit: 'µg/mL' }
+function resolveRange(drugLine: string) {
+  return DRUG_RANGES.find(r => r.pattern.test(drugLine)) ?? DEFAULT_RANGE
+}
+
+function TherapeuticWindowGauge({ value, unit, drugLine, status }: {
+  value: number | null; unit: string; drugLine: string; status: PkpdStatus
+}) {
+  const range = resolveRange(drugLine)
+  const { lo, hi, max } = range
+  const pct = (v: number) => Math.min(100, Math.max(0, (v / max) * 100))
+  return (
+    <div className={`rounded-xl border ${status.border} ${status.bg} px-5 py-4`}>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Concentración sérica (valle)</p>
+          <p className={`mt-0.5 text-3xl font-bold tabular-nums ${status.color}`}>
+            {value !== null ? `${value} ${unit}`.trim() : '—'}
+          </p>
+          <p className={`mt-0.5 text-xs font-semibold ${status.color}`}>{status.label}</p>
+        </div>
+        <div className={`rounded-xl border ${status.border} bg-white px-3 py-1.5 text-center`}>
+          <p className="text-[9px] uppercase tracking-wide text-slate-400">Objetivo</p>
+          <p className="text-xs font-bold text-[#152520]">{lo}–{hi}</p>
+          <p className="text-[9px] text-slate-400">{range.unit}</p>
+        </div>
+      </div>
+      <div className="mt-4 space-y-1.5">
+        <div className="relative h-5 w-full rounded-full overflow-hidden">
+          <div className="absolute inset-y-0 left-0 rounded-l-full bg-red-200/70" style={{ width: `${pct(lo)}%` }} />
+          <div className="absolute inset-y-0 bg-emerald-200/90"
+            style={{ left: `${pct(lo)}%`, width: `${pct(hi) - pct(lo)}%` }} />
+          <div className="absolute inset-y-0 right-0 rounded-r-full bg-orange-200/70" style={{ left: `${pct(hi)}%` }} />
+          <div className="absolute inset-y-0 w-0.5 bg-white/80" style={{ left: `${pct(lo)}%` }} />
+          <div className="absolute inset-y-0 w-0.5 bg-white/80" style={{ left: `${pct(hi)}%` }} />
+          {value !== null && (
+            <div className="absolute top-1/2 z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: `${pct(value)}%` }}>
+              <div className={`h-6 w-2.5 rounded-full border-2 border-white shadow-md ${status.dot}`} />
+            </div>
+          )}
+        </div>
+        <div className="flex justify-between text-[9px] text-slate-400">
+          <span>0</span>
+          <span className="font-medium text-emerald-600">▲ {lo}–{hi} {range.unit} objetivo</span>
+          <span>{max}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 2. Case health radar (Recharts)
+function CaseHealthRadar({ completeness, confidence, priority, gapCount, gapCritical }: {
+  completeness: number; confidence: string; priority: string
+  gapCount: number; gapCritical: number
+}) {
+  const confScore = confidence === 'Alta' ? 90 : confidence === 'Media' ? 60 : 35
+  const riskScore = priority === 'Alta' ? 25 : priority === 'Media' ? 60 : 90
+  const gapsScore = gapCount === 0 ? 100 : Math.max(10, 100 - gapCritical * 30 - (gapCount - gapCritical) * 10)
+  const data = [
+    { axis: 'Completitud', value: completeness },
+    { axis: 'Confianza PK/PD', value: confScore },
+    { axis: 'Sin riesgo', value: riskScore },
+    { axis: 'Gaps ok', value: gapsScore },
+  ]
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Salud del caso</p>
+      <div className="mt-1 flex items-start gap-2">
+        <ResponsiveContainer width="55%" height={160}>
+          <RadarChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+            <PolarGrid stroke="#e2e8f0" />
+            <PolarAngleAxisCompat dataKey="axis" tick={{ fontSize: 9, fill: '#4a7068' }} />
+            <Radar dataKey="value" stroke="#7b3fa0" fill="#7b3fa0" fillOpacity={0.18} strokeWidth={1.5} />
+          </RadarChart>
+        </ResponsiveContainer>
+        <div className="flex-1 space-y-2 pt-3">
+          {[
+            { label: 'Completitud', value: `${completeness}%` },
+            { label: 'Confianza PK/PD', value: confidence || '—' },
+            { label: 'Riesgo', value: priority === 'Alta' ? 'Alto' : priority === 'Media' ? 'Medio' : 'Bajo' },
+            { label: 'Gaps', value: `${gapCount} (${gapCritical} críticos)` },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-baseline justify-between gap-2 text-xs">
+              <span className="text-slate-500">{label}</span>
+              <span className="font-semibold text-[#152520]">{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 3. Gaps severity donut (Recharts)
+function GapSeverityDonut({ gaps, activeFilter, onFilter }: {
+  gaps: Array<{ severity: string }>
+  activeFilter: string | null
+  onFilter: (s: string | null) => void
+}) {
+  const COLORS: Record<string, string> = { Crítico: '#ef4444', Importante: '#f59e0b', Informativo: '#3b82f6' }
+  const data = Object.entries(COLORS)
+    .map(([name, color]) => ({ name, value: gaps.filter(g => g.severity === name).length, color }))
+    .filter(d => d.value > 0)
+  if (data.length === 0) return null
+  return (
+    <div className="flex items-center gap-4">
+      <PieChart width={80} height={80}>
+        <Pie data={data} dataKey="value" cx={36} cy={36} innerRadius={22} outerRadius={36}
+          strokeWidth={0}
+          onClick={(_, index) => {
+            const item = data[index]
+            if (!item) return
+            onFilter(activeFilter === item.name ? null : item.name)
+          }}>
+          {data.map((entry) => (
+            <Cell key={entry.name} fill={entry.color} opacity={activeFilter && activeFilter !== entry.name ? 0.25 : 1} />
+          ))}
+        </Pie>
+      </PieChart>
+      <div className="space-y-1.5">
+        {data.map(({ name, value, color }) => (
+          <button key={name} onClick={() => onFilter(activeFilter === name ? null : name)}
+            className={`flex items-center gap-2 rounded-full px-2.5 py-0.5 text-[10px] font-medium transition ${activeFilter === name ? 'ring-2 ring-offset-1' : 'opacity-70 hover:opacity-100'}`}
+            style={{ backgroundColor: color + '18', color }}>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+            {value} {name}
+          </button>
+        ))}
+        {activeFilter && (
+          <button onClick={() => onFilter(null)} className="text-[10px] text-slate-400 underline hover:text-slate-600">
+            Ver todos
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// 5. Confidence radar — TabAnalisis
+function ConfidenceRadar({ completeness, confidence }: { completeness: number; confidence: string }) {
+  const confScore = confidence === 'Alta' ? 90 : confidence === 'Media' ? 65 : 40
+  const coherence = Math.min(100, completeness + 10)
+  const data = [
+    { axis: 'Determinantes', value: completeness },
+    { axis: 'Interpretabilidad', value: confScore },
+    { axis: 'Coherencia', value: coherence },
+  ]
+  return (
+    <div className="flex items-center gap-4">
+      <ResponsiveContainer width={140} height={140}>
+        <RadarChart data={data} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+          <PolarGrid stroke="#e2e8f0" />
+          <PolarAngleAxisCompat dataKey="axis" tick={{ fontSize: 9, fill: '#4a7068' }} />
+          <Radar dataKey="value" stroke="#7b3fa0" fill="#7b3fa0" fillOpacity={0.2} strokeWidth={1.5} />
+          <Tooltip formatter={(v) => [`${String(v ?? 0)}%`]} />
+        </RadarChart>
+      </ResponsiveContainer>
+      <div className="flex-1 space-y-2.5">
+        {data.map((d) => (
+          <div key={d.axis}>
+            <div className="flex justify-between text-xs">
+              <span className="text-[#152520]">{d.axis}</span>
+              <span className="text-[#4a7068]">{d.value}%</span>
+            </div>
+            <div className="mt-0.5 h-1 rounded-full bg-slate-100">
+              <div className="h-1 rounded-full bg-[#7b3fa0]/60" style={{ width: `${d.value}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// 6. Lab bullet chart (SVG)
+const LAB_REFS: Array<{ pattern: RegExp; lo: number; hi: number; max: number; unit: string }> = [
+  { pattern: /infliximab|inflectra|remsima/i,    lo: 3,  hi: 7,   max: 15,   unit: 'µg/mL' },
+  { pattern: /adalimumab|humira/i,               lo: 5,  hi: 12,  max: 25,   unit: 'µg/mL' },
+  { pattern: /vedolizumab|entyvio/i,             lo: 10, hi: 40,  max: 80,   unit: 'µg/mL' },
+  { pattern: /anti.*(drug|fármaco|infliximab)/i, lo: 0,  hi: 50,  max: 200,  unit: 'AU/mL' },
+  { pattern: /calprotect/i,                      lo: 0,  hi: 250, max: 1000, unit: 'µg/g' },
+  { pattern: /pcr|crp|prote.*react/i,            lo: 0,  hi: 5,   max: 50,   unit: 'mg/L' },
+  { pattern: /albúmina|albumin/i,                lo: 35, hi: 52,  max: 60,   unit: 'g/L' },
+  { pattern: /hemoglobin|hb\b/i,                 lo: 12, hi: 16,  max: 20,   unit: 'g/dL' },
+]
+function LabBulletChart({ determinants }: {
+  determinants: Array<{ label: string; value: unknown; unit?: string | null; interpretation?: string | null }>
+}) {
+  if (determinants.length === 0) return null
+  return (
+    <div className="space-y-3.5">
+      {determinants.map((det, i) => {
+        const val = typeof det.value === 'number' ? det.value : parseFloat(String(det.value))
+        const ref = LAB_REFS.find(r => r.pattern.test(det.label))
+        if (!ref || isNaN(val)) {
+          return (
+            <div key={i} className="flex items-center justify-between rounded-xl border border-slate-100 bg-[#f8faf9] px-3 py-2 text-sm">
+              <span className="text-[#4a7068]">{det.label}</span>
+              <span className="font-semibold text-[#152520]">{String(det.value)} {det.unit ?? ''}</span>
+            </div>
+          )
+        }
+        const pct = (v: number) => Math.min(100, Math.max(0, (v / ref.max) * 100))
+        const valPct = pct(val)
+        const inRange = val >= ref.lo && val <= ref.hi
+        const color = inRange ? '#22c55e' : val < ref.lo ? '#f59e0b' : '#ef4444'
+        return (
+          <div key={i}>
+            <div className="flex items-baseline justify-between text-xs mb-1">
+              <span className="text-[#4a7068]">{det.label}</span>
+              <span className="font-bold tabular-nums" style={{ color }}>
+                {String(det.value)} {det.unit ?? ref.unit}
+              </span>
+            </div>
+            <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="absolute inset-y-0 bg-emerald-100"
+                style={{ left: `${pct(ref.lo)}%`, width: `${pct(ref.hi) - pct(ref.lo)}%` }} />
+              <div className="absolute inset-y-0 w-0.5 bg-white" style={{ left: `${pct(ref.lo)}%` }} />
+              <div className="absolute inset-y-0 w-0.5 bg-white" style={{ left: `${pct(ref.hi)}%` }} />
+              <div className="absolute top-0.5 bottom-0.5 w-2 -translate-x-1/2 rounded-full shadow"
+                style={{ left: `${valPct}%`, backgroundColor: color }} />
+            </div>
+            <div className="mt-0.5 flex justify-between text-[9px] text-slate-300">
+              <span>0</span>
+              <span className="text-emerald-600">{ref.lo}–{ref.hi} {ref.unit}</span>
+              <span>{ref.max}</span>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// 7. Follow-up timeline ruler (SVG)
+function FollowUpTimelineRuler({ followUps }: {
+  followUps: Array<{ label: string; dueDate?: string | null; status: string }>
+}) {
+  const upcoming = followUps
+    .filter(f => f.dueDate)
+    .map(f => ({ ...f, date: new Date(f.dueDate!) }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+  if (upcoming.length === 0) return null
+  const today = new Date()
+  const latest = upcoming[upcoming.length - 1].date
+  const spanMs = Math.max(latest.getTime() - today.getTime(), 1000 * 60 * 60 * 24 * 7)
+  const pct = (d: Date) => Math.min(97, Math.max(3, ((d.getTime() - today.getTime()) / spanMs) * 92 + 5))
+  const fmt = (d: Date) => d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <p className="mb-5 text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Cronograma de seguimiento</p>
+      <div className="relative py-7">
+        <div className="absolute left-[3%] right-[3%] top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-slate-200" />
+        {/* Today */}
+        <div className="absolute top-1/2 left-[3%] -translate-y-1/2 -translate-x-1/2">
+          <div className="h-3.5 w-3.5 animate-pulse rounded-full bg-[#7b3fa0] ring-4 ring-[#7b3fa0]/20" />
+          <p className="absolute top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold text-[#7b3fa0]">Hoy</p>
+        </div>
+        {upcoming.map((f, i) => {
+          const x = pct(f.date)
+          const isDone = f.status === 'Completado'
+          const above = i % 2 === 0
+          return (
+            <div key={i} className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+              style={{ left: `${x}%` }}>
+              <div className={`h-3 w-3 rounded-full border-2 border-white shadow ${isDone ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              <div className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] ${above ? 'bottom-5' : 'top-5'}`}>
+                <p className="font-medium text-[#152520] text-center">{f.label}</p>
+                <p className="text-slate-400 text-center">{fmt(f.date)}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-400">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#7b3fa0]" />Hoy</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-slate-400" />Pendiente</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" />Completado</span>
+      </div>
+    </div>
+  )
 }
 
 // ── Tab: Resumen ─────────────────────────────────────────────────────────────
 
 function TabResumen({
   caso,
+  onOpenTab,
   onConfirm,
   onRequestData,
 }: {
   caso: CasoCompleto
+  onOpenTab: (tab: Tab) => void
   onConfirm: () => void
   onRequestData: () => void
 }) {
@@ -817,8 +1567,45 @@ function TabResumen({
     ((caso.labDeterminants?.filter((d) => d.status === 'Confirmado').length ?? 0) /
       Math.max(caso.labDeterminants?.length ?? 1, 1)) * 100
   )
+  const criticalGapsResumen = caso.gaps?.filter((g) => g.severity === 'Crítico') ?? []
+  const focus = stageFocus(caso.pipelineStage)
+
   return (
     <div className="space-y-5">
+      <div className="rounded-xl border border-[#7b3fa0]/20 bg-[#faf6fd] px-5 py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#7b3fa0]">Foco de la etapa</p>
+            <p className="mt-1.5 text-lg font-semibold text-[#152520]">{focus.title}</p>
+            <p className="mt-1 text-sm leading-6 text-[#4a7068]">{focus.detail}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenTab(focus.tab)}
+            className="rounded-full border border-[#7b3fa0]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#7b3fa0] transition hover:bg-[#f3ebfa]"
+          >
+            Abrir {focus.ctaLabel}
+          </button>
+        </div>
+        {criticalGapsResumen.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {criticalGapsResumen.slice(0, 2).map((g, i) => (
+              <div key={i} className="flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-medium text-red-700 ring-1 ring-red-200">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                {g.label}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onConfirm}>Confirmar</Button>
+          <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestData}>Solicitar datos</Button>
+          <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => onOpenTab(focus.tab)}>
+            Ir a {focus.ctaLabel}
+          </Button>
+        </div>
+      </div>
+
       {/* Summary card */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-start justify-between gap-3">
@@ -830,67 +1617,71 @@ function TabResumen({
         <p className="mt-3 text-sm leading-7 text-[#152520]">{caso.clinicalSummary}</p>
       </div>
 
-      {/* Status cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatusCard label="Completitud del caso" value={`${completeness}%`} note="Determinantes confirmados" color="teal" />
-        <StatusCard label="Interpretabilidad PK/PD" value={caso.pkpdInterpretation?.confidence ?? '—'} note="Basada en datos disponibles" color="blue" />
-        <StatusCard
-          label="Riesgo clínico-operativo"
-          value={caso.priority === 'Alta' ? 'Alto' : caso.priority === 'Media' ? 'Medio' : 'Bajo'}
-          note={`Prioridad ${caso.priority}`}
-          color={caso.priority === 'Alta' ? 'red' : 'amber'}
-        />
-        <StatusCard label="Gaps detectados" value={String(caso.gaps?.length ?? 0)} note={`${caso.gaps?.filter((g) => g.severity === 'Crítico').length ?? 0} críticos`} color="orange" />
-      </div>
+      {/* 1. Therapeutic window gauge */}
+      {(() => {
+        const trough = deriveTrough(caso)
+        const status = pkpdStatus(caso.pkpdInterpretation?.pattern ?? '')
+        const val = trough ? parseFloat(trough.value) : null
+        const drugLine = deriveDrugLine(caso)
+        return (
+          <TherapeuticWindowGauge
+            value={val}
+            unit={trough?.unit ?? 'µg/mL'}
+            drugLine={drugLine}
+            status={status}
+          />
+        )
+      })()}
 
-      {/* Critical gaps + next step */}
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        {(caso.gaps?.filter((g) => g.severity === 'Crítico') ?? []).length > 0 && (
-          <div className="rounded-xl border border-red-100 bg-red-50/60 p-4">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-red-700">Gaps críticos</p>
-            <div className="mt-3 space-y-2">
-              {caso.gaps?.filter((g) => g.severity === 'Crítico').map((g, i) => (
-                <p key={i} className="text-sm text-red-800">· {g.label}</p>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="rounded-xl border border-[#7b3fa0]/20 bg-slate-50 p-4">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Siguiente paso</p>
-          <p className="mt-2 text-base font-semibold text-[#152520]">{caso.nextAction}</p>
-          {caso.tasks?.[0] && (
-            <div className="mt-3 rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-2">
-              <p className="text-xs text-[#4a7068]">Tarea pendiente: <span className="font-medium text-[#152520]">{caso.tasks[0].title}</span></p>
-              <p className="text-xs text-[#4a7068]">Responsable: {caso.tasks[0].ownerRole}</p>
-            </div>
-          )}
-          <div className="mt-3 flex gap-2">
-            <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onConfirm}>Confirmar</Button>
-            <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestData}>Solicitar datos</Button>
-          </div>
-        </div>
-      </div>
+      {/* 2. Case health radar */}
+      <CaseHealthRadar
+        completeness={completeness}
+        confidence={caso.pkpdInterpretation?.confidence ?? '—'}
+        priority={caso.priority ?? 'Baja'}
+        gapCount={caso.gaps?.length ?? 0}
+        gapCritical={caso.gaps?.filter(g => g.severity === 'Crítico').length ?? 0}
+      />
 
-      {/* Agent runs */}
-      {(caso.agentRuns ?? []).length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Bot className="h-4 w-4 text-[#7b3fa0]" />
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Actividad de agentes</p>
-          </div>
-          <div className="space-y-2">
-            {(caso.agentRuns ?? []).map((run, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
-                <span className="shrink-0 rounded-full bg-[#7b3fa0]/10 px-2 py-0.5 text-[10px] text-[#7b3fa0]">{run.agent}</span>
-                <span className="text-[#152520]">{run.message}</span>
-                <span className="ml-auto shrink-0 text-xs text-slate-400">{new Date(run.timestamp).toLocaleDateString('es-ES')}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
+}
+
+function stageFocus(stage: string): {
+  title: string
+  detail: string
+  tab: Tab
+  ctaLabel: string
+} {
+  if (['Solicitud recibida', 'Caso creado por IA', 'Datos incompletos', 'Pendiente de determinantes', 'Determinantes recibidos'].includes(stage)) {
+    return {
+      title: 'Completar el contexto clínico antes de seguir avanzando',
+      detail: 'En esta etapa conviene validar tratamiento, determinantes, relación con la dosis y campos sugeridos por Agentes.',
+      tab: 'datos',
+      ctaLabel: 'Datos',
+    }
+  }
+  if (['Análisis PK/PD generado', 'Revisión farmacéutica', 'Revisión médica', 'Discusión en red'].includes(stage)) {
+    return {
+      title: 'Contrastar interpretación, escenarios y recomendación',
+      detail: 'El caso ya está preparado para revisar el análisis PK/PD, discutir escenarios y validar la recomendación clínica.',
+      tab: 'recomendacion',
+      ctaLabel: 'Recomendación',
+    }
+  }
+  if (['Informe generado', 'Informe validado', 'Registrado en HCE'].includes(stage)) {
+    return {
+      title: 'Cerrar el circuito documental y confirmar trazabilidad',
+      detail: 'La prioridad ahora es revisar el informe HCE, enviarlo al registro adecuado y dejar el seguimiento planificado.',
+      tab: 'recomendacion',
+      ctaLabel: 'Informe',
+    }
+  }
+  return {
+    title: 'Leer el estado del caso y preparar el seguimiento',
+    detail: 'En esta fase interesa revisar resultado, seguimiento y trazabilidad final del caso dentro de la red.',
+    tab: 'actividad',
+    ctaLabel: 'Actividad',
+  }
 }
 
 function StatusCard({ label, value, note, color }: { label: string; value: string; note: string; color: string }) {
@@ -921,6 +1712,7 @@ function StageActions({
   onRequestData,
   onMarkSession,
   onClose,
+  onDelete,
 }: {
   caso: CasoCompleto
   actionBusy: string | null
@@ -930,8 +1722,10 @@ function StageActions({
   onRequestData: () => void
   onMarkSession: () => void
   onClose: () => void
+  onDelete: () => void
 }) {
   const stage = caso.pipelineStage
+  const canDelete = !caso.demoLocked && caso.deletable !== false
 
   const earlyStages = ['Solicitud recibida', 'Caso creado por IA', 'Datos incompletos', 'Pendiente de determinantes', 'Determinantes recibidos']
   const analysisStages = ['Análisis PK/PD generado', 'Revisión farmacéutica']
@@ -945,6 +1739,12 @@ function StageActions({
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
         </Button>
+        {canDelete ? (
+          <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-xs text-red-700 hover:bg-red-50" onClick={onDelete} disabled={actionBusy === 'delete'}>
+            {actionBusy === 'delete' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-1.5 h-3.5 w-3.5" />}
+            Eliminar
+          </Button>
+        ) : null}
       </div>
     )
   }
@@ -953,12 +1753,18 @@ function StageActions({
     return (
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
-          <FileText className="mr-1.5 h-3.5 w-3.5" /> Generar informe
+          <FileText className="mr-1.5 h-3.5 w-3.5" /> Generar informe con Agentes
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs text-slate-500" onClick={onClose}>Cerrar caso</Button>
+        {canDelete ? (
+          <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-xs text-red-700 hover:bg-red-50" onClick={onDelete} disabled={actionBusy === 'delete'}>
+            {actionBusy === 'delete' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-1.5 h-3.5 w-3.5" />}
+            Eliminar
+          </Button>
+        ) : null}
       </div>
     )
   }
@@ -968,12 +1774,18 @@ function StageActions({
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          {actionBusy === 'orchestrate' ? 'Actualizando…' : 'Actualizar paquete'}
+          {actionBusy === 'orchestrate' ? 'Agentes trabajando…' : 'Actualizar con Agentes'}
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
           <FileText className="mr-1.5 h-3.5 w-3.5" /> Informe
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs text-slate-500" onClick={onClose}>Cerrar</Button>
+        {canDelete ? (
+          <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-xs text-red-700 hover:bg-red-50" onClick={onDelete} disabled={actionBusy === 'delete'}>
+            {actionBusy === 'delete' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-1.5 h-3.5 w-3.5" />}
+            Eliminar
+          </Button>
+        ) : null}
       </div>
     )
   }
@@ -983,12 +1795,18 @@ function StageActions({
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          {actionBusy === 'orchestrate' ? 'Actualizando…' : 'Actualizar paquete'}
+          {actionBusy === 'orchestrate' ? 'Agentes trabajando…' : 'Actualizar con Agentes'}
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onMarkSession}>Sesión de red</Button>
+        {canDelete ? (
+          <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-xs text-red-700 hover:bg-red-50" onClick={onDelete} disabled={actionBusy === 'delete'}>
+            {actionBusy === 'delete' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-1.5 h-3.5 w-3.5" />}
+            Eliminar
+          </Button>
+        ) : null}
       </div>
     )
   }
@@ -998,12 +1816,18 @@ function StageActions({
     <div className="flex gap-2">
       <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
         <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-        {actionBusy === 'orchestrate' ? 'Actualizando…' : 'Actualizar paquete'}
+        {actionBusy === 'orchestrate' ? 'Agentes trabajando…' : 'Actualizar con Agentes'}
       </Button>
       <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
         <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
       </Button>
       <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestData}>Solicitar datos</Button>
+      {canDelete ? (
+        <Button size="sm" variant="outline" className="rounded-xl border-red-200 text-xs text-red-700 hover:bg-red-50" onClick={onDelete} disabled={actionBusy === 'delete'}>
+          {actionBusy === 'delete' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-1.5 h-3.5 w-3.5" />}
+          Eliminar
+        </Button>
+      ) : null}
     </div>
   )
 }
@@ -1173,8 +1997,8 @@ function TabTimeline({ caso }: { caso: CasoCompleto }) {
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'}`}>
                               {event.lane}
                             </span>
-                            {isAgent && (
-                              <span className="rounded-full bg-[#7b3fa0]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#7b3fa0]">IA</span>
+                          {isAgent && (
+                              <span className="rounded-full bg-[#7b3fa0]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#7b3fa0]">Agentes</span>
                             )}
                             <span className="text-[10px] text-slate-400">{event.type}</span>
                           </div>
@@ -1202,14 +2026,17 @@ function TabTimeline({ caso }: { caso: CasoCompleto }) {
 
 // ── Tab: Datos y determinantes ────────────────────────────────────────────────
 
-function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) {
-  const statusIcon: Record<string, string> = {
-    Confirmado: '✓',
-    'Extraído por IA': '✦',
-    Pendiente: '○',
-    Faltante: '○',
-    Conflictivo: '⚠',
-  }
+function TabDatos({
+  caso,
+  onEdit,
+  busyKey,
+  onUpdateDeterminantReview,
+}: {
+  caso: CasoCompleto
+  onEdit: () => void
+  busyKey: string | null
+  onUpdateDeterminantReview: (path: string, state: FieldReviewMeta['state']) => void
+}) {
   const statusStyle: Record<string, string> = {
     Confirmado: 'text-green-700 bg-green-50',
     'Extraído por IA': 'text-[#7b3fa0] bg-teal-50',
@@ -1217,24 +2044,101 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
     Faltante: 'text-slate-500 bg-slate-100',
     Conflictivo: 'text-red-700 bg-red-50',
   }
+  const reviewValues = Object.values(caso.fieldReview ?? {})
+  const pendingCount = reviewValues.filter((item) => item.state === 'pending').length
+  const confirmedCount = reviewValues.filter((item) => item.state === 'confirmed').length
+  const editedCount = reviewValues.filter((item) => item.state === 'edited').length
+  const llmCount = reviewValues.filter((item) => item.origin === 'llm').length
+  const medicationHistory = deriveMedicationHistory(caso)
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <FieldStatusHelpTrigger />
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" />
           Abrir editor
         </Button>
       </div>
 
+      <Section title="Origen del caso" icon={Mail}>
+        <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="space-y-3">
+            {caso.entrySource === 'Email' ? (
+              <div className="grid gap-2 sm:grid-cols-4">
+                <ReviewMiniMetric label="Agentes" value={String(llmCount)} tone="llm" />
+                <ReviewMiniMetric label="Pendientes" value={String(pendingCount)} tone="pending" />
+                <ReviewMiniMetric label="Confirmados" value={String(confirmedCount)} tone="confirmed" />
+                <ReviewMiniMetric label="Editados" value={String(editedCount)} tone="edited" />
+              </div>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <InfoField label="Origen" value={caso.entrySource || '—'} />
+              <InfoField
+                label="Tratamiento de entrada"
+                value={caso.entrySource === 'Email' ? 'Email estructurado por Agentes' : 'Formulario estructurado'}
+              />
+            </div>
+            {caso.entrySource === 'Email' ? (
+              <div className="rounded-xl border border-[#7b3fa0]/15 bg-[#faf6fd] px-3 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7b3fa0]">
+                  Evidencia preservada
+                </p>
+                <p className="mt-1 text-xs leading-6 text-[#4a7068]">
+                  El correo original se conserva dentro del expediente como referencia de entrada. Los campos del caso pueden corregirse, pero el texto bruto permanece intacto.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">
+                  Solicitud estructurada
+                </p>
+                <p className="mt-1 text-xs leading-6 text-[#4a7068]">
+                  Este caso nació desde un formulario clínico estructurado. La edición del caso sigue el mismo flujo de validación y completitud.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {caso.entrySource === 'Email' && caso.emailOriginal ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">
+                Email original preservado
+              </p>
+              <div className="mt-3 max-h-[260px] overflow-y-auto rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-[#152520]">
+                  {caso.emailOriginal}
+                </pre>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Section>
+
       {/* Patient context */}
       <Section title="Paciente" icon={Users}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <InfoField label="Código" value={caso.patientCode} />
-          <InfoField label="Edad" value={caso.patientProfile?.age != null ? String(caso.patientProfile.age) : '—'} />
-          <InfoField label="Sexo" value={caso.patientProfile?.sex || '—'} />
-          <InfoField label="Peso" value={caso.patientProfile?.weightKg != null ? `${caso.patientProfile.weightKg} kg` : '—'} />
-          <InfoField label="Altura" value={caso.patientProfile?.heightCm != null ? `${caso.patientProfile.heightCm} cm` : '—'} />
+          <InfoField
+            label="Edad"
+            value={caso.patientProfile?.age != null ? String(caso.patientProfile.age) : '—'}
+            review={getFieldReviewMeta(caso, 'patientProfile.age')}
+          />
+          <InfoField
+            label="Sexo"
+            value={caso.patientProfile?.sex || '—'}
+            review={getFieldReviewMeta(caso, 'patientProfile.sex')}
+          />
+          <InfoField
+            label="Peso"
+            value={caso.patientProfile?.weightKg != null ? `${caso.patientProfile.weightKg} kg` : '—'}
+            review={getFieldReviewMeta(caso, 'patientProfile.weightKg')}
+          />
+          <InfoField
+            label="Altura"
+            value={caso.patientProfile?.heightCm != null ? `${caso.patientProfile.heightCm} cm` : '—'}
+            review={getFieldReviewMeta(caso, 'patientProfile.heightCm')}
+          />
         </div>
         {(caso.patientProfile?.specialPopulation ?? []).length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -1251,30 +2155,118 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
       <Section title="Enfermedad" icon={Activity}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Object.entries(caso.diseaseContext ?? {}).map(([k, v]) => (
-            <InfoField key={k} label={k} value={String(v)} />
+            <InfoField key={k} label={k} value={String(v)} review={getFieldReviewMeta(caso, `diseaseContext.${k}`)} />
           ))}
         </div>
       </Section>
 
       {/* Therapy context */}
       <Section title="Tratamiento actual" icon={Shield}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Object.entries(caso.therapyContext ?? {}).map(([k, v]) => (
-            <InfoField key={k} label={k} value={v != null ? String(v) : '—'} />
-          ))}
+        <div className="space-y-4">
+          {/* Current therapy fields */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <InfoField
+              label="Fármaco actual"
+              value={String((caso.therapyContext as any)?.currentDrug ?? '—')}
+              review={getFieldReviewMeta(caso, 'therapyContext.currentDrug')}
+            />
+            <InfoField
+              label="Dosis actual"
+              value={String((caso.therapyContext as any)?.currentDose ?? '—')}
+              review={getFieldReviewMeta(caso, 'therapyContext.currentDose')}
+            />
+            <InfoField
+              label="Intervalo"
+              value={String((caso.therapyContext as any)?.interval ?? '—')}
+              review={getFieldReviewMeta(caso, 'therapyContext.interval')}
+            />
+            <InfoField
+              label="Vía"
+              value={String((caso.therapyContext as any)?.route ?? '—')}
+              review={getFieldReviewMeta(caso, 'therapyContext.route')}
+            />
+            <InfoField
+              label="Última administración"
+              value={String((caso.therapyContext as any)?.lastAdministration ?? '—')}
+              review={getFieldReviewMeta(caso, 'therapyContext.lastAdministration')}
+            />
+          </div>
+          {String((caso.therapyContext as any)?.previousTherapies ?? '').trim() ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Tratamientos previos</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {String((caso.therapyContext as any)?.previousTherapies ?? '')
+                  .split(',')
+                  .map((item) => item.trim())
+                  .filter(Boolean)
+                  .map((item) => (
+                    <span key={item} className="rounded-full bg-white px-2.5 py-1 text-[11px] text-slate-700 ring-1 ring-slate-200">
+                      {item}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Full-width interactive timeline */}
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Evolución de pauta</p>
+                <p className="mt-0.5 text-sm font-semibold text-[#152520]">Toca un punto para ver el detalle</p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-[#4a7068]">
+                {medicationHistory.length} registros
+              </span>
+            </div>
+            <TherapyTimeline entries={medicationHistory} />
+          </div>
         </div>
       </Section>
 
       {/* Lab determinants */}
       <Section title="Determinantes PK/PD" icon={FlaskConical}>
         <div className="grid gap-3 lg:grid-cols-2">
-          {(caso.labDeterminants ?? []).map((det, i) => (
+          {(caso.labDeterminants ?? []).map((det, i) => {
+            const review = getFieldReviewMeta(caso, `labDeterminants.${i}`)
+            return (
             <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-2">
-                <p className="font-medium text-[#152520]">{det.label}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusStyle[det.status] ?? 'bg-slate-100 text-slate-600'}`}>
-                  {statusIcon[det.status] ?? ''} {det.status}
-                </span>
+                <div>
+                  <p className="font-medium text-[#152520]">{det.label}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${reviewStatusTone(review)}`}>
+                      <span>{reviewStatusSymbol(review)}</span>
+                      Estado: {reviewStatusLabel(review)}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
+                      Origen: {reviewOriginLabel(review)}
+                    </span>
+                    <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${statusStyle[det.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                      Dato: {det.status}
+                    </span>
+                  </div>
+                </div>
+                {review.origin === 'llm' ? (
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onUpdateDeterminantReview(`labDeterminants.${i}`, 'confirmed')}
+                      disabled={busyKey !== null}
+                      className="rounded-full border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onUpdateDeterminantReview(`labDeterminants.${i}`, 'pending')}
+                      disabled={busyKey !== null}
+                      className="rounded-full border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                    >
+                      Pendiente
+                    </button>
+                  </div>
+                ) : null}
               </div>
               <p className="mt-1 text-xl font-bold text-[#152520]">
                 {String(det.value)} {det.unit ?? ''}
@@ -1285,21 +2277,382 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
               {det.relationToDose && (
                 <p className="mt-1 text-xs text-[#7b3fa0]">{det.relationToDose}</p>
               )}
-              <p className="mt-1 text-[10px] text-slate-400">Fuente: {det.source}</p>
+              <div className="mt-2 space-y-1">
+                <p className="text-[10px] text-slate-500">
+                  <span className="font-semibold text-slate-600">Fuente:</span> {det.source}
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  <span className="font-semibold text-slate-600">Trazabilidad:</span> {reviewTraceLabel(review)}
+                </p>
+              </div>
             </div>
-          ))}
+          )})}
         </div>
-        <p className="mt-2 text-[10px] text-slate-400 italic">✦ Extraído por IA · ✓ Confirmado por profesional · ○ Pendiente de validar</p>
       </Section>
     </div>
   )
 }
 
-function InfoField({ label, value }: { label: string; value: string }) {
+function FieldStatusHelpContent() {
+  return (
+    <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <p className="font-semibold text-slate-700">Estado</p>
+        <p className="mt-1">Indica si el dato está pendiente, confirmado por un profesional o editado manualmente.</p>
+      </div>
+      <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <p className="font-semibold text-slate-700">Origen</p>
+        <p className="mt-1">Muestra si el dato fue sugerido por agentes o cargado manualmente.</p>
+      </div>
+      <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <p className="font-semibold text-slate-700">Trazabilidad</p>
+        <p className="mt-1">Explica de dónde vino el valor concreto: email, laboratorio u otra fuente registrada.</p>
+      </div>
+      <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <p className="font-semibold text-slate-700">Validación humana</p>
+        <p className="mt-1">Los datos sugeridos por agentes pueden confirmarse, dejarse pendientes o corregirse desde el editor.</p>
+      </div>
+    </div>
+  )
+}
+
+function FieldStatusHelpTrigger() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const media = window.matchMedia('(max-width: 1023px)')
+    const sync = () => setIsMobile(media.matches)
+
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
+
+  if (isMobile) {
+    return (
+      <Sheet>
+        <SheetTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              className="rounded-xl border-slate-200 text-slate-500"
+              aria-label="Cómo leer estado, origen y trazabilidad"
+            />
+          }
+        >
+          <CircleHelp className="h-4 w-4" />
+        </SheetTrigger>
+        <SheetContent side="bottom" className="rounded-t-[28px] bg-white">
+          <SheetHeader className="pr-12">
+            <SheetTitle>Cómo leer los datos</SheetTitle>
+            <SheetDescription>
+              Estado, origen y trazabilidad explicados de forma breve para revisar el caso.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="px-4 pb-5">
+            <FieldStatusHelpContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  return (
+    <div className="group/help relative hidden lg:block">
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-[#7b3fa0]"
+        aria-label="Cómo leer estado, origen y trazabilidad"
+      >
+        <CircleHelp className="h-4 w-4" />
+      </button>
+      <div className="pointer-events-none absolute left-0 top-10 z-20 w-[340px] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl opacity-0 transition duration-150 group-hover/help:opacity-100 group-focus-within/help:opacity-100">
+        <p className="text-sm font-semibold text-[#152520]">Cómo leer los datos</p>
+        <p className="mt-1 text-xs leading-5 text-[#4a7068]">
+          Estado, origen y trazabilidad explicados de forma breve para revisar el caso.
+        </p>
+        <div className="mt-3">
+          <FieldStatusHelpContent />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function reviewStatusTone(meta: FieldReviewMeta) {
+  if (meta.state === 'confirmed') return 'bg-emerald-50 text-emerald-700'
+  if (meta.state === 'edited') return 'bg-sky-50 text-sky-700'
+  return 'bg-amber-50 text-amber-700'
+}
+
+function reviewStatusLabel(meta: FieldReviewMeta) {
+  if (meta.state === 'confirmed') return 'Confirmado'
+  if (meta.state === 'edited') return 'Editado'
+  return 'Pendiente'
+}
+
+function reviewStatusSymbol(meta: FieldReviewMeta) {
+  if (meta.state === 'confirmed') return '✓'
+  if (meta.state === 'edited') return '✎'
+  return '○'
+}
+
+function reviewOriginLabel(meta: FieldReviewMeta) {
+  return meta.origin === 'llm' ? 'Agentes' : 'Manual'
+}
+
+function reviewTraceLabel(meta: FieldReviewMeta) {
+  if (meta.sourceLabel) return meta.sourceLabel
+  return meta.origin === 'llm' ? 'Extraído del email' : 'Registrado manualmente'
+}
+
+function InfoField({ label, value, review }: { label: string; value: string; review?: FieldReviewMeta }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-      <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{humanizeFieldLabel(label)}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{humanizeFieldLabel(label)}</p>
+        {review ? (
+          <>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold ${reviewStatusTone(review)}`}>
+              <span>{reviewStatusSymbol(review)}</span>
+              Estado: {reviewStatusLabel(review)}
+            </span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-medium text-slate-600">
+              Origen: {reviewOriginLabel(review)}
+            </span>
+          </>
+        ) : null}
+      </div>
       <p className="mt-0.5 text-sm font-medium text-[#152520]">{value}</p>
+      {review ? (
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-[10px] text-slate-500">
+            <span className="font-semibold text-slate-600">Trazabilidad:</span> {reviewTraceLabel(review)}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function ReviewMiniMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone: 'llm' | 'pending' | 'confirmed' | 'edited'
+}) {
+  const toneCls = {
+    llm: 'bg-[#faf6fd] text-[#7b3fa0] border-[#7b3fa0]/15',
+    pending: 'bg-amber-50 text-amber-700 border-amber-200',
+    confirmed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    edited: 'bg-sky-50 text-sky-700 border-sky-200',
+  }[tone]
+
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${toneCls}`}>
+      <p className="text-[9px] font-semibold uppercase tracking-[0.14em]">{label}</p>
+      <p className="mt-0.5 text-sm font-semibold">{value}</p>
+    </div>
+  )
+}
+
+function MiniData({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[9px] uppercase tracking-[0.12em] text-slate-400">{label}</p>
+      <p className="mt-1 text-xs font-medium text-[#152520]">{value}</p>
+    </div>
+  )
+}
+
+function TherapyTimeline({ entries }: { entries: MedicationHistoryEntry[] }) {
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
+
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 text-xs text-[#4a7068]">
+        No hay historial de pauta disponible.
+      </div>
+    )
+  }
+
+  const CHART_H = 96
+  const NODE_R = 7
+  const COL_W = 88
+  const PAD_X = 48
+  const PAD_TOP = 22
+  const PAD_BOT = 56
+  const SVG_H = CHART_H + PAD_TOP + PAD_BOT
+  const SVG_W = entries.length * COL_W + PAD_X * 2
+
+  const doseValues = entries.map(e => e.doseValue).filter((v): v is number => v !== null)
+  const maxDose = doseValues.length > 0 ? Math.max(...doseValues) : 1
+  const minDose = doseValues.length > 0 ? Math.min(...doseValues) : 0
+  const range = maxDose - minDose || maxDose || 1
+
+  const ys = entries.map((entry) => {
+    if (entry.doseValue !== null) {
+      const norm = (entry.doseValue - minDose) / range
+      return PAD_TOP + CHART_H - norm * (CHART_H - NODE_R * 2) - NODE_R
+    }
+    return PAD_TOP + CHART_H / 2
+  })
+  const xs = entries.map((_, i) => PAD_X + i * COL_W + COL_W / 2)
+
+  const CHANGE_COLOR: Record<string, string> = {
+    Inicio:          '#7b3fa0',
+    Intensificación: '#ef4444',
+    Reducción:       '#3b82f6',
+    Ratificación:    '#22c55e',
+    Cambio:          '#f59e0b',
+    Antecedente:     '#94a3b8',
+    Seguimiento:     '#64748b',
+  }
+
+  const selected = selectedIdx !== null ? entries[selectedIdx] : null
+  const selectedColor = selected ? (CHANGE_COLOR[selected.changeLabel] ?? '#64748b') : '#64748b'
+  const usedLabels = Array.from(new Set(entries.map(e => e.changeLabel))).filter(l => CHANGE_COLOR[l])
+
+  return (
+    <div className="space-y-3">
+      {/* Chart */}
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: SVG_W }}>
+          <svg width={SVG_W} height={SVG_H} style={{ overflow: 'visible' }}>
+            {/* Axis guide lines */}
+            <line x1={PAD_X} y1={PAD_TOP} x2={SVG_W - PAD_X} y2={PAD_TOP}
+              stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 3" />
+            <line x1={PAD_X} y1={PAD_TOP + CHART_H} x2={SVG_W - PAD_X} y2={PAD_TOP + CHART_H}
+              stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 3" />
+
+            {/* Connecting segments — colored by dose direction */}
+            {entries.slice(0, -1).map((entry, i) => {
+              const next = entries[i + 1]
+              let seg = '#e2e8f0'
+              if (entry.doseValue !== null && next.doseValue !== null) {
+                if (next.doseValue > entry.doseValue) seg = '#fca5a5'
+                else if (next.doseValue < entry.doseValue) seg = '#93c5fd'
+                else seg = '#bbf7d0'
+              }
+              return <line key={i} x1={xs[i]} y1={ys[i]} x2={xs[i + 1]} y2={ys[i + 1]}
+                stroke={seg} strokeWidth="2.5" strokeLinecap="round" />
+            })}
+
+            {/* Y-axis dose labels */}
+            {doseValues.length > 0 && (
+              <>
+                <text x={PAD_X - 8} y={PAD_TOP + 4} textAnchor="end" fontSize="9" fill="#94a3b8">{maxDose}mg</text>
+                {minDose > 0 && minDose !== maxDose && (
+                  <text x={PAD_X - 8} y={PAD_TOP + CHART_H} textAnchor="end" fontSize="9" fill="#94a3b8">{minDose}mg</text>
+                )}
+              </>
+            )}
+
+            {/* Nodes */}
+            {entries.map((entry, i) => {
+              const x = xs[i]; const y = ys[i]
+              const color = CHANGE_COLOR[entry.changeLabel] ?? '#94a3b8'
+              const isSelected = selectedIdx === i
+              return (
+                <g key={i} onClick={() => setSelectedIdx(isSelected ? null : i)} style={{ cursor: 'pointer' }}>
+                  {(entry.isCurrent || isSelected) && (
+                    <circle cx={x} cy={y} r={NODE_R + 6} fill="none" stroke={color} strokeWidth="1.5" opacity="0.35" />
+                  )}
+                  <circle cx={x} cy={y} r={NODE_R}
+                    fill={isSelected ? color : 'white'} stroke={color} strokeWidth="2" />
+                  {entry.isCurrent && !isSelected && (
+                    <circle cx={x} cy={y} r={3} fill={color} />
+                  )}
+                  {/* Dose above node */}
+                  {entry.doseText && entry.doseText !== '—' && (
+                    <text x={x} y={y - NODE_R - 5}
+                      textAnchor="middle" fontSize="9" fontWeight="600" fill={color}>
+                      {entry.doseText}
+                    </text>
+                  )}
+                  {/* Date below chart */}
+                  <text x={x} y={PAD_TOP + CHART_H + 16}
+                    textAnchor="middle" fontSize="9" fill="#94a3b8">
+                    {entry.dateLabel}
+                  </text>
+                  {/* Change type */}
+                  <text x={x} y={PAD_TOP + CHART_H + 30}
+                    textAnchor="middle" fontSize="8.5" fill={color} fontWeight="500">
+                    {entry.changeLabel}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
+        </div>
+      </div>
+
+      {/* Detail card — appears on click */}
+      {selected && (
+        <div className="rounded-xl border px-4 py-3.5 transition-all"
+          style={{ borderColor: selectedColor + '40', backgroundColor: selectedColor + '08' }}>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                  style={{ backgroundColor: selectedColor }}>
+                  {selected.changeLabel}
+                </span>
+                <span className="text-[10px] text-slate-400">{selected.dateLabel}</span>
+                {selected.isCurrent && (
+                  <span className="rounded-full bg-[#faf6fd] px-2 py-0.5 text-[10px] font-semibold text-[#7b3fa0] ring-1 ring-[#7b3fa0]/20">
+                    Vigente
+                  </span>
+                )}
+              </div>
+              <p className="mt-1.5 text-sm font-semibold text-[#152520]">{selected.label}</p>
+              <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs">
+                {selected.doseText && selected.doseText !== '—' && (
+                  <span><span className="text-slate-400">Dosis </span><span className="font-medium text-[#152520]">{selected.doseText}</span></span>
+                )}
+                {selected.interval && (
+                  <span><span className="text-slate-400">Intervalo </span><span className="font-medium text-[#152520]">{selected.interval}</span></span>
+                )}
+                {selected.route && (
+                  <span><span className="text-slate-400">Vía </span><span className="font-medium text-[#152520]">{selected.route}</span></span>
+                )}
+                {(selected.periodLabel || selected.dateLabel) && (
+                  <span><span className="text-slate-400">Período </span><span className="font-medium text-[#152520]">{selected.periodLabel || selected.dateLabel}</span></span>
+                )}
+                {selected.source && (
+                  <span><span className="text-slate-400">Fuente </span><span className="font-medium text-[#152520]">{selected.source}</span></span>
+                )}
+              </div>
+            </div>
+            <button onClick={() => setSelectedIdx(null)}
+              className="shrink-0 rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-1.5">
+        {usedLabels.map((label) => (
+          <span key={label} className="flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] text-slate-600 ring-1 ring-slate-100">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: CHANGE_COLOR[label] }} />
+            {label}
+          </span>
+        ))}
+        <span className="flex items-center gap-2 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] text-slate-500 ring-1 ring-slate-100">
+          <span className="inline-block h-1 w-4 rounded bg-red-200" /> alza
+          <span className="inline-block h-1 w-4 rounded bg-blue-200" /> baja
+          <span className="inline-block h-1 w-4 rounded bg-green-200" /> igual
+        </span>
+      </div>
     </div>
   )
 }
@@ -1319,115 +2672,127 @@ function TabGaps({
   onResolveTask: (taskId: string) => void
   onStartTask: (taskId: string) => void
 }) {
-  const taskStatusStyle: Record<string, string> = {
-    Pendiente: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-    'En curso': 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-    Resuelta: 'bg-green-50 text-green-700 ring-1 ring-green-200',
-    Bloqueada: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-  }
+  const [gapFilter, setGapFilter] = useState<string | null>(null)
 
   const GAP_CARD: Record<string, { border: string; bg: string; icon: string; badge: string }> = {
-    Crítico:    { border: 'border-red-200',    bg: 'bg-red-50',    icon: 'text-red-500',    badge: 'bg-red-600 text-white' },
-    Importante: { border: 'border-amber-200',  bg: 'bg-amber-50',  icon: 'text-amber-500',  badge: 'bg-amber-500 text-white' },
-    Informativo:{ border: 'border-blue-200',   bg: 'bg-blue-50',   icon: 'text-blue-500',   badge: 'bg-blue-500 text-white' },
+    Crítico:    { border: 'border-red-200',   bg: 'bg-red-50',   icon: 'text-red-500',   badge: 'bg-red-600 text-white' },
+    Importante: { border: 'border-amber-200', bg: 'bg-amber-50', icon: 'text-amber-500', badge: 'bg-amber-500 text-white' },
+    Informativo:{ border: 'border-blue-200',  bg: 'bg-blue-50',  icon: 'text-blue-500',  badge: 'bg-blue-500 text-white' },
   }
-
-  const orderedGaps = [...(caso.gaps ?? [])].sort((a, b) => {
+  const allGaps = [...(caso.gaps ?? [])].sort((a, b) => {
     const order = { Crítico: 0, Importante: 1, Informativo: 2 }
     return (order[a.severity as keyof typeof order] ?? 3) - (order[b.severity as keyof typeof order] ?? 3)
   })
+  const visibleGaps = gapFilter ? allGaps.filter(g => g.severity === gapFilter) : allGaps
+  const tasks = caso.tasks ?? []
+  const ACTOR_KEY = (role: string) =>
+    /farmac/i.test(role) ? 'Farmacia'
+    : /lab/i.test(role) ? 'Laboratorio'
+    : /médic|medic|digestiv|gastro/i.test(role) ? 'Médico'
+    : /enferm/i.test(role) ? 'Enfermería'
+    : (role || 'Otros')
+  const ACTOR_DOT: Record<string, string> = {
+    Farmacia: '#7b3fa0', Laboratorio: '#0ea5e9', Médico: '#3b82f6', Enfermería: '#14b8a6',
+  }
+  const COLS: Array<{ id: string; label: string; header: string }> = [
+    { id: 'Pendiente', label: 'Pendiente', header: 'bg-amber-50 text-amber-700 border-amber-200' },
+    { id: 'En curso',  label: 'En curso',  header: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { id: 'Resuelta',  label: 'Resuelta',  header: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  ]
 
   return (
     <div className="space-y-5">
+      {/* 3. Gaps with donut filter */}
       <Section title="Gaps detectados" icon={AlertTriangle}>
-        {orderedGaps.length === 0 ? (
+        {allGaps.length === 0 ? (
           <p className="text-sm text-[#4a7068]">No se han detectado gaps en este caso.</p>
         ) : (
-          <div className="space-y-2">
-            {orderedGaps.map((gap, i) => {
-              const style = GAP_CARD[gap.severity] ?? { border: 'border-slate-200', bg: 'bg-white', icon: 'text-slate-400', badge: 'bg-slate-100 text-slate-600' }
-              const isCritical = gap.severity === 'Crítico'
-              return (
-                <div key={i} className={`flex items-start gap-3 rounded-xl border ${style.border} ${style.bg} px-4 py-3`}>
-                  <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${style.icon} ${isCritical ? 'animate-pulse' : ''}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.badge}`}>
-                        {gap.severity}
-                      </span>
-                      <p className="text-sm font-semibold text-[#152520]">{gap.label}</p>
+          <>
+            <div className="mb-4">
+              <GapSeverityDonut gaps={allGaps} activeFilter={gapFilter} onFilter={setGapFilter} />
+            </div>
+            <div className="space-y-2">
+              {visibleGaps.map((gap, i) => {
+                const style = GAP_CARD[gap.severity] ?? { border: 'border-slate-200', bg: 'bg-white', icon: 'text-slate-400', badge: 'bg-slate-100 text-slate-600' }
+                return (
+                  <div key={i} className={`flex items-start gap-3 rounded-xl border ${style.border} ${style.bg} px-4 py-3`}>
+                    <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${style.icon} ${gap.severity === 'Crítico' ? 'animate-pulse' : ''}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.badge}`}>{gap.severity}</span>
+                        <p className="text-sm font-semibold text-[#152520]">{gap.label}</p>
+                      </div>
+                      <p className="mt-1 text-xs text-[#4a7068]">{gap.status}</p>
                     </div>
-                    <p className="mt-1 text-xs text-[#4a7068]">{gap.status}</p>
+                    <Button size="sm" variant="outline" className="shrink-0 rounded-xl text-xs"
+                      onClick={() => onRequestGap(gap.label)} disabled={busyKey !== null}>
+                      Solicitar
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="shrink-0 rounded-xl text-xs"
-                    onClick={() => onRequestGap(gap.label)}
-                    disabled={busyKey !== null}
-                  >
-                    Solicitar
-                  </Button>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </Section>
+
+      {/* 4. Kanban task board */}
+      <Section title="Tareas por estado" icon={ClipboardEdit}>
+        {tasks.length === 0 ? (
+          <p className="text-sm text-[#4a7068]">No hay tareas pendientes.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {COLS.map(col => {
+              const colTasks = tasks.filter(t => t.status === col.id)
+              return (
+                <div key={col.id} className="flex flex-col gap-2">
+                  <div className={`flex items-center justify-between rounded-xl border px-3 py-2 ${col.header}`}>
+                    <span className="text-[10px] font-bold uppercase tracking-wide">{col.label}</span>
+                    <span className="text-[10px] font-semibold opacity-70">{colTasks.length}</span>
+                  </div>
+                  {colTasks.map((task, i) => {
+                    const actorKey = ACTOR_KEY(task.ownerRole ?? '')
+                    const dot = ACTOR_DOT[actorKey] ?? '#94a3b8'
+                    const isResolved = col.id === 'Resuelta'
+                    return (
+                      <div key={i} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+                        <div className="flex items-start gap-2">
+                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: dot }} />
+                          <p className={`flex-1 text-xs ${isResolved ? 'text-slate-400 line-through' : 'font-medium text-[#152520]'}`}>{task.title}</p>
+                        </div>
+                        <div className="mt-1.5 flex items-center justify-between gap-1">
+                          <span className="text-[10px] text-slate-400">{actorKey}</span>
+                          {task.dueDate && !isResolved && (
+                            <span className="text-[10px] text-slate-400">{new Date(task.dueDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</span>
+                          )}
+                        </div>
+                        {!isResolved && (
+                          <div className="mt-2 flex gap-1">
+                            <Button size="sm" className="h-6 flex-1 rounded-lg bg-emerald-600 px-2 text-[10px] text-white hover:bg-emerald-700"
+                              onClick={() => onResolveTask(task.taskId)} disabled={busyKey !== null}>
+                              Resuelta
+                            </Button>
+                            {col.id === 'Pendiente' && (
+                              <Button size="sm" variant="outline" className="h-6 flex-1 rounded-lg px-2 text-[10px]"
+                                onClick={() => onStartTask(task.taskId)} disabled={busyKey !== null}>
+                                En curso
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                  {colTasks.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-slate-200 px-3 py-4 text-center text-[10px] text-slate-300">
+                      Sin tareas
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
         )}
-      </Section>
-
-      <Section title="Tareas" icon={ClipboardEdit}>
-        <div className="space-y-3">
-          {(caso.tasks ?? []).map((task, i) => {
-            const isResolved = task.status === 'Resuelta'
-            const isInProgress = task.status === 'En curso'
-            return (
-              <div key={i} className={`flex items-start gap-4 rounded-xl border p-4 ${isResolved ? 'border-green-100 bg-green-50/40' : 'border-slate-200 bg-white'}`}>
-                <div className="mt-0.5 shrink-0">
-                  {isResolved ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : isInProgress ? (
-                    <Activity className="h-5 w-5 text-blue-500" />
-                  ) : (
-                    <ClipboardEdit className="h-5 w-5 text-amber-500" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className={`font-medium ${isResolved ? 'text-slate-400 line-through' : 'text-[#152520]'}`}>{task.title}</p>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${taskStatusStyle[task.status] ?? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
-                      {task.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-[#4a7068]">
-                    Responsable: <span className="font-medium">{task.ownerRole}</span>
-                    {task.dueDate && <> · Fecha límite: {new Date(task.dueDate).toLocaleDateString('es-ES')}</>}
-                    {task.createdBy && <> · Creado por: {task.createdBy}</>}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    size="sm"
-                    className="rounded-xl bg-emerald-600 text-xs text-white hover:bg-emerald-700"
-                    onClick={() => onResolveTask(task.taskId)}
-                    disabled={isResolved || busyKey !== null}
-                  >
-                    <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                    Resuelta
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl text-xs"
-                    onClick={() => onStartTask(task.taskId)}
-                    disabled={isInProgress || busyKey !== null}
-                  >
-                    En curso
-                  </Button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
       </Section>
     </div>
   )
@@ -1435,20 +2800,86 @@ function TabGaps({
 
 // ── Tab: Análisis PK/PD ───────────────────────────────────────────────────────
 
-function TabAnalisis({ caso }: { caso: CasoCompleto }) {
+function ProtocolFrameCard({
+  protocol,
+  frame,
+  compact = false,
+}: {
+  protocol: ReturnType<typeof getProgramProtocol>
+  frame?: ReturnType<typeof deriveProtocolSemanticFrame>
+  compact?: boolean
+}) {
+  if (!protocol && !frame) return null
+
+  return (
+    <div className={`rounded-xl border border-slate-200 bg-white ${compact ? 'p-4' : 'p-5'}`}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Marco de decisión</p>
+          <p className="mt-1 text-base font-semibold text-[#152520]">
+            {frame?.label ?? protocol?.title ?? 'Protocolo activo'}
+          </p>
+          {frame?.rationale ? (
+            <p className="mt-2 text-sm leading-6 text-[#152520]">{frame.rationale}</p>
+          ) : null}
+          {protocol?.alignment ? (
+            <p className="mt-2 text-sm leading-6 text-[#4a7068]">{protocol.alignment}</p>
+          ) : null}
+          {frame?.caution ? (
+            <p className="mt-2 text-xs font-medium text-amber-700">{frame.caution}</p>
+          ) : null}
+        </div>
+        <div className="space-y-2 lg:w-[280px]">
+          <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] px-4 py-3 text-sm">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Protocolo activo</p>
+            <p className="mt-1 font-semibold text-[#152520]">{protocol?.title ?? 'Protocolo clínico activo'}</p>
+            <p className="mt-1 text-xs text-[#4a7068]">Última revisión: {formatProtocolReviewDate(protocol?.lastReview)}</p>
+          </div>
+          {protocol?.references?.length ? (
+            <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Fuentes</p>
+              <div className="mt-2 space-y-2">
+                {protocol.references.map((reference) => (
+                  <a
+                    key={`${reference.label}-${reference.url}`}
+                    href={reference.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-xl border border-slate-200 bg-white px-3 py-2 transition hover:border-[#7b3fa0]/20 hover:bg-[#faf6fd]"
+                  >
+                    <p className="text-sm font-semibold text-[#152520]">{reference.label}</p>
+                    {reference.source ? <p className="mt-0.5 text-[11px] text-[#4a7068]">{reference.source}</p> : null}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TabAnalisis({ caso, program }: { caso: CasoCompleto; program?: Program | null }) {
   const interpretation = caso.pkpdInterpretation
   const det = caso.labDeterminants ?? []
   const confirmed = det.filter((d) => d.status === 'Confirmado').length
   const total = det.length || 1
   const completeness = Math.round((confirmed / total) * 100)
-  const confidenceDimensions = [
-    { label: 'Completitud de determinantes', pct: completeness },
-    { label: 'Interpretabilidad PK/PD', pct: interpretation?.confidence === 'Alta' ? 90 : interpretation?.confidence === 'Media' ? 65 : 40 },
-    { label: 'Coherencia de datos', pct: Math.min(100, completeness + 10) },
-  ]
+  const lowConfidence = interpretation?.confidence === 'Baja'
+  const semanticFrame = deriveProtocolSemanticFrame(caso)
+  const protocol = getProgramProtocol(program)
 
   return (
     <div className="space-y-5">
+      {lowConfidence ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
+          <p className="font-semibold">Confianza baja en la interpretación</p>
+          <p className="mt-1 leading-6">
+            El caso necesita más validación humana o más datos antes de convertir este análisis en una recomendación firme.
+          </p>
+        </div>
+      ) : null}
       <div className="rounded-xl border border-[#7b3fa0]/20 bg-slate-50 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -1460,32 +2891,18 @@ function TabAnalisis({ caso }: { caso: CasoCompleto }) {
         <p className="mt-3 text-sm leading-7 text-[#152520]">{interpretation?.summary}</p>
       </div>
 
+      <ProtocolFrameCard
+        protocol={protocol}
+        frame={semanticFrame}
+      />
+
       <div className="grid gap-5 lg:grid-cols-2">
         <Section title="Confianza del análisis" icon={Shield}>
-          <div className="space-y-3">
-            {confidenceDimensions.map((dim) => (
-              <div key={dim.label} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-[#152520]">{dim.label}</span>
-                  <span className="text-[#4a7068]">{dim.pct}%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-slate-100">
-                  <div className="h-1.5 rounded-full bg-[#7b3fa0]" style={{ width: `${dim.pct}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <ConfidenceRadar completeness={completeness} confidence={interpretation?.confidence ?? ''} />
         </Section>
 
         <Section title="Datos utilizados" icon={FlaskConical}>
-          <div className="space-y-2">
-            {(caso.labDeterminants ?? []).filter((d) => d.status === 'Confirmado').map((d, i) => (
-              <div key={i} className="flex items-center justify-between rounded-xl border border-slate-100 bg-[#f8faf9] px-3 py-2 text-sm">
-                <span className="text-[#4a7068]">{d.label}</span>
-                <span className="font-semibold text-[#152520]">{String(d.value)} {d.unit ?? ''}</span>
-              </div>
-            ))}
-          </div>
+          <LabBulletChart determinants={(caso.labDeterminants ?? []).filter((d) => d.status === 'Confirmado')} />
         </Section>
       </div>
 
@@ -1507,11 +2924,17 @@ function TabAnalisis({ caso }: { caso: CasoCompleto }) {
 
 function TabSimulacion({
   caso,
+  program,
 }: {
   caso: CasoCompleto
+  program?: Program | null
 }) {
   return (
-    <PkpdSimulationChart caso={caso} preferredScenario={caso.simulation?.preferredScenario ?? null} />
+    <PkpdSimulationChart
+      caso={caso}
+      program={program}
+      preferredScenario={caso.simulation?.preferredScenario ?? null}
+    />
   )
 }
 
@@ -1519,6 +2942,7 @@ function TabSimulacion({
 
 function TabRecomendacion({
   caso,
+  program,
   recText,
   onRecChange,
   busy,
@@ -1529,6 +2953,7 @@ function TabRecomendacion({
   onReject,
 }: {
   caso: CasoCompleto
+  program?: Program | null
   recText: string
   onRecChange: (v: string) => void
   busy: boolean
@@ -1540,9 +2965,37 @@ function TabRecomendacion({
 }) {
   const rec = caso.recommendation
   const statusInfo = RECOMMENDATION_STATUS[rec?.status ?? ''] ?? { style: 'bg-slate-100 text-slate-600', label: rec?.status }
+  const lowConfidence = caso.pkpdInterpretation?.confidence === 'Baja'
+  const protocol = getProgramProtocol(program)
+  const semanticFrame = deriveProtocolSemanticFrame(caso)
+
+  const trough = deriveTrough(caso)
+  const status = pkpdStatus(caso.pkpdInterpretation?.pattern ?? '')
+  const drugLine = deriveDrugLine(caso)
 
   return (
     <div className="space-y-5">
+      {lowConfidence ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
+          <p className="font-semibold">Recomendación con lectura cauta</p>
+          <p className="mt-1 leading-6">
+            La confianza del caso es baja. Antes de validar, conviene completar datos, revisar determinantes o elevar el caso a sesión de red.
+          </p>
+        </div>
+      ) : null}
+      {/* Clinical context frame */}
+      <div className={`rounded-xl border ${status.border} ${status.bg} px-4 py-3`}>
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Contexto clínico para esta recomendación</p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+          <span><span className="text-[#4a7068]">Paciente:</span> <span className="font-semibold text-[#152520]">{caso.patientCode}</span></span>
+          <span><span className="text-[#4a7068]">Tratamiento:</span> <span className="font-semibold text-[#152520]">{drugLine}</span></span>
+          {trough && <span><span className="text-[#4a7068]">Valle:</span> <span className={`font-bold ${status.color}`}>{trough.value} {trough.unit}</span></span>}
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold border ${status.border} ${status.color} bg-white`}>{status.label}</span>
+        </div>
+      </div>
+
+      <ProtocolFrameCard protocol={protocol} frame={semanticFrame} compact />
+
       <div className="flex items-center gap-3">
         <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusInfo.style}`}>{statusInfo.label}</span>
       </div>
@@ -1582,6 +3035,7 @@ function TabRecomendacion({
 
 function TabInforme({
   caso,
+  program,
   noteText,
   onNoteChange,
   busy,
@@ -1592,6 +3046,7 @@ function TabInforme({
   onExportPdf,
 }: {
   caso: CasoCompleto
+  program?: Program | null
   noteText: string
   onNoteChange: (value: string) => void
   busy: boolean
@@ -1602,6 +3057,7 @@ function TabInforme({
   onExportPdf: () => void
 }) {
   const note = caso.clinicalNote
+  const protocol = getProgramProtocol(program)
   const statusInfo = NOTE_STATUS[note?.status ?? ''] ?? { style: 'bg-slate-100 text-slate-600' }
 
   const sections = [
@@ -1609,7 +3065,7 @@ function TabInforme({
     { label: 'Fármaco y pauta', value: `${(caso.therapyContext as any)?.currentDrug ?? '—'} ${(caso.therapyContext as any)?.currentDose ?? ''} ${(caso.therapyContext as any)?.interval ?? ''}`.trim() },
     { label: 'Patrón PK/PD', value: caso.pkpdInterpretation?.pattern ?? '—' },
     { label: 'Farmacéutico validador', value: caso.assignedName },
-    { label: 'Versión del protocolo', value: 'Crohn PK/PD v1.0' },
+    { label: 'Versión del protocolo', value: `${protocol?.title ?? 'Protocolo activo'} ${program?.version ?? ''}`.trim() },
   ]
 
   return (
@@ -1622,6 +3078,8 @@ function TabInforme({
         {sections.map((s) => <InfoField key={s.label} label={s.label} value={s.value} />)}
       </div>
 
+      <ProtocolFrameCard protocol={protocol} compact />
+
       <Section title="Texto del informe" icon={FileText}>
         <textarea
           value={noteText}
@@ -1633,7 +3091,7 @@ function TabInforme({
 
       <div className="flex flex-wrap gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onGenerateDraft} disabled={busy}>
-          <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generar borrador automático
+          <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generar borrador con Agentes
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onSaveDraft} disabled={busy}>Guardar borrador</Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onExportPdf}>Descargar PDF</Button>
@@ -1655,56 +3113,271 @@ function TabAprendizaje({
 }: {
   caso: CasoCompleto
   busyKey: string | null
-  onRegisterFollowUp: (label: string, dueDate: string) => void
+  onRegisterFollowUp: (plan: FollowUpPlan) => void
   onCompleteFollowUp: (label: string) => void
   nextFollowupDate: (days: number) => string
 }) {
+  const outcome = caso.caseOutcome
+  const followUps = useMemo(() => caso.followUps ?? [], [caso.followUps])
+  const [plannerDraft, setPlannerDraft] = useState<FollowUpDraft>(buildFollowUpDraft())
+  const [editingLabel, setEditingLabel] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!editingLabel) return
+    const current = followUps.find((item) => item.label === editingLabel)
+    if (!current) {
+      setEditingLabel(null)
+      setPlannerDraft(buildFollowUpDraft())
+    }
+  }, [editingLabel, followUps])
+
+  function applyPlannerSeed(seed: {
+    label: string
+    days: number
+    controlType: string
+    rationale: string
+  }) {
+    setEditingLabel(null)
+    setPlannerDraft(
+      buildFollowUpDraft({
+        label: seed.label,
+        dueDate: nextFollowupDate(seed.days),
+        controlType: seed.controlType,
+        rationale: seed.rationale,
+        intervalDays: seed.days,
+        status: 'Programado',
+      })
+    )
+  }
+
+  function startEditingFollowUp(item: FollowUpPlan) {
+    setEditingLabel(item.label)
+    setPlannerDraft(buildFollowUpDraft(item))
+  }
+
+  function resetPlanner() {
+    setEditingLabel(null)
+    setPlannerDraft(buildFollowUpDraft())
+  }
+
+  function savePlanner() {
+    if (!plannerDraft.label.trim() || !plannerDraft.dueDate) return
+    onRegisterFollowUp({
+      label: plannerDraft.label.trim(),
+      dueDate: plannerDraft.dueDate,
+      controlType: plannerDraft.controlType.trim() || 'Seguimiento',
+      rationale: plannerDraft.rationale.trim() || undefined,
+      intervalDays: plannerDraft.intervalDays ? Number(plannerDraft.intervalDays) : undefined,
+      status: plannerDraft.status,
+    })
+    resetPlanner()
+  }
+
   return (
     <div className="space-y-5">
+      <Section title="Outcome documentado" icon={BookOpen}>
+        {outcome ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <OutcomeCard label="Recomendación aceptada" value={outcome.recommendationAccepted || '—'} />
+            <OutcomeCard label="Respuesta clínica" value={outcome.clinicalResponse || '—'} />
+            <OutcomeCard label="Decisión terapéutica" value={outcome.treatmentDecision || '—'} />
+            <OutcomeCard label="Eventos adversos" value={outcome.adverseEvents || '—'} />
+            <OutcomeCard label="Aprendizaje de red" value={outcome.networkLearning || '—'} />
+            <OutcomeCard label="Resumen de cierre" value={outcome.summary || '—'} long />
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-[#4a7068]">
+            El caso todavía no tiene un outcome registrado. Cuando se cierre, aquí quedará documentado si la recomendación se aceptó, qué respuesta clínica hubo y qué aprendizaje aporta a la red.
+          </div>
+        )}
+      </Section>
+
+      <FollowUpTimelineRuler followUps={followUps} />
+
       <Section title="Seguimiento programado" icon={Clock}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(caso.followUps ?? []).map((fu, i) => (
-            <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-	              <p className="font-medium text-[#152520]">{fu.label}</p>
-	              <p className="mt-1 text-xs text-[#4a7068]">Estado: {fu.status}</p>
-	              {fu.dueDate && <p className="mt-1 text-xs text-[#7b3fa0]">Fecha: {new Date(fu.dueDate).toLocaleDateString('es-ES')}</p>}
-	              <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3 w-full rounded-xl text-xs"
-                  onClick={() => onCompleteFollowUp(fu.label)}
-                  disabled={busyKey !== null || fu.status === 'Completado'}
-                >
-                  {fu.status === 'Completado' ? 'Seguimiento completado' : 'Registrar seguimiento'}
-                </Button>
-	            </div>
-	          ))}
-	          {(caso.followUps ?? []).length === 0 && (
-              <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4">
-	            <p className="text-sm text-[#4a7068]">No hay seguimientos programados.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl text-xs"
-                    onClick={() => onRegisterFollowUp('Seguimiento 4 semanas', nextFollowupDate(28))}
-                    disabled={busyKey !== null}
-                  >
-                    Programar 4 semanas
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl text-xs"
-                    onClick={() => onRegisterFollowUp('Seguimiento 8 semanas', nextFollowupDate(56))}
-                    disabled={busyKey !== null}
-                  >
-                    Programar 8 semanas
-                  </Button>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_380px]">
+          <div className="space-y-3">
+            {followUps.length > 0 ? (
+              followUps.map((fu, index) => (
+                <div key={`${fu.label}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-[#152520]">{fu.label}</p>
+                        <FollowUpStatusPill status={fu.status} />
+                        {fu.controlType ? (
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-600">
+                            {fu.controlType}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#4a7068]">
+                        <span>Fecha: {fu.dueDate ? new Date(fu.dueDate).toLocaleDateString('es-ES') : 'Pendiente'}</span>
+                        {fu.intervalDays ? <span>Intervalo: {fu.intervalDays} días</span> : null}
+                      </div>
+                      {fu.rationale ? (
+                        <p className="mt-2 text-sm leading-6 text-[#4a7068]">{fu.rationale}</p>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl text-xs"
+                        onClick={() => startEditingFollowUp(fu)}
+                        disabled={busyKey !== null}
+                      >
+                        Editar plan
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl text-xs"
+                        onClick={() => onCompleteFollowUp(fu.label)}
+                        disabled={busyKey !== null || fu.status === 'Completado'}
+                      >
+                        {fu.status === 'Completado' ? 'Seguimiento completado' : 'Registrar seguimiento'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm text-[#4a7068]">
+                No hay seguimientos programados todavía. Puedes definirlos por patrón rápido o crear un plan manual.
               </div>
-	          )}
-	        </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Planificador de seguimiento</p>
+                <h3 className="mt-1 text-lg font-semibold text-[#152520]">
+                  {editingLabel ? 'Editar control programado' : 'Definir próximo control'}
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-[#4a7068]">
+                  Ajusta cuándo volver a pedir laboratorio, cuándo revisar al paciente y qué motivo clínico justifica ese control.
+                </p>
+              </div>
+              {editingLabel ? (
+                <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={resetPlanner}>
+                  Nuevo plan
+                </Button>
+              ) : null}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <FollowUpPatternButton
+                label="Lab 2 sem"
+                detail="Concentración + biomarcadores"
+                onClick={() =>
+                  applyPlannerSeed({
+                    label: 'Control de laboratorio 2 semanas',
+                    days: 14,
+                    controlType: 'Laboratorio',
+                    rationale: 'Repetir determinantes y confirmar evolución temprana tras el ajuste terapéutico.',
+                  })
+                }
+              />
+              <FollowUpPatternButton
+                label="Clínica 4 sem"
+                detail="Respuesta y tolerancia"
+                onClick={() =>
+                  applyPlannerSeed({
+                    label: 'Seguimiento clínico 4 semanas',
+                    days: 28,
+                    controlType: 'Visita clínica',
+                    rationale: 'Valorar respuesta clínica inicial, adherencia y tolerabilidad del plan acordado.',
+                  })
+                }
+              />
+              <FollowUpPatternButton
+                label="Outcome 8 sem"
+                detail="Cierre del caso"
+                onClick={() =>
+                  applyPlannerSeed({
+                    label: 'Seguimiento outcome 8 semanas',
+                    days: 56,
+                    controlType: 'Outcome / cierre',
+                    rationale: 'Documentar outcome, decisión terapéutica final y aprendizaje de red.',
+                  })
+                }
+              />
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <LabeledInput
+                label="Etiqueta del control"
+                value={plannerDraft.label}
+                onChange={(value) => setPlannerDraft((current) => ({ ...current, label: value }))}
+                placeholder="Ej.: Control de laboratorio 2 semanas"
+                disabled={Boolean(editingLabel)}
+              />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <LabeledSelect
+                  label="Tipo de control"
+                  value={plannerDraft.controlType}
+                  onChange={(value) => setPlannerDraft((current) => ({ ...current, controlType: value }))}
+                  options={['Laboratorio', 'Visita clínica', 'Outcome / cierre', 'Revisión PK/PD', 'Co-validación', 'Personalizado']}
+                />
+                <LabeledInput
+                  label="Fecha objetivo"
+                  type="date"
+                  value={plannerDraft.dueDate}
+                  onChange={(value) => setPlannerDraft((current) => ({ ...current, dueDate: value }))}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <LabeledInput
+                  label="Intervalo en días"
+                  type="number"
+                  value={plannerDraft.intervalDays}
+                  onChange={(value) => setPlannerDraft((current) => ({ ...current, intervalDays: value }))}
+                  placeholder="14"
+                />
+                <LabeledSelect
+                  label="Estado del plan"
+                  value={plannerDraft.status}
+                  onChange={(value) => setPlannerDraft((current) => ({ ...current, status: value }))}
+                  options={['Programado', 'Pendiente', 'Completado']}
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#152520]">Motivo clínico o criterio</label>
+                <textarea
+                  className={`${sheetInputCls} min-h-[120px] resize-none`}
+                  value={plannerDraft.rationale}
+                  onChange={(event) => setPlannerDraft((current) => ({ ...current, rationale: event.target.value }))}
+                  placeholder="Explica por qué el siguiente control debe ser en 2, 4, 8 semanas o en una fecha concreta."
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
+                onClick={savePlanner}
+                disabled={busyKey !== null || !plannerDraft.label.trim() || !plannerDraft.dueDate}
+              >
+                Guardar planificación
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-xl text-xs"
+                onClick={resetPlanner}
+                disabled={busyKey !== null}
+              >
+                Limpiar
+              </Button>
+            </div>
+          </div>
+        </div>
       </Section>
 
       <Section title="Resultado y aprendizaje" icon={TrendingUp}>
@@ -1737,6 +3410,58 @@ function TabAprendizaje({
         </div>
       </Section>
     </div>
+  )
+}
+
+function OutcomeCard({
+  label,
+  value,
+  long = false,
+}: {
+  label: string
+  value: string
+  long?: boolean
+}) {
+  return (
+    <div className={`rounded-xl border border-slate-200 bg-white px-4 py-3 ${long ? 'sm:col-span-2 xl:col-span-3' : ''}`}>
+      <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{label}</p>
+      <p className={`mt-1 text-sm text-[#152520] ${long ? 'leading-7' : 'font-medium'}`}>{value}</p>
+    </div>
+  )
+}
+
+function FollowUpPatternButton({
+  label,
+  detail,
+  onClick,
+}: {
+  label: string
+  detail: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[#7b3fa0]/25 hover:bg-[#faf6fd]"
+    >
+      <p className="text-xs font-semibold text-[#152520]">{label}</p>
+      <p className="mt-0.5 text-[11px] text-[#4a7068]">{detail}</p>
+    </button>
+  )
+}
+
+function FollowUpStatusPill({ status }: { status: string }) {
+  const cls =
+    status === 'Completado'
+      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+      : status === 'Pendiente'
+        ? 'bg-amber-50 text-amber-700 ring-amber-200'
+        : 'bg-sky-50 text-sky-700 ring-sky-200'
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-[10px] font-medium ring-1 ${cls}`}>
+      {status}
+    </span>
   )
 }
 
@@ -1782,14 +3507,12 @@ const STAGE_DESC: Record<string, string> = {
 
 function PipelinePanel({
   caso,
-  activeTab,
-  onJump,
   actionBusy,
+  inline = false,
 }: {
   caso: CasoCompleto
-  activeTab: Tab
-  onJump: (tab: Tab) => void
   actionBusy: string | null
+  inline?: boolean
 }) {
   const stageIndex = PIPELINE_STAGES.findIndex((s) => s === caso.pipelineStage)
   const [expandedStage, setExpandedStage] = useState<string | null>(caso.pipelineStage)
@@ -1808,11 +3531,36 @@ function PipelinePanel({
     setExpandedStage(caso.pipelineStage)
   }, [caso.pipelineStage])
 
-  return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-[#f1f3f5]">
+  const activeAgentFlow =
+    actionBusy === 'orchestrate'
+      ? {
+          title: 'Agentes trabajando sobre el caso',
+          steps: [
+            'Validando completitud clínica',
+            'Preparando interpretación PK/PD',
+            'Redactando recomendación',
+            'Preparando nota HCE',
+          ],
+        }
+      : actionBusy === 'note:generate'
+        ? {
+            title: 'Agente de informe HCE trabajando',
+            steps: [
+              'Leyendo contexto validado',
+              'Componiendo borrador clínico',
+              'Preparando salida para revisión',
+            ],
+          }
+        : null
 
-      {/* ── Block 1: Pipeline stages (independently scrollable) ── */}
-      <div className={`flex flex-col border-b-2 border-[#7b3fa0]/20 ${block1Open ? 'flex-1 min-h-0' : 'shrink-0'}`}>
+  return (
+    <aside className={inline
+      ? 'w-full'
+      : 'hidden lg:flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-[#f1f3f5]'
+    }>
+
+      {/* ── Block 1: Pipeline stages ── */}
+      <div className={`flex flex-col border-b-2 border-[#7b3fa0]/20 ${inline ? '' : block1Open ? 'flex-1 min-h-0' : 'shrink-0'}`}>
         <button
           onClick={() => setBlock1Open((v) => !v)}
           className="flex w-full items-center justify-between gap-2 bg-[#7b3fa0]/8 px-3 py-2.5 text-left hover:bg-[#7b3fa0]/12 transition"
@@ -1824,7 +3572,7 @@ function PipelinePanel({
           <ChevronDown className={`h-3.5 w-3.5 text-[#7b3fa0] transition-transform ${block1Open ? '' : '-rotate-90'}`} />
         </button>
         {block1Open && (
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 space-y-3">
+      <div className={inline ? 'px-3 py-3 space-y-3' : 'flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 space-y-3'}>
 
         {/* Siguiente paso callout */}
         <div className="rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-3 shadow-sm">
@@ -1837,6 +3585,10 @@ function PipelinePanel({
             </div>
           )}
         </div>
+
+        {activeAgentFlow ? (
+          <AgentExecutionRail title={activeAgentFlow.title} steps={activeAgentFlow.steps} />
+        ) : null}
 
         {/* Pipeline stages */}
         <div>
@@ -1939,8 +3691,8 @@ function PipelinePanel({
         )}
       </div>
 
-      {/* ── Block 2: Context (independently scrollable) ── */}
-      <div className={`flex flex-col ${block2Open ? 'flex-1 min-h-0' : 'shrink-0'}`}>
+      {/* ── Block 2: Context ── */}
+      <div className={`flex flex-col ${inline ? '' : block2Open ? 'flex-1 min-h-0' : 'shrink-0'}`}>
         <button
           onClick={() => setBlock2Open((v) => !v)}
           className="flex w-full items-center justify-between gap-2 bg-[#7b3fa0]/10 px-3 py-2.5 text-left hover:bg-[#7b3fa0]/15 transition"
@@ -1952,7 +3704,7 @@ function PipelinePanel({
           <ChevronDown className={`h-3.5 w-3.5 text-[#7b3fa0] transition-transform ${block2Open ? '' : '-rotate-90'}`} />
         </button>
         {block2Open && (
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 space-y-3">
+      <div className={inline ? 'px-3 py-3 space-y-3' : 'flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 space-y-3'}>
 
         {/* People */}
         <div className="flex items-start gap-2">
@@ -1989,36 +3741,70 @@ function PipelinePanel({
           </div>
         )}
 
-        {/* Quick-jump tabs */}
-        <div>
-          <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Ir a sección</p>
-          <div className="grid grid-cols-2 gap-1">
-            {([
-              { tab: 'resumen' as Tab, label: 'Resumen' },
-              { tab: 'analisis' as Tab, label: 'Análisis' },
-              { tab: 'recomendacion' as Tab, label: 'Recom.' },
-              { tab: 'actividad' as Tab, label: 'Actividad' },
-            ] as const).map((item) => (
-              <button
-                key={item.tab}
-                onClick={() => onJump(item.tab)}
-                className={`rounded-lg px-2 py-1.5 text-[11px] font-medium transition ${
-                  activeTab === item.tab
-                    ? 'bg-[#7b3fa0] text-white'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
       </div>
         )}
       </div>
 
     </aside>
+  )
+}
+
+function AgentExecutionRail({
+  title,
+  steps,
+}: {
+  title: string
+  steps: string[]
+}) {
+  const [activeStep, setActiveStep] = useState(0)
+
+  useEffect(() => {
+    setActiveStep(0)
+    const timer = window.setInterval(() => {
+      setActiveStep((current) => (current + 1) % steps.length)
+    }, 950)
+    return () => window.clearInterval(timer)
+  }, [steps])
+
+  return (
+    <div className="rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-3 shadow-sm">
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
+          <Bot className="h-4 w-4 text-[#7b3fa0]" />
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#7b3fa0]">Ejecución agentic</p>
+          <p className="text-xs font-semibold text-slate-900">{title}</p>
+        </div>
+      </div>
+      <div className="mt-3 space-y-2">
+        {steps.map((step, index) => {
+          const isDone = index < activeStep
+          const isRunning = index === activeStep
+          return (
+            <div
+              key={step}
+              className={`flex items-center gap-2 rounded-xl border px-2.5 py-2 text-[11px] transition ${
+                isRunning
+                  ? 'border-[#7b3fa0]/20 bg-[#faf6fd] text-[#7b3fa0]'
+                  : isDone
+                    ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                    : 'border-slate-100 bg-slate-50 text-slate-400'
+              }`}
+            >
+              {isDone ? (
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              ) : isRunning ? (
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+              ) : (
+                <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-200" />
+              )}
+              <span className={isRunning ? 'font-semibold' : ''}>{step}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -2088,7 +3874,9 @@ function Section({ title, icon: Icon, children }: { title: string; icon: typeof 
 }
 
 type CaseEditorDraft = {
+  title: string
   clinicalSummary: string
+  fieldReview: Record<string, FieldReviewMeta>
   nextAction: string
   age: string
   sex: string
@@ -2122,7 +3910,9 @@ function buildEditorDraft(caso: CasoCompleto): CaseEditorDraft {
   const therapy = caso.therapyContext as Record<string, any>
 
   return {
+    title: caso.title ?? '',
     clinicalSummary: caso.clinicalSummary ?? '',
+    fieldReview: caso.fieldReview ?? {},
     nextAction: caso.nextAction ?? '',
     age: caso.patientProfile?.age != null ? String(caso.patientProfile.age) : '',
     sex: caso.patientProfile?.sex ?? '',
@@ -2168,11 +3958,111 @@ function humanizeFieldLabel(value: string) {
     .trim()
 }
 
+function CloseOutcomeSheet({
+  draft,
+  saving,
+  onClose,
+  onChange,
+  onSave,
+}: {
+  draft: CaseOutcomeDraft
+  saving: boolean
+  onClose: () => void
+  onChange: React.Dispatch<React.SetStateAction<CaseOutcomeDraft>>
+  onSave: () => void
+}) {
+  function setField<K extends keyof CaseOutcomeDraft>(field: K, value: CaseOutcomeDraft[K]) {
+    onChange((current) => ({ ...current, [field]: value }))
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/25 backdrop-blur-[1px]">
+      <div className="flex h-full w-full max-w-[620px] flex-col overflow-hidden bg-white shadow-[0_30px_90px_rgba(15,30,28,0.2)]">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Cierre clínico del caso</p>
+            <h3 className="mt-1 text-xl font-semibold text-[#152520]">Registrar outcome antes de cerrar</h3>
+            <p className="mt-1 text-sm text-[#4a7068]">
+              Documenta aceptación, respuesta clínica, decisión terapéutica y aprendizaje para que el caso alimente la inteligencia de red.
+            </p>
+          </div>
+          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <LabeledSelect
+              label="¿Se aceptó la recomendación?"
+              value={draft.recommendationAccepted}
+              onChange={(value) => setField('recommendationAccepted', value)}
+              options={['', 'Aceptada íntegramente', 'Aceptada con ajustes', 'No aceptada', 'Pendiente de confirmar']}
+            />
+            <LabeledSelect
+              label="Respuesta clínica al seguimiento"
+              value={draft.clinicalResponse}
+              onChange={(value) => setField('clinicalResponse', value)}
+              options={['', 'Mejora clara', 'Mejora parcial', 'Sin cambios', 'Empeoramiento', 'Pendiente de seguimiento']}
+            />
+            <LabeledSelect
+              label="Decisión terapéutica final"
+              value={draft.treatmentDecision}
+              onChange={(value) => setField('treatmentDecision', value)}
+              options={['', 'Mantener', 'Optimizar dosis', 'Acortar intervalo', 'Cambiar fármaco', 'Desintensificar', 'Repetir determinantes']}
+            />
+            <LabeledSelect
+              label="Eventos adversos"
+              value={draft.adverseEvents}
+              onChange={(value) => setField('adverseEvents', value)}
+              options={['', 'Ninguno relevante', 'Leves', 'Moderados', 'Graves', 'Pendiente de revisar']}
+            />
+          </div>
+
+          <div className="mt-4">
+            <LabeledInput
+              label="Valor para aprendizaje de red"
+              value={draft.networkLearning}
+              onChange={(value) => setField('networkLearning', value)}
+              placeholder="Ej.: caso docente, patrón recurrente, revisión de protocolo sugerida…"
+            />
+          </div>
+
+          <div className="mt-4">
+            <label className="mb-2 block text-sm font-medium text-[#152520]">Resumen de cierre</label>
+            <textarea
+              className={`${sheetInputCls} min-h-[150px] resize-none`}
+              value={draft.summary}
+              onChange={(event) => setField('summary', event.target.value)}
+              placeholder="Resume qué se decidió, qué ocurrió en el seguimiento y qué aprendizaje deja el caso."
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-6 py-4">
+          <p className="text-xs text-[#4a7068]">El caso quedará marcado como «Cerrado con resultado».</p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onSave} disabled={saving}>
+              {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+              Guardar y cerrar caso
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const sheetInputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none transition placeholder:text-slate-400 focus:border-[#7b3fa0] focus:ring-2 focus:ring-[#7b3fa0]/15'
 
 function CaseEditorSheet({
   draft,
+  entrySource,
+  emailOriginal,
   onChange,
   onClose,
   onSave,
@@ -2180,6 +4070,8 @@ function CaseEditorSheet({
   error,
 }: {
   draft: CaseEditorDraft
+  entrySource: string
+  emailOriginal?: string
   onChange: React.Dispatch<React.SetStateAction<CaseEditorDraft>>
   onClose: () => void
   onSave: () => void
@@ -2190,12 +4082,71 @@ function CaseEditorSheet({
     onChange((current) => ({ ...current, [field]: value }))
   }
 
-  function updateDeterminant(id: string, field: keyof CaseEditorDraft['labDeterminants'][number], value: string) {
+  function setReviewedField<K extends keyof CaseEditorDraft>(
+    field: K,
+    value: CaseEditorDraft[K],
+    reviewPath?: string,
+  ) {
+    onChange((current) => {
+      const nextReview = { ...(current.fieldReview ?? {}) }
+      if (reviewPath) {
+        const currentReview = getDraftFieldReviewMeta(nextReview, reviewPath)
+        nextReview[reviewPath] = {
+          ...currentReview,
+          origin: currentReview.origin,
+          state: currentReview.origin === 'llm' ? 'edited' : 'confirmed',
+          sourceLabel: currentReview.sourceLabel ?? (currentReview.origin === 'llm' ? 'Extraído del email' : 'Registrado manualmente'),
+        }
+      }
+      return { ...current, [field]: value, fieldReview: nextReview }
+    })
+  }
+
+  function setFieldReviewState(reviewPath: string, state: FieldReviewMeta['state']) {
+    onChange((current) => {
+      const currentReview = getDraftFieldReviewMeta(current.fieldReview ?? {}, reviewPath)
+      return {
+        ...current,
+        fieldReview: {
+          ...(current.fieldReview ?? {}),
+          [reviewPath]: {
+            ...currentReview,
+            state,
+            sourceLabel: currentReview.sourceLabel ?? (currentReview.origin === 'llm' ? 'Extraído del email' : 'Registrado manualmente'),
+          },
+        },
+      }
+    })
+  }
+
+  function updateDeterminant(
+    id: string,
+    field: keyof CaseEditorDraft['labDeterminants'][number],
+    value: string,
+    reviewPath?: string,
+  ) {
     onChange((current) => ({
       ...current,
       labDeterminants: current.labDeterminants.map((item) =>
         item.id === id ? { ...item, [field]: value } : item,
       ),
+      fieldReview: reviewPath
+        ? {
+            ...(current.fieldReview ?? {}),
+            [reviewPath]: {
+              ...getDraftFieldReviewMeta(current.fieldReview ?? {}, reviewPath),
+              state:
+                getDraftFieldReviewMeta(current.fieldReview ?? {}, reviewPath).origin === 'llm'
+                  ? 'edited'
+                  : 'confirmed',
+              sourceLabel:
+                getDraftFieldReviewMeta(current.fieldReview ?? {}, reviewPath).sourceLabel
+                ?? (getDraftFieldReviewMeta(current.fieldReview ?? {}, reviewPath).origin === 'llm'
+                  ? 'Extraído del email'
+                  : 'Registrado manualmente'),
+            },
+          }
+        : current.fieldReview,
     }))
   }
 
@@ -2225,6 +4176,12 @@ function CaseEditorSheet({
     }))
   }
 
+  const reviewValues = Object.values(draft.fieldReview ?? {})
+  const pendingCount = reviewValues.filter((item) => item.state === 'pending').length
+  const confirmedCount = reviewValues.filter((item) => item.state === 'confirmed').length
+  const editedCount = reviewValues.filter((item) => item.state === 'edited').length
+  const llmCount = reviewValues.filter((item) => item.origin === 'llm').length
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/25 backdrop-blur-[1px]">
       <div className="flex h-full w-full max-w-[760px] flex-col overflow-hidden bg-white shadow-[0_30px_90px_rgba(15,30,28,0.2)]">
@@ -2235,6 +4192,16 @@ function CaseEditorSheet({
             <p className="mt-1 text-sm text-[#4a7068]">
               Mantén el caso visible y edita la información clave sin salir del cockpit.
             </p>
+            {entrySource === 'Email' ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-[#7b3fa0]/10 px-2.5 py-1 text-[10px] font-semibold text-[#7b3fa0]">
+                  Precompletado por Agentes desde email
+                </span>
+                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">
+                  Revisión humana requerida
+                </span>
+              </div>
+            ) : null}
           </div>
           <button onClick={onClose} className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
             <X className="h-5 w-5" />
@@ -2243,16 +4210,50 @@ function CaseEditorSheet({
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <div className="space-y-6">
+            {entrySource === 'Email' ? (
+              <div className="grid gap-2 sm:grid-cols-4">
+                <ReviewMiniMetric label="Agentes" value={String(llmCount)} tone="llm" />
+                <ReviewMiniMetric label="Pendientes" value={String(pendingCount)} tone="pending" />
+                <ReviewMiniMetric label="Confirmados" value={String(confirmedCount)} tone="confirmed" />
+                <ReviewMiniMetric label="Editados" value={String(editedCount)} tone="edited" />
+              </div>
+            ) : null}
+
+            {entrySource === 'Email' && emailOriginal ? (
+              <div className="rounded-3xl border border-slate-200 bg-white p-4">
+                <p className="mb-3 text-sm font-semibold text-[#152520]">Solicitud original por email</p>
+                <p className="mb-3 text-xs leading-6 text-[#4a7068]">
+                  Este contenido bruto se conserva como referencia de entrada. Puedes corregir los campos del caso sin perder el texto original.
+                </p>
+                <div className="max-h-[220px] overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-[#152520]">
+                    {emailOriginal}
+                  </pre>
+                </div>
+              </div>
+            ) : null}
+
             <div className="rounded-3xl border border-slate-200 bg-white p-4">
               <p className="mb-3 text-sm font-semibold text-[#152520]">Resumen y siguiente paso</p>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-[#152520]">Resumen clínico</label>
-                  <textarea
-                    rows={5}
-                    className={`${sheetInputCls} resize-none`}
+                  <ReviewedInput
+                    label="Título del caso"
+                    value={draft.title}
+                    onChange={(value) => setReviewedField('title', value, 'title')}
+                    review={getDraftFieldReviewMeta(draft.fieldReview, 'title')}
+                    onConfirm={() => setFieldReviewState('title', 'confirmed')}
+                    onPending={() => setFieldReviewState('title', 'pending')}
+                  />
+                </div>
+                <div>
+                  <ReviewedTextarea
+                    label="Resumen clínico"
                     value={draft.clinicalSummary}
-                    onChange={(event) => setField('clinicalSummary', event.target.value)}
+                    onChange={(value) => setReviewedField('clinicalSummary', value, 'clinicalSummary')}
+                    review={getDraftFieldReviewMeta(draft.fieldReview, 'clinicalSummary')}
+                    onConfirm={() => setFieldReviewState('clinicalSummary', 'confirmed')}
+                    onPending={() => setFieldReviewState('clinicalSummary', 'pending')}
                   />
                 </div>
                 <div>
@@ -2270,9 +4271,9 @@ function CaseEditorSheet({
               <div className="rounded-3xl border border-slate-200 bg-white p-4">
                 <p className="mb-3 text-sm font-semibold text-[#152520]">Paciente</p>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <LabeledInput label="Edad" value={draft.age} onChange={(value) => setField('age', value)} />
-                  <LabeledInput label="Sexo" value={draft.sex} onChange={(value) => setField('sex', value)} />
-                  <LabeledInput label="Peso (kg)" value={draft.weightKg} onChange={(value) => setField('weightKg', value)} />
+                  <ReviewedInput label="Edad" value={draft.age} onChange={(value) => setReviewedField('age', value, 'patientProfile.age')} review={getDraftFieldReviewMeta(draft.fieldReview, 'patientProfile.age')} onConfirm={() => setFieldReviewState('patientProfile.age', 'confirmed')} onPending={() => setFieldReviewState('patientProfile.age', 'pending')} />
+                  <ReviewedInput label="Sexo" value={draft.sex} onChange={(value) => setReviewedField('sex', value, 'patientProfile.sex')} review={getDraftFieldReviewMeta(draft.fieldReview, 'patientProfile.sex')} onConfirm={() => setFieldReviewState('patientProfile.sex', 'confirmed')} onPending={() => setFieldReviewState('patientProfile.sex', 'pending')} />
+                  <ReviewedInput label="Peso (kg)" value={draft.weightKg} onChange={(value) => setReviewedField('weightKg', value, 'patientProfile.weightKg')} review={getDraftFieldReviewMeta(draft.fieldReview, 'patientProfile.weightKg')} onConfirm={() => setFieldReviewState('patientProfile.weightKg', 'confirmed')} onPending={() => setFieldReviewState('patientProfile.weightKg', 'pending')} />
                   <LabeledInput label="Altura (cm)" value={draft.heightCm} onChange={(value) => setField('heightCm', value)} />
                 </div>
                 <div className="mt-4">
@@ -2290,8 +4291,8 @@ function CaseEditorSheet({
                 <p className="mb-3 text-sm font-semibold text-[#152520]">Enfermedad</p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <LabeledInput label="Diagnóstico" value={draft.diagnosis} onChange={(value) => setField('diagnosis', value)} />
-                  <LabeledInput label="Fenotipo" value={draft.phenotype} onChange={(value) => setField('phenotype', value)} />
-                  <LabeledInput label="Actividad" value={draft.activity} onChange={(value) => setField('activity', value)} />
+                  <ReviewedInput label="Fenotipo" value={draft.phenotype} onChange={(value) => setReviewedField('phenotype', value, 'diseaseContext.phenotype')} review={getDraftFieldReviewMeta(draft.fieldReview, 'diseaseContext.phenotype')} onConfirm={() => setFieldReviewState('diseaseContext.phenotype', 'confirmed')} onPending={() => setFieldReviewState('diseaseContext.phenotype', 'pending')} />
+                  <ReviewedInput label="Actividad" value={draft.activity} onChange={(value) => setReviewedField('activity', value, 'diseaseContext.activity')} review={getDraftFieldReviewMeta(draft.fieldReview, 'diseaseContext.activity')} onConfirm={() => setFieldReviewState('diseaseContext.activity', 'confirmed')} onPending={() => setFieldReviewState('diseaseContext.activity', 'pending')} />
                   <LabeledInput label="Manifestaciones extraintestinales" value={draft.extraintestinal} onChange={(value) => setField('extraintestinal', value)} />
                 </div>
               </div>
@@ -2300,10 +4301,10 @@ function CaseEditorSheet({
             <div className="rounded-3xl border border-slate-200 bg-white p-4">
               <p className="mb-3 text-sm font-semibold text-[#152520]">Tratamiento actual</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <LabeledInput label="Fármaco actual" value={draft.currentDrug} onChange={(value) => setField('currentDrug', value)} />
-                <LabeledInput label="Dosis actual" value={draft.currentDose} onChange={(value) => setField('currentDose', value)} />
-                <LabeledInput label="Intervalo" value={draft.interval} onChange={(value) => setField('interval', value)} />
-                <LabeledInput label="Vía" value={draft.route} onChange={(value) => setField('route', value)} />
+                <ReviewedInput label="Fármaco actual" value={draft.currentDrug} onChange={(value) => setReviewedField('currentDrug', value, 'therapyContext.currentDrug')} review={getDraftFieldReviewMeta(draft.fieldReview, 'therapyContext.currentDrug')} onConfirm={() => setFieldReviewState('therapyContext.currentDrug', 'confirmed')} onPending={() => setFieldReviewState('therapyContext.currentDrug', 'pending')} />
+                <ReviewedInput label="Dosis actual" value={draft.currentDose} onChange={(value) => setReviewedField('currentDose', value, 'therapyContext.currentDose')} review={getDraftFieldReviewMeta(draft.fieldReview, 'therapyContext.currentDose')} onConfirm={() => setFieldReviewState('therapyContext.currentDose', 'confirmed')} onPending={() => setFieldReviewState('therapyContext.currentDose', 'pending')} />
+                <ReviewedInput label="Intervalo" value={draft.interval} onChange={(value) => setReviewedField('interval', value, 'therapyContext.interval')} review={getDraftFieldReviewMeta(draft.fieldReview, 'therapyContext.interval')} onConfirm={() => setFieldReviewState('therapyContext.interval', 'confirmed')} onPending={() => setFieldReviewState('therapyContext.interval', 'pending')} />
+                <ReviewedInput label="Vía" value={draft.route} onChange={(value) => setReviewedField('route', value, 'therapyContext.route')} review={getDraftFieldReviewMeta(draft.fieldReview, 'therapyContext.route')} onConfirm={() => setFieldReviewState('therapyContext.route', 'confirmed')} onPending={() => setFieldReviewState('therapyContext.route', 'pending')} />
                 <div className="sm:col-span-2">
                   <LabeledInput label="Tratamientos previos" value={draft.previousTherapies} onChange={(value) => setField('previousTherapies', value)} />
                 </div>
@@ -2325,10 +4326,19 @@ function CaseEditorSheet({
                 </Button>
               </div>
               <div className="space-y-4">
-                {draft.labDeterminants.map((item) => (
+                {draft.labDeterminants.map((item, index) => (
                   <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
                     <div className="mb-3 flex items-center justify-between">
-                      <p className="text-sm font-medium text-[#152520]">{item.label || 'Nuevo determinante'}</p>
+                      <div>
+                        <p className="text-sm font-medium text-[#152520]">{item.label || 'Nuevo determinante'}</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          <ReviewStatusInline
+                            review={getDraftFieldReviewMeta(draft.fieldReview, `labDeterminants.${index}`)}
+                            onConfirm={() => setFieldReviewState(`labDeterminants.${index}`, 'confirmed')}
+                            onPending={() => setFieldReviewState(`labDeterminants.${index}`, 'pending')}
+                          />
+                        </div>
+                      </div>
                       {draft.labDeterminants.length > 1 ? (
                         <button onClick={() => removeDeterminant(item.id)} className="text-xs text-red-600 hover:text-red-700">
                           Eliminar
@@ -2336,14 +4346,14 @@ function CaseEditorSheet({
                       ) : null}
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <LabeledInput label="Nombre" value={item.label} onChange={(value) => updateDeterminant(item.id, 'label', value)} />
-                      <LabeledInput label="Valor" value={item.value} onChange={(value) => updateDeterminant(item.id, 'value', value)} />
-                      <LabeledInput label="Unidad" value={item.unit} onChange={(value) => updateDeterminant(item.id, 'unit', value)} />
-                      <LabeledInput label="Estado" value={item.status} onChange={(value) => updateDeterminant(item.id, 'status', value)} />
-                      <LabeledInput label="Fuente" value={item.source} onChange={(value) => updateDeterminant(item.id, 'source', value)} />
-                      <LabeledInput label="Relación con la dosis" value={item.relationToDose} onChange={(value) => updateDeterminant(item.id, 'relationToDose', value)} />
+                      <LabeledInput label="Nombre" value={item.label} onChange={(value) => updateDeterminant(item.id, 'label', value, `labDeterminants.${index}`)} />
+                      <LabeledInput label="Valor" value={item.value} onChange={(value) => updateDeterminant(item.id, 'value', value, `labDeterminants.${index}`)} />
+                      <LabeledInput label="Unidad" value={item.unit} onChange={(value) => updateDeterminant(item.id, 'unit', value, `labDeterminants.${index}`)} />
+                      <LabeledInput label="Estado" value={item.status} onChange={(value) => updateDeterminant(item.id, 'status', value, `labDeterminants.${index}`)} />
+                      <LabeledInput label="Fuente" value={item.source} onChange={(value) => updateDeterminant(item.id, 'source', value, `labDeterminants.${index}`)} />
+                      <LabeledInput label="Relación con la dosis" value={item.relationToDose} onChange={(value) => updateDeterminant(item.id, 'relationToDose', value, `labDeterminants.${index}`)} />
                       <div className="sm:col-span-2">
-                        <LabeledInput label="Interpretación" value={item.interpretation} onChange={(value) => updateDeterminant(item.id, 'interpretation', value)} />
+                        <LabeledInput label="Interpretación" value={item.interpretation} onChange={(value) => updateDeterminant(item.id, 'interpretation', value, `labDeterminants.${index}`)} />
                       </div>
                     </div>
                   </div>
@@ -2380,15 +4390,156 @@ function LabeledInput({
   label,
   value,
   onChange,
+  placeholder,
+  type = 'text',
+  disabled = false,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
+  placeholder?: string
+  type?: string
+  disabled?: boolean
 }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-[#152520]">{label}</label>
+      <input
+        className={sheetInputCls}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
+  )
+}
+
+function LabeledSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: string[]
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-medium text-[#152520]">{label}</label>
+      <select className={sheetInputCls} value={value} onChange={(event) => onChange(event.target.value)}>
+        {options.map((option) => (
+          <option key={option || '__empty__'} value={option}>
+            {option || 'Seleccionar…'}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function ReviewedInput({
+  label,
+  value,
+  onChange,
+  review,
+  onConfirm,
+  onPending,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  review: FieldReviewMeta
+  onConfirm: () => void
+  onPending: () => void
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <label className="text-sm font-medium text-[#152520]">{label}</label>
+        <ReviewStatusInline review={review} onConfirm={onConfirm} onPending={onPending} />
+      </div>
       <input className={sheetInputCls} value={value} onChange={(event) => onChange(event.target.value)} />
+      <p className="mt-1 text-[10px] text-slate-400">
+        Trazabilidad: {reviewTraceLabel(review)}
+      </p>
+    </div>
+  )
+}
+
+function ReviewedTextarea({
+  label,
+  value,
+  onChange,
+  review,
+  onConfirm,
+  onPending,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  review: FieldReviewMeta
+  onConfirm: () => void
+  onPending: () => void
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <label className="text-sm font-medium text-[#152520]">{label}</label>
+        <ReviewStatusInline review={review} onConfirm={onConfirm} onPending={onPending} />
+      </div>
+      <textarea
+        rows={5}
+        className={`${sheetInputCls} resize-none`}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <p className="mt-1 text-[10px] text-slate-400">
+        Trazabilidad: {reviewTraceLabel(review)}
+      </p>
+    </div>
+  )
+}
+
+function ReviewStatusInline({
+  review,
+  onConfirm,
+  onPending,
+}: {
+  review: FieldReviewMeta
+  onConfirm: () => void
+  onPending: () => void
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold ${reviewStatusTone(review)}`}>
+        <span>{reviewStatusSymbol(review)}</span>
+        Estado: {reviewStatusLabel(review)}
+      </span>
+      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-medium text-slate-600">
+        Origen: {reviewOriginLabel(review)}
+      </span>
+      {review.origin === 'llm' ? (
+        <>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded-full border border-emerald-200 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700 transition hover:bg-emerald-50"
+          >
+            Confirmar
+          </button>
+          <button
+            type="button"
+            onClick={onPending}
+            className="rounded-full border border-amber-200 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 transition hover:bg-amber-50"
+          >
+            Pendiente
+          </button>
+        </>
+      ) : null}
     </div>
   )
 }

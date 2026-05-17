@@ -12,11 +12,15 @@ from backend.services.xarxa_repository import (
     create_xarxa_case,
     create_xarxa_case_from_inbox,
     create_xarxa_session,
+    delete_xarxa_case,
+    generate_xarxa_session_invite,
+    delete_xarxa_inbox_item,
     generate_xarxa_case_from_random_email,
     generate_xarxa_inbox_item,
     generate_xarxa_note,
     get_xarxa_case,
     get_xarxa_kpis,
+    get_xarxa_patient_history,
     list_xarxa_agents,
     list_xarxa_cases,
     list_xarxa_centers,
@@ -29,6 +33,7 @@ from backend.services.xarxa_repository import (
     list_xarxa_sessions,
     orchestrate_xarxa_case,
     process_xarxa_inbox_item,
+    propose_xarxa_session,
     publish_xarxa_program,
     save_xarxa_followup,
     save_xarxa_note,
@@ -94,6 +99,8 @@ class UpdateCaseRequest(BaseModel):
     diseaseContext: dict[str, Any] | None = None
     therapyContext: dict[str, Any] | None = None
     labDeterminants: list[DeterminantPayload] | None = None
+    fieldReview: dict[str, Any] | None = None
+    caseOutcome: dict[str, Any] | None = None
     actorName: str | None = None
     actorRole: str | None = None
     actorCenter: str | None = None
@@ -106,6 +113,7 @@ class TransitionCaseRequest(BaseModel):
     priority: str | None = None
     assignedTo: str | None = None
     assignedName: str | None = None
+    caseOutcome: dict[str, Any] | None = None
     eventLabel: str
     lane: str = "Decisiones"
     type: str = "Estado"
@@ -157,6 +165,9 @@ class FollowUpUpdateRequest(BaseModel):
     label: str
     status: str
     dueDate: str | None = None
+    controlType: str | None = None
+    rationale: str | None = None
+    intervalDays: int | None = None
     pipelineStage: str | None = None
     nextAction: str | None = None
     eventLabel: str | None = None
@@ -250,6 +261,11 @@ async def read_cases(
     return {"items": cases, "total": len(cases)}
 
 
+@router.get("/patients/{patient_code}/history")
+async def read_patient_history(patient_code: str):
+    return get_xarxa_patient_history(patient_code)
+
+
 @router.post("/cases")
 async def create_case(body: CreateCaseRequest):
     case = create_xarxa_case(body.model_dump())
@@ -283,6 +299,14 @@ async def read_case(case_id: str):
         return get_xarxa_case(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.delete("/cases/{case_id}")
+async def remove_case(case_id: str):
+    try:
+        return delete_xarxa_case(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.patch("/cases/{case_id}")
@@ -357,7 +381,7 @@ async def read_inbox():
 
 @router.post("/inbox/generate")
 async def post_generate_inbox():
-    return generate_xarxa_inbox_item(status="ready")
+    return generate_xarxa_inbox_item(status="pending")
 
 
 @router.post("/inbox/generate-case")
@@ -370,7 +394,7 @@ async def post_process_inbox(item_id: str):
     try:
         return process_xarxa_inbox_item(item_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.post("/inbox/{item_id}/create-case")
@@ -378,7 +402,16 @@ async def post_create_case_from_inbox(item_id: str):
     try:
         return create_xarxa_case_from_inbox(item_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.delete("/inbox/{item_id}")
+async def delete_inbox_item(item_id: str):
+    try:
+        delete_xarxa_inbox_item(item_id)
+        return {"ok": True}
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.get("/professionals")
@@ -388,6 +421,21 @@ async def read_professionals():
         "centers": list_xarxa_centers(),
         "roles": list_xarxa_roles(),
         "pendingApprovals": list_xarxa_professional_requests(),
+    }
+
+
+@router.get("/shell-context")
+async def read_shell_context():
+    return {
+        "professionals": list_xarxa_professionals(),
+        "centers": list_xarxa_centers(),
+        "roles": list_xarxa_roles(),
+        "pendingApprovals": list_xarxa_professional_requests(),
+        "programs": list_xarxa_programs(),
+        "forms": list_xarxa_forms(),
+        "agents": list_xarxa_agents(),
+        "sessions": list_xarxa_sessions(),
+        "inboxItems": list_xarxa_inbox(),
     }
 
 
@@ -465,6 +513,22 @@ async def read_sessions():
 @router.post("/sessions")
 async def post_create_session(body: CreateSessionRequest):
     return create_xarxa_session(title=body.title, date=body.date)
+
+
+@router.post("/sessions/propose")
+async def post_propose_session():
+    try:
+        return propose_xarxa_session()
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/sessions/{session_id}/invite")
+async def post_generate_session_invite(session_id: str):
+    try:
+        return generate_xarxa_session_invite(session_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.post("/sessions/{session_id}/start")

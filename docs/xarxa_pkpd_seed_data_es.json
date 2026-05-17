@@ -230,7 +230,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/laura-vidal.jpg"
     },
     {
       "_id": "pro-farm-002",
@@ -244,7 +245,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/marcos-ortega.jpg"
     },
     {
       "_id": "pro-dig-001",
@@ -258,7 +260,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/ana-beltran.jpg"
     },
     {
       "_id": "pro-dig-002",
@@ -272,7 +275,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/javier-soler.jpg"
     },
     {
       "_id": "pro-dig-003",
@@ -286,7 +290,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/marta-iglesias.jpg"
     },
     {
       "_id": "pro-enf-001",
@@ -300,7 +305,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/clara-moreno.jpg"
     },
     {
       "_id": "pro-enf-002",
@@ -314,7 +320,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/nuria-campos.jpg"
     },
     {
       "_id": "pro-lab-001",
@@ -328,7 +335,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/elena-ruiz.jpg"
     },
     {
       "_id": "pro-lab-002",
@@ -342,7 +350,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/victor-molina.jpg"
     },
     {
       "_id": "pro-coord-001",
@@ -357,7 +366,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/silvia-romero.jpg"
     },
     {
       "_id": "pro-res-001",
@@ -371,7 +381,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/carlos-medina.jpg"
     },
     {
       "_id": "pro-admin-001",
@@ -385,7 +396,8 @@
       "programs": [
         "Crohn PK/PD"
       ],
-      "status": "Activo"
+      "status": "Activo",
+      "avatarUrl": "/avatars/patricia-leon.jpg"
     }
   ],
   "clinicalPrograms": [
@@ -438,7 +450,38 @@
         "Seguimiento 8 semanas",
         "Cerrado con resultado"
       ],
-      "sharingPolicy": "Casos anonimizados para aprendizaje de red"
+      "sharingPolicy": "Casos anonimizados para aprendizaje de red",
+      "protocol": {
+        "title": "Crohn PK/PD",
+        "summary": "Circuito de optimización terapéutica reactiva en EII con lectura integrada de exposición, inmunogenicidad, biomarcadores e historia terapéutica.",
+        "alignment": "Alineado con protocolo local y fuentes de referencia para TDM reactivo en EII, con validación farmacéutica y médica obligatoria.",
+        "lastReview": "2026-05-18",
+        "semantics": [
+          "Datos insuficientes o muestra no interpretable",
+          "Baja exposición sin inmunogenicidad dominante",
+          "Baja exposición con inmunogenicidad probable",
+          "Exposición adecuada con inflamación persistente",
+          "Exposición alta con respuesta controlada",
+          "Ratificación de pauta actual"
+        ],
+        "references": [
+          {
+            "label": "AGA · TDM en EII",
+            "url": "https://gastro.org/clinical-guidance/therapeutic-drug-monitoring-in-inflammatory-bowel-disease-ibd/",
+            "source": "AGA"
+          },
+          {
+            "label": "MIPD al lado de la cama en EII",
+            "url": "https://academic.oup.com/ibdjournal/article/29/8/1342/6839996",
+            "source": "Inflammatory Bowel Diseases"
+          },
+          {
+            "label": "Dashboard de dosificación biológica",
+            "url": "https://academic.oup.com/ibdjournal/article/28/Supplement_1/S98/6514104",
+            "source": "Inflammatory Bowel Diseases"
+          }
+        ]
+      }
     },
     {
       "_id": "prog-colitis-pkpd",

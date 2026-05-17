@@ -1,7 +1,7 @@
 'use client'
 
-import { Calendar, Clock, FlaskConical, Info, Loader2, Mic, Monitor, Users, Video, VideoOff, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Bot, Calendar, ChevronRight, Clock, FlaskConical, Info, Loader2, Mic, Monitor, Sparkles, Users, Video, VideoOff, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -30,6 +30,11 @@ type SessionItem = {
   caseIds?: string[]
   cases?: SessionCase[]
   minutes?: string
+  proposalReason?: string
+  inviteDraft?: string
+  agendaHighlights?: string[]
+  automationSource?: string
+  automationUpdatedAt?: string | null
 }
 
 type SessionsResponse = {
@@ -119,6 +124,65 @@ function MockVideoGrid({ participants }: { participants: string[] }) {
   )
 }
 
+function LlmExecutionRail({
+  title,
+  steps,
+}: {
+  title: string
+  steps: string[]
+}) {
+  const [activeStep, setActiveStep] = useState(0)
+
+  useEffect(() => {
+    setActiveStep(0)
+    const timer = window.setInterval(() => {
+      setActiveStep((current) => (current + 1) % steps.length)
+    }, 900)
+    return () => window.clearInterval(timer)
+  }, [steps])
+
+  return (
+    <div className="rounded-xl border border-[#7b3fa0]/20 bg-[#faf6fd] p-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
+          <Bot className="h-4 w-4 text-[#7b3fa0]" />
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#7b3fa0]">Agentes en ejecución</p>
+          <p className="text-sm font-semibold text-[#152520]">{title}</p>
+        </div>
+      </div>
+      <div className="mt-3 space-y-2">
+        {steps.map((step, index) => {
+          const isDone = index < activeStep
+          const isRunning = index === activeStep
+          return (
+            <div
+              key={step}
+              className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition ${
+                isRunning
+                  ? 'border-[#7b3fa0]/20 bg-white text-[#7b3fa0]'
+                  : isDone
+                    ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                    : 'border-slate-100 bg-slate-50 text-slate-400'
+              }`}
+            >
+              {isDone ? (
+                <Sparkles className="h-3.5 w-3.5 shrink-0" />
+              ) : isRunning ? (
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+              ) : (
+                <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-200" />
+              )}
+              <span className={isRunning ? 'font-semibold' : ''}>{step}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 type SesionesProps = {
   onOpenCaso?: (caseId: string) => void
 }
@@ -128,6 +192,8 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [focusSessionId, setFocusSessionId] = useState<string | null>(null)
 
   async function loadSessions() {
     setLoading(true)
@@ -148,6 +214,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
 
   async function createSession() {
     setBusyKey('create')
+    setNotice(null)
     try {
       await fetchJson<SessionItem>('/api/xarxa/sessions', {
         method: 'POST',
@@ -155,8 +222,47 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
         body: JSON.stringify({}),
       })
       await loadSessions()
+      setNotice('Sesión manual creada.')
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : 'No se ha podido crear la sesión.')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function proposeSession() {
+    setBusyKey('propose')
+    setError(null)
+    setNotice(null)
+    try {
+      const [session] = await Promise.all([
+        fetchJson<SessionItem>('/api/xarxa/sessions/propose', { method: 'POST' }),
+        new Promise((resolve) => window.setTimeout(resolve, 1500)),
+      ])
+      await loadSessions()
+      setFocusSessionId(session.sessionId)
+      setNotice('Los Agentes han propuesto una nueva sesión de red con agenda inicial y justificación clínica.')
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No se ha podido proponer la sesión.')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function generateInvite(sessionId: string) {
+    setBusyKey(`invite:${sessionId}`)
+    setError(null)
+    setNotice(null)
+    try {
+      const [session] = await Promise.all([
+        fetchJson<SessionItem>(`/api/xarxa/sessions/${encodeURIComponent(sessionId)}/invite`, { method: 'POST' }),
+        new Promise((resolve) => window.setTimeout(resolve, 1300)),
+      ])
+      await loadSessions()
+      setFocusSessionId(session.sessionId)
+      setNotice('Los Agentes han preparado el borrador de invitación para la sesión.')
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No se ha podido preparar la invitación.')
     } finally {
       setBusyKey(null)
     }
@@ -179,6 +285,32 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       setBusyKey(null)
     }
   }
+
+  const activeLlmRail = useMemo(() => {
+    if (busyKey === 'propose') {
+      return {
+        title: 'Propuesta quincenal de sesión de red',
+        steps: [
+          'Analizando casos con valor clínico y docente',
+          'Priorizando centros y patrones a discutir',
+          'Proponiendo fecha y agenda inicial',
+          'Preparando la sesión para revisión humana',
+        ],
+      }
+    }
+    if (busyKey?.startsWith('invite:')) {
+      return {
+        title: 'Preparación de invitación y agenda',
+        steps: [
+          'Leyendo agenda propuesta',
+          'Consolidando participantes y centros',
+          'Redactando invitación de red',
+          'Dejando borrador listo para validar',
+        ],
+      }
+    }
+    return null
+  }, [busyKey])
 
   if (loading && items.length === 0) {
     return (
@@ -204,8 +336,8 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       <WorkspaceEmptyState
         title="No hay sesiones de red preparadas."
         detail="Cuando los casos se escalen para discusión colaborativa aparecerán aquí."
-        actionLabel="Crear sesión"
-        onAction={() => void createSession()}
+        actionLabel="Proponer sesión con Agentes"
+        onAction={() => void proposeSession()}
       />
     )
   }
@@ -223,20 +355,46 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
               Agenda colaborativa para casos con incertidumbre clínica o pendientes de discusión compartida.
             </p>
           </div>
-          <Button
-            size="sm"
-            className="gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
-            onClick={() => void createSession()}
-            disabled={busyKey === 'create'}
-          >
-            {busyKey === 'create' ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Video className="h-3.5 w-3.5" />
-            )}
-            Nueva sesión
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 rounded-xl text-xs"
+              onClick={() => void createSession()}
+              disabled={busyKey === 'create' || !!busyKey}
+            >
+              {busyKey === 'create' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Video className="h-3.5 w-3.5" />
+              )}
+              Nueva sesión manual
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
+              onClick={() => void proposeSession()}
+              disabled={!!busyKey}
+            >
+              {busyKey === 'propose' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Bot className="h-3.5 w-3.5" />
+              )}
+              Proponer sesión con Agentes
+            </Button>
+          </div>
         </div>
+        {activeLlmRail ? (
+          <div className="mt-4">
+            <LlmExecutionRail title={activeLlmRail.title} steps={activeLlmRail.steps} />
+          </div>
+        ) : null}
+        {notice ? (
+          <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+            {notice}
+          </div>
+        ) : null}
         {error ? (
           <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}
@@ -255,7 +413,11 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
             return (
               <div
                 key={session.sessionId}
-                className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm transition hover:shadow"
+                className={`overflow-hidden rounded-xl border bg-white shadow-sm transition hover:shadow ${
+                  focusSessionId === session.sessionId
+                    ? 'border-[#7b3fa0]/30 ring-2 ring-[#7b3fa0]/10'
+                    : 'border-slate-100'
+                }`}
                 style={{ borderLeftColor: meta.border, borderLeftWidth: 4 }}
               >
                 {/* Card header */}
@@ -338,6 +500,22 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                         </Button>
                       )}
                       {isScheduled && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 rounded-xl text-xs"
+                          onClick={() => void generateInvite(session.sessionId)}
+                          disabled={!!busyKey}
+                        >
+                          {busyKey === `invite:${session.sessionId}` ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Bot className="h-3.5 w-3.5" />
+                          )}
+                          Invitación con Agentes
+                        </Button>
+                      )}
+                      {isScheduled && (
                         <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] text-slate-400">
                           <VideoOff className="h-3 w-3" />
                           Sala no iniciada
@@ -366,6 +544,43 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                     </div>
                   </div>
                 </div>
+
+                {busyKey === `invite:${session.sessionId}` ? (
+                  <div className="border-t border-slate-100 px-5 py-4">
+                    <LlmExecutionRail
+                      title="Agentes redactando invitación y agenda"
+                      steps={[
+                        'Revisando casos incluidos',
+                        'Agrupando participantes de la red',
+                        'Redactando el mensaje de invitación',
+                        'Dejando borrador listo para validar',
+                      ]}
+                    />
+                  </div>
+                ) : null}
+
+                {session.proposalReason ? (
+                  <div className="border-t border-slate-100 px-5 py-4">
+                    <div className="rounded-xl border border-[#7b3fa0]/15 bg-[#faf6fd] px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-4 w-4 text-[#7b3fa0]" />
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">
+                          Propuesta de Agentes
+                        </p>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-[#152520]">{session.proposalReason}</p>
+                      {(session.agendaHighlights ?? []).length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {(session.agendaHighlights ?? []).map((highlight) => (
+                            <span key={highlight} className="rounded-full border border-white bg-white px-2.5 py-1 text-[10px] text-[#4a7068] shadow-sm">
+                              {highlight}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
 
                 {/* Live session: mock video grid */}
                 {isLive && (
@@ -411,6 +626,22 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                     </div>
                   </div>
                 )}
+
+                {session.inviteDraft ? (
+                  <div className="border-t border-slate-100 px-5 py-4">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <ChevronRight className="h-4 w-4 text-[#7b3fa0]" />
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
+                          Invitación preparada por Agentes
+                        </p>
+                      </div>
+                      <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-6 text-[#152520]">
+                        {session.inviteDraft}
+                      </pre>
+                    </div>
+                  </div>
+                ) : null}
 
                 {/* Done session: minutes */}
                 {session.status === 'done' && session.minutes && (

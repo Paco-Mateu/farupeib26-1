@@ -26,6 +26,12 @@ type ProgramDraft = {
   caseTypes: string
   workflowStages: string
   sharingPolicy: string
+  protocolTitle: string
+  protocolSummary: string
+  protocolAlignment: string
+  protocolLastReview: string
+  protocolSemantics: string
+  protocolReferences: string
 }
 
 type WizardStep = 'basics' | 'scope' | 'therapy' | 'workflow' | 'review'
@@ -213,6 +219,11 @@ export function AdminClinico() {
               label: 'Formularios',
               value: String(selectedForms.length),
               note: 'Entradas estructuradas asociadas al programa',
+            },
+            {
+              label: 'Fuentes',
+              value: String(parseReferenceLines(draft.protocolReferences).length),
+              note: 'Referencias documentales enlazadas al programa',
             },
           ]
         : [],
@@ -484,6 +495,30 @@ export function AdminClinico() {
                       />
                     </Field>
                   </div>
+                  <div className="grid gap-6 xl:grid-cols-2">
+                    <Field label="Título del protocolo">
+                      <input
+                        value={draft.protocolTitle}
+                        onChange={(event) => updateDraft('protocolTitle', event.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40"
+                      />
+                    </Field>
+                    <Field label="Última revisión">
+                      <input
+                        type="date"
+                        value={draft.protocolLastReview}
+                        onChange={(event) => updateDraft('protocolLastReview', event.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40"
+                      />
+                    </Field>
+                  </div>
+                  <TextAreaField
+                    label="Resumen protocolario"
+                    hint="Qué cubre este protocolo y cómo debe usarse dentro del circuito."
+                    value={draft.protocolSummary}
+                    onChange={(value) => updateDraft('protocolSummary', value)}
+                    rows={4}
+                  />
                 </div>
               ) : null}
 
@@ -516,6 +551,13 @@ export function AdminClinico() {
                     onChange={(value) => updateDraft('sharingPolicy', value)}
                     rows={5}
                   />
+                  <TextAreaField
+                    label="Alineamiento y gobierno"
+                    hint="Ejemplo: alineado con protocolo local y fuentes SEFH / literatura, con validación farmacéutica y médica obligatoria."
+                    value={draft.protocolAlignment}
+                    onChange={(value) => updateDraft('protocolAlignment', value)}
+                    rows={5}
+                  />
                 </div>
               ) : null}
 
@@ -541,6 +583,13 @@ export function AdminClinico() {
                       onChange={(value) => updateDraft('determinants', value)}
                     />
                   </div>
+                  <TextAreaField
+                    label="Semántica clínica"
+                    hint="Una categoría por línea. Se usará para que el cockpit hable con el mismo lenguaje que el protocolo."
+                    value={draft.protocolSemantics}
+                    onChange={(value) => updateDraft('protocolSemantics', value)}
+                    rows={6}
+                  />
                 </div>
               ) : null}
 
@@ -580,6 +629,13 @@ export function AdminClinico() {
                       </div>
                     </div>
                   </div>
+                  <TextAreaField
+                    label="Fuentes y referencias"
+                    hint="Una por línea con formato: Etiqueta | URL"
+                    value={draft.protocolReferences}
+                    onChange={(value) => updateDraft('protocolReferences', value)}
+                    rows={6}
+                  />
                 </div>
               ) : null}
 
@@ -627,6 +683,34 @@ export function AdminClinico() {
                     label="Política de compartición"
                     value={draft.sharingPolicy || 'Sin política de compartición definida'}
                     fullWidth
+                  />
+                  <ReviewLine
+                    label="Protocolo activo"
+                    value={draft.protocolTitle || 'Sin título protocolario definido'}
+                  />
+                  <ReviewLine
+                    label="Última revisión"
+                    value={draft.protocolLastReview || 'Sin fecha de revisión'}
+                  />
+                  <ReviewLine
+                    label="Alineamiento"
+                    value={draft.protocolAlignment || 'Sin marco de alineamiento definido'}
+                    fullWidth
+                  />
+                  <ReviewLine
+                    label="Resumen protocolario"
+                    value={draft.protocolSummary || 'Sin resumen protocolario'}
+                    fullWidth
+                  />
+                  <ReviewList
+                    title="Semántica clínica"
+                    items={splitList(draft.protocolSemantics, '\n')}
+                    emptyLabel="No se ha definido semántica clínica todavía."
+                  />
+                  <ReferenceList
+                    title="Fuentes documentales"
+                    references={parseReferenceLines(draft.protocolReferences)}
+                    emptyLabel="No hay referencias enlazadas todavía."
                   />
                 </div>
               ) : null}
@@ -757,6 +841,12 @@ function buildDraft(program: Program): ProgramDraft {
     caseTypes: joinList(program.caseTypes),
     workflowStages: joinList(program.workflowStages, '\n'),
     sharingPolicy: program.sharingPolicy ?? '',
+    protocolTitle: program.protocol?.title ?? '',
+    protocolSummary: program.protocol?.summary ?? '',
+    protocolAlignment: program.protocol?.alignment ?? '',
+    protocolLastReview: program.protocol?.lastReview ?? '',
+    protocolSemantics: joinList(program.protocol?.semantics, '\n'),
+    protocolReferences: serializeReferenceLines(program.protocol?.references),
   }
 }
 
@@ -788,6 +878,12 @@ function buildEmptyDraft(): ProgramDraft {
       'Cerrado con resultado',
     ].join('\n'),
     sharingPolicy: 'Compartición anonimizada y aprendizaje de red con validación clínica.',
+    protocolTitle: '',
+    protocolSummary: '',
+    protocolAlignment: '',
+    protocolLastReview: '',
+    protocolSemantics: '',
+    protocolReferences: '',
   }
 }
 
@@ -803,6 +899,14 @@ function serializeDraft(draft: ProgramDraft) {
     caseTypes: splitList(draft.caseTypes),
     workflowStages: splitList(draft.workflowStages, '\n'),
     sharingPolicy: draft.sharingPolicy.trim(),
+    protocol: {
+      title: draft.protocolTitle.trim(),
+      summary: draft.protocolSummary.trim(),
+      alignment: draft.protocolAlignment.trim(),
+      lastReview: draft.protocolLastReview.trim(),
+      semantics: splitList(draft.protocolSemantics, '\n'),
+      references: parseReferenceLines(draft.protocolReferences),
+    },
   }
 }
 
@@ -815,6 +919,28 @@ function splitList(value: string, delimiter = ',') {
 
 function joinList(items?: string[], delimiter = ', ') {
   return (items ?? []).join(delimiter)
+}
+
+function parseReferenceLines(value: string) {
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [labelPart, urlPart] = line.includes('|') ? line.split('|') : [line, line]
+      const label = labelPart.trim()
+      const url = (urlPart ?? labelPart).trim()
+      return { label, url, source: label.includes('·') ? label.split('·')[0].trim() : undefined }
+    })
+    .filter((item) => item.label && item.url)
+}
+
+function serializeReferenceLines(
+  items?: Array<{ label: string; url: string }>,
+) {
+  return (items ?? [])
+    .map((item) => `${item.label} | ${item.url}`)
+    .join('\n')
 }
 
 function SummaryCard({
@@ -873,6 +999,40 @@ function ReviewList({
             >
               {item}
             </span>
+          ))
+        ) : (
+          <p className="text-sm text-[#4a7068]">{emptyLabel}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ReferenceList({
+  title,
+  references,
+  emptyLabel,
+}: {
+  title: string
+  references: Array<{ label: string; url: string }>
+  emptyLabel: string
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{title}</p>
+      <div className="mt-3 space-y-2">
+        {references.length > 0 ? (
+          references.map((item) => (
+            <a
+              key={`${item.label}-${item.url}`}
+              href={item.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block rounded-2xl border border-slate-200 bg-[#fbfcfb] px-4 py-3 transition hover:border-[#7b3fa0]/20 hover:bg-[#faf6fd]"
+            >
+              <p className="text-sm font-semibold text-[#152520]">{item.label}</p>
+              <p className="mt-1 break-all text-xs text-[#4a7068]">{item.url}</p>
+            </a>
           ))
         ) : (
           <p className="text-sm text-[#4a7068]">{emptyLabel}</p>
