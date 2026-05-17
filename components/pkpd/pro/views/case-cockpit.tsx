@@ -1,10 +1,11 @@
 'use client'
 
 import {
-  Activity, ArrowLeft, Bot, CheckCircle2, ChevronDown, Clock, ClipboardEdit,
-  FileText, FlaskConical, PencilLine, Plus, Save, Shield, Sparkles, TrendingUp, Users, X,
+  Activity, AlertTriangle, ArrowLeft, BookOpen, Bot, CheckCircle2, ChevronDown,
+  Clock, ClipboardEdit, FileText, FlaskConical, LayoutDashboard, MessageSquareText,
+  PencilLine, Plus, Save, Shield, Sparkles, TrendingUp, Users, X, Zap,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import type { CasoCompleto } from '@/components/pkpd/pro/xarxa-types'
 import { PIPELINE_STAGES, PRIORITY_STYLE, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
@@ -17,17 +18,17 @@ type Tab =
   | 'analisis' | 'simulacion' | 'recomendacion'
   | 'informe' | 'aprendizaje' | 'auditoria'
 
-const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'resumen', label: 'Resumen' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'datos', label: 'Datos y determinantes' },
-  { id: 'gaps', label: 'Gaps y tareas' },
-  { id: 'analisis', label: 'Análisis PK/PD' },
-  { id: 'simulacion', label: 'Simulación' },
-  { id: 'recomendacion', label: 'Recomendación' },
-  { id: 'informe', label: 'Informe HCE' },
-  { id: 'aprendizaje', label: 'Aprendizaje' },
-  { id: 'auditoria', label: 'Auditoría' },
+const TABS: Array<{ id: Tab; label: string; icon: React.ElementType }> = [
+  { id: 'resumen',       label: 'Resumen',              icon: LayoutDashboard },
+  { id: 'timeline',      label: 'Timeline',             icon: Clock },
+  { id: 'datos',         label: 'Datos',                icon: FlaskConical },
+  { id: 'gaps',          label: 'Gaps y tareas',        icon: AlertTriangle },
+  { id: 'analisis',      label: 'Análisis PK/PD',       icon: TrendingUp },
+  { id: 'simulacion',    label: 'Simulación',           icon: Activity },
+  { id: 'recomendacion', label: 'Recomendación',        icon: MessageSquareText },
+  { id: 'informe',       label: 'Informe HCE',          icon: FileText },
+  { id: 'aprendizaje',   label: 'Aprendizaje',          icon: BookOpen },
+  { id: 'auditoria',     label: 'Auditoría',            icon: Shield },
 ]
 
 const LANE_COLORS: Record<string, string> = {
@@ -37,6 +38,15 @@ const LANE_COLORS: Record<string, string> = {
   Administración: 'bg-slate-100 text-slate-600',
   Decisiones: 'bg-amber-100 text-amber-700',
   Tareas: 'bg-orange-100 text-orange-700',
+}
+
+const LANE_DOT_RING: Record<string, string> = {
+  Clínica:        'ring-violet-300',
+  Tratamiento:    'ring-blue-300',
+  Laboratorio:    'ring-teal-300',
+  Administración: 'ring-slate-300',
+  Decisiones:     'ring-amber-300',
+  Tareas:         'ring-orange-300',
 }
 
 const RECOMMENDATION_STATUS: Record<string, { style: string; label: string }> = {
@@ -276,52 +286,150 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
     )
   }
 
-  function escapeHtml(s: string | undefined | null): string {
-    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-  }
-
   function openPrintableNote() {
-    const noteBody = noteText || currentCase.clinicalNote?.text || 'Sin contenido disponible.'
-    const printable = `<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(currentCase.caseId)} · Informe HCE</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 40px; color: #152520; }
-      h1 { font-size: 20px; margin-bottom: 4px; }
-      h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #4a7068; margin-top: 28px; margin-bottom: 8px; }
-      p { font-size: 13px; line-height: 1.7; margin: 0; }
-      .meta { font-size: 12px; color: #4a7068; margin-bottom: 24px; }
-      .note { white-space: pre-wrap; border: 1px solid #d9e3df; border-radius: 12px; padding: 16px; background: #fbfcfb; }
-      .footer { margin-top: 28px; font-size: 11px; color: #4a7068; }
-    </style>
-  </head>
-  <body>
-    <h1>${escapeHtml(currentCase.caseId)} · Informe HCE</h1>
-    <p class="meta">${escapeHtml(currentCase.title)} · ${escapeHtml(currentCase.patientCode)} · ${escapeHtml(currentCase.centerName)}</p>
-    <h2>Estado del informe</h2>
-    <p>${escapeHtml(currentCase.clinicalNote?.status || 'Borrador')}</p>
-    <h2>Texto del informe</h2>
-    <div class="note">${escapeHtml(noteBody)}</div>
-    <p class="footer">Documento generado desde Xarxa PK/PD Intelligence Hub. Requiere validación profesional antes de registro definitivo en HCE.</p>
-  </body>
-</html>`
+    void (async () => {
+      setActionBusy('note:pdf')
+      setActionError(null)
+      setActionNotice(null)
 
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=960,height=1200')
-    if (!printWindow) {
-      setActionError('El navegador ha bloqueado la apertura de la ventana de impresión. Permite ventanas emergentes para exportar el informe.')
-      return
-    }
-    printWindow.document.open()
-    printWindow.document.write(printable)
-    printWindow.document.close()
-    printWindow.focus()
-    setActionError(null)
-    setActionNotice('Se ha abierto la vista de impresión para guardar el informe como PDF.')
-    window.setTimeout(() => {
-      printWindow.print()
-    }, 250)
+      try {
+        const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib')
+        const noteBody = noteText || currentCase.clinicalNote?.text || 'Sin contenido disponible.'
+        const pdf = await PDFDocument.create()
+        const regularFont = await pdf.embedFont(StandardFonts.Helvetica)
+        const boldFont = await pdf.embedFont(StandardFonts.HelveticaBold)
+        const pageWidth = 595.28
+        const pageHeight = 841.89
+        const marginX = 48
+        const marginBottom = 56
+        const maxWidth = pageWidth - marginX * 2
+        let page = pdf.addPage([pageWidth, pageHeight])
+        let cursorY = 56
+
+        const drawText = (
+          text: string,
+          x: number,
+          y: number,
+          size: number,
+          font: typeof regularFont,
+          color: ReturnType<typeof rgb>
+        ) => {
+          page.drawText(text, {
+            x,
+            y: pageHeight - y,
+            size,
+            font,
+            color,
+          })
+        }
+
+        const addWrappedText = (
+          text: string,
+          options?: { size?: number; color?: ReturnType<typeof rgb>; gapAfter?: number }
+        ) => {
+          const size = options?.size ?? 11
+          const color = options?.color ?? rgb(21 / 255, 37 / 255, 32 / 255)
+          const gapAfter = options?.gapAfter ?? 16
+          const lines: string[] = []
+          const paragraphs = text.split('\n')
+
+          for (const paragraph of paragraphs) {
+            const words = paragraph.split(/\s+/).filter(Boolean)
+            let currentLine = ''
+
+            if (words.length === 0) {
+              lines.push('')
+              continue
+            }
+
+            for (const word of words) {
+              const candidate = currentLine ? `${currentLine} ${word}` : word
+              if (regularFont.widthOfTextAtSize(candidate, size) <= maxWidth) {
+                currentLine = candidate
+              } else {
+                if (currentLine) lines.push(currentLine)
+                currentLine = word
+              }
+            }
+            if (currentLine) lines.push(currentLine)
+          }
+
+          const lineHeight = size + 4
+          const estimatedHeight = lines.length * lineHeight
+          if (cursorY + estimatedHeight > pageHeight - marginBottom) {
+            page = pdf.addPage([pageWidth, pageHeight])
+            cursorY = 56
+          }
+          for (const line of lines) {
+            drawText(line, marginX, cursorY, size, regularFont, color)
+            cursorY += lineHeight
+          }
+          cursorY += gapAfter
+        }
+
+        const addSectionTitle = (text: string) => {
+          if (cursorY > pageHeight - 96) {
+            page = pdf.addPage([pageWidth, pageHeight])
+            cursorY = 56
+          }
+          drawText(
+            text.toUpperCase(),
+            marginX,
+            cursorY,
+            10,
+            boldFont,
+            rgb(74 / 255, 112 / 255, 104 / 255)
+          )
+          cursorY += 18
+        }
+
+        drawText(
+          `${currentCase.caseId} · Informe HCE`,
+          marginX,
+          cursorY,
+          18,
+          boldFont,
+          rgb(21 / 255, 37 / 255, 32 / 255)
+        )
+        cursorY += 22
+
+        addWrappedText(
+          `${currentCase.title} · ${currentCase.patientCode} · ${currentCase.centerName}`,
+          { size: 10, color: rgb(74 / 255, 112 / 255, 104 / 255), gapAfter: 20 }
+        )
+
+        addSectionTitle('Estado del informe')
+        addWrappedText(currentCase.clinicalNote?.status || 'Borrador', { size: 11, gapAfter: 18 })
+
+        addSectionTitle('Texto del informe')
+        addWrappedText(noteBody, { size: 11, gapAfter: 18 })
+
+        addSectionTitle('Aviso')
+        addWrappedText(
+          'Documento generado desde Xarxa PK/PD Intelligence Hub. Requiere validación profesional antes de registro definitivo en HCE.',
+          { size: 10, color: rgb(74 / 255, 112 / 255, 104 / 255), gapAfter: 0 }
+        )
+
+        const safeCaseId = currentCase.caseId.toLowerCase().replace(/[^a-z0-9-]+/g, '-')
+        const pdfBytes = await pdf.save()
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${safeCaseId}-informe-hce.pdf`
+        link.click()
+        URL.revokeObjectURL(url)
+        setActionNotice('Se ha descargado el informe HCE en PDF.')
+      } catch (error) {
+        setActionError(
+          error instanceof Error
+            ? error.message
+            : 'No se ha podido generar el PDF del informe.'
+        )
+      } finally {
+        setActionBusy(null)
+      }
+    })()
   }
 
   async function requestGapFollowUp(gapLabel: string) {
@@ -440,19 +548,27 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="shrink-0 border-b border-slate-200 bg-white px-6">
             <div className="flex overflow-x-auto">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`shrink-0 border-b-2 px-4 py-2.5 text-xs font-semibold tracking-wide transition ${
-                    activeTab === tab.id
-                      ? 'border-[#8dc63f] text-[#7b3fa0]'
-                      : 'border-transparent text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              {TABS.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                const isGaps = tab.id === 'gaps'
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 text-xs font-semibold tracking-wide transition ${
+                      isActive
+                        ? 'border-[#8dc63f] text-[#7b3fa0]'
+                        : isGaps
+                          ? 'border-transparent text-amber-500 hover:text-amber-700'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    {tab.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -1043,48 +1159,41 @@ function TabTimeline({ caso }: { caso: CasoCompleto }) {
 
       {/* Timeline */}
       <div className="relative">
-        <div className="absolute left-[19px] top-2 bottom-2 w-px bg-slate-200" />
-        <div className="space-y-3">
+        {/* Vertical stem — centered on the 40px dots */}
+        <div className="absolute left-[23px] top-0 bottom-0 w-0.5 bg-slate-200" />
+        <div className="space-y-2">
           {filtered.map((event, i) => {
             const isAgent = agentLanes.has(event.lane)
-            const dotBg = LANE_COLORS[event.lane]?.split(' ')[0] ?? 'bg-slate-300'
             return (
-              <div key={i} className="relative flex items-start gap-4 pl-10">
+              <div key={i} className="relative flex items-start gap-4 pl-[60px]">
+                {/* Large white dot with colored ring + lane emoji */}
                 <div
-                  className={`absolute left-3 top-3 h-3.5 w-3.5 rounded-full border-2 border-white shadow-sm ${dotBg}`}
-                />
+                  className={`absolute left-[4px] top-[10px] flex h-[38px] w-[38px] items-center justify-center rounded-full bg-white shadow-md ring-2 ${LANE_DOT_RING[event.lane] ?? 'ring-slate-200'}`}
+                >
+                  <span className="text-base leading-none">{LANE_ICON[event.lane] ?? '·'}</span>
+                </div>
+
+                {/* Event card */}
                 <div
-                  className={`flex-1 rounded-xl border p-3.5 ${
-                    isAgent
-                      ? 'border-[#8dc63f]/20 bg-[#f0f7e3]'
-                      : 'border-slate-200 bg-white'
+                  className={`flex-1 rounded-xl border px-4 py-3 ${
+                    isAgent ? 'border-[#8dc63f]/20 bg-[#f0f7e3]' : 'border-slate-200 bg-white'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        {LANE_ICON[event.lane] ?? ''} {event.lane}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'}`}>
+                        {event.lane}
                       </span>
                       {isAgent && (
-                        <span className="rounded-full bg-[#7b3fa0]/10 px-2 py-0.5 text-[9px] font-bold text-[#7b3fa0]">
-                          IA
-                        </span>
+                        <span className="rounded-full bg-[#7b3fa0]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#7b3fa0]">IA</span>
                       )}
                       <span className="text-[10px] text-slate-400">{event.type}</span>
                     </div>
-                    <span className="shrink-0 text-[10px] text-[#4a7068]">
-                      {new Date(event.date).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                    <span className="shrink-0 text-[10px] text-slate-400">
+                      {new Date(event.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
                   </div>
-                  <p className="mt-1.5 text-sm font-medium text-[#152520]">{event.label}</p>
+                  <p className="mt-1 text-sm font-medium text-[#152520]">{event.label}</p>
                 </div>
               </div>
             )
@@ -1577,14 +1686,17 @@ function TabInforme({
           rows={8}
           className="w-full rounded-xl border border-slate-200 bg-[#f8faf9] px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40 focus:bg-white"
         />
+        <p className="mt-1 text-[10px] text-slate-400 italic">
+          “Generar borrador automático” prepara el texto del informe HCE a partir de los datos estructurados del caso. No descarga el PDF.
+        </p>
       </Section>
 
       <div className="flex flex-wrap gap-2">
         <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateDraft} disabled={busy}>
-          <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generar borrador
+          <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generar borrador automático
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onSaveDraft} disabled={busy}>Guardar borrador</Button>
-        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onExportPdf}>Imprimir / guardar PDF</Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onExportPdf}>Descargar PDF</Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestCovalidation} disabled={busy}>Solicitar co-validación</Button>
         <Button size="sm" className="ml-auto rounded-xl bg-slate-900 text-xs text-white hover:bg-slate-800" onClick={onSendToEhr} disabled={busy}>Enviar a HCE</Button>
       </div>
@@ -1755,8 +1867,10 @@ function PipelinePanel({
   }, [caso.pipelineStage])
 
   return (
-    <aside className="h-full w-72 shrink-0 overflow-y-auto border-l border-slate-200 bg-slate-50">
-      <div className="px-3 py-4 space-y-4">
+    <aside className="flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-slate-50">
+
+      {/* ── Block 1: Pipeline stages (independently scrollable) ── */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto border-b border-slate-200 px-3 py-4 space-y-3">
 
         {/* Siguiente paso callout */}
         <div className="rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-3 shadow-sm">
@@ -1867,8 +1981,10 @@ function PipelinePanel({
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-slate-200" />
+      </div>
+
+      {/* ── Block 2: Context (independently scrollable) ── */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-4 space-y-3">
 
         {/* People */}
         <div className="flex items-start gap-2">
@@ -1931,6 +2047,7 @@ function PipelinePanel({
         </div>
 
       </div>
+
     </aside>
   )
 }

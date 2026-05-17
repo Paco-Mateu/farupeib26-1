@@ -288,6 +288,24 @@ export const STAGE_STYLE: Record<string, string> = {
   'Cerrado con resultado':       'bg-slate-600 text-white',
 }
 
+export const STAGE_LABEL: Record<string, string> = {
+  'Solicitud recibida':          'Recibida',
+  'Caso creado por IA':          'Creado IA',
+  'Datos incompletos':           'Incompleto',
+  'Pendiente de determinantes':  'P. determin.',
+  'Determinantes recibidos':     'Det. recibidos',
+  'Análisis PK/PD generado':     'Análisis PK/PD',
+  'Revisión farmacéutica':       'Rev. farmacia',
+  'Revisión médica':             'Rev. médica',
+  'Discusión en red':            'Disc. en red',
+  'Informe generado':            'Inf. generado',
+  'Informe validado':            'Inf. validado',
+  'Registrado en HCE':           'En HCE',
+  'Seguimiento 4 semanas':       'Seguim. 4s',
+  'Seguimiento 8 semanas':       'Seguim. 8s',
+  'Cerrado con resultado':       'Cerrado',
+}
+
 export const SEVERITY_STYLE: Record<string, string> = {
   Crítico:    'bg-rose-600 text-white font-semibold',
   Importante: 'bg-amber-500 text-white font-semibold',

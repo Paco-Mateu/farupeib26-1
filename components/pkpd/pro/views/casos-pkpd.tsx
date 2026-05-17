@@ -4,7 +4,7 @@ import { Bot, ChevronDown, ChevronRight, FilePlus, Loader2, Search, SlidersHoriz
 import { useEffect, useMemo, useState } from 'react'
 
 import type { CasoResumen, Professional } from '@/components/pkpd/pro/xarxa-types'
-import { PRIORITY_STYLE, STAGE_STYLE, SEVERITY_STYLE } from '@/components/pkpd/pro/xarxa-types'
+import { PRIORITY_STYLE, STAGE_LABEL, STAGE_STYLE, SEVERITY_STYLE } from '@/components/pkpd/pro/xarxa-types'
 import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetch-json'
 
@@ -631,8 +631,8 @@ export function CasosPkpd({ casos, kpis, onOpenCaso, onNuevoCaso, onCasesChanged
                     <td className="px-4 py-3.5 text-sm text-[#4a7068]">{caso.caseType}</td>
                     <td className="px-4 py-3.5 text-xs text-[#4a7068]">{caso.entrySource}</td>
                     <td className="px-4 py-3.5">
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide ${STAGE_STYLE[caso.pipelineStage] ?? 'bg-slate-100 text-slate-600'}`}>
-                        {caso.pipelineStage}
+                      <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STAGE_STYLE[caso.pipelineStage] ?? 'bg-slate-100 text-slate-600'}`}>
+                        {STAGE_LABEL[caso.pipelineStage] ?? caso.pipelineStage}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">

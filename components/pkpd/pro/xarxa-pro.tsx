@@ -723,8 +723,6 @@ export function XarraPro() {
   const [dateRangeDays, setDateRangeDays] = useState(30)
   const [openCaseId, setOpenCaseId] = useState<string | null>(null)
   const [openCase, setOpenCase] = useState<CasoCompleto | null>(null)
-  const [seedStatus, setSeedStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [seedError, setSeedError] = useState<string | null>(null)
   const [shellStatus, setShellStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [queueStatus, setQueueStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [queueError, setQueueError] = useState<string | null>(null)
@@ -736,25 +734,7 @@ export function XarraPro() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [shellNotice, setShellNotice] = useState<string | null>(null)
 
-  const seededRef = useRef(false)
   const notificationContainerRef = useRef<HTMLDivElement>(null)
-
-  async function seedDemo() {
-    setSeedStatus('loading')
-    setSeedError(null)
-
-    try {
-      await fetchJson<{ status: string }>('/api/xarxa/seed', { method: 'POST' })
-      setSeedStatus('ready')
-      return true
-    } catch (error) {
-      setSeedStatus('error')
-      setSeedError(
-        error instanceof Error ? error.message : 'No se ha podido preparar el entorno demo.'
-      )
-      return false
-    }
-  }
 
   async function loadShellContext() {
     setShellStatus('loading')
@@ -833,15 +813,8 @@ export function XarraPro() {
   }, [dateRangeDays, selectedCenterId, selectedProgramId])
 
   useEffect(() => {
-    if (seededRef.current) return
-    seededRef.current = true
-    void seedDemo()
-  }, [])
-
-  useEffect(() => {
-    if (seedStatus !== 'ready') return
     void loadShellContext()
-  }, [seedStatus])
+  }, [])
 
   useEffect(() => {
     if (programs.length === 0) return
@@ -854,9 +827,8 @@ export function XarraPro() {
   }, [programs, selectedProgramId])
 
   useEffect(() => {
-    if (seedStatus !== 'ready') return
     void loadQueue()
-  }, [seedStatus, loadQueue])
+  }, [loadQueue])
 
   useEffect(() => {
     if (!openCaseId) {
@@ -1353,29 +1325,6 @@ export function XarraPro() {
 
     switch (activeVista) {
       case 'casos':
-        if (seedStatus === 'loading' && queueStatus === 'idle') {
-          return (
-            <WorkspaceLoadingState
-              title="Preparando el entorno Xarxa PK/PD…"
-              detail="Cargando el programa Crohn PK/PD y la cola de casos."
-            />
-          )
-        }
-        if (seedStatus === 'error' && queueStatus === 'idle') {
-          return (
-            <WorkspaceErrorState
-              title="No se ha podido preparar el entorno demo."
-              detail={seedError ?? undefined}
-              onRetry={async () => {
-                seededRef.current = false
-                setSeedStatus('idle')
-                setShellStatus('idle')
-                setQueueStatus('idle')
-                void seedDemo()
-              }}
-            />
-          )
-        }
         if (queueStatus === 'loading' && casos.length === 0) {
           return (
             <WorkspaceLoadingState

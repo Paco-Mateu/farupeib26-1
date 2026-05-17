@@ -1,14 +1,36 @@
 from __future__ import annotations
 
+import copy
+import hashlib
+import json
 import random
 import re
 from datetime import UTC, datetime, timedelta
+from time import monotonic
 from typing import Any
 
 from backend.db.mongo import get_database
 from pymongo import ReturnDocument
+from pymongo.errors import DuplicateKeyError
 
 _professional_requests_seeded = False
+_indexes_ready = False
+_runtime_cache: dict[str, tuple[float, Any]] = {}
+
+_CACHE_TTLS = {
+    "cases": 5.0,
+    "case": 5.0,
+    "inbox": 5.0,
+    "sessions": 8.0,
+    "kpis": 8.0,
+    "professionals": 20.0,
+    "centers": 60.0,
+    "requests": 20.0,
+    "agents": 10.0,
+    "programs": 30.0,
+    "forms": 30.0,
+    "roles": 60.0,
+}
 
 SYSTEM_ACTOR = {
     "name": "Sistema Xarxa PK/PD",
@@ -49,6 +71,74 @@ def _col(name: str):
     return get_database()[name]
 
 
+def _cache_key(prefix: str, payload: dict[str, Any] | None = None) -> str:
+    encoded = json.dumps(_json_safe(payload or {}), sort_keys=True, ensure_ascii=False)
+    return f"{prefix}:{encoded}"
+
+
+def _cache_get(prefix: str, payload: dict[str, Any] | None = None) -> Any | None:
+    key = _cache_key(prefix, payload)
+    entry = _runtime_cache.get(key)
+    if not entry:
+        return None
+
+    expires_at, value = entry
+    if expires_at <= monotonic():
+        _runtime_cache.pop(key, None)
+        return None
+
+    return copy.deepcopy(value)
+
+
+def _cache_set(prefix: str, payload: dict[str, Any] | None, value: Any) -> Any:
+    ttl = _CACHE_TTLS.get(prefix, 5.0)
+    _runtime_cache[_cache_key(prefix, payload)] = (monotonic() + ttl, copy.deepcopy(value))
+    return value
+
+
+def _cache_invalidate(*prefixes: str) -> None:
+    if not prefixes:
+        _runtime_cache.clear()
+        return
+
+    for key in list(_runtime_cache.keys()):
+        if any(key.startswith(f"{prefix}:") for prefix in prefixes):
+            _runtime_cache.pop(key, None)
+
+
+def _invalidate_case_related_cache(case_id: str | None = None) -> None:
+    _cache_invalidate("cases", "case", "kpis", "agents", "sessions")
+
+
+def _ensure_xarxa_indexes() -> None:
+    global _indexes_ready
+    if _indexes_ready:
+        return
+
+    db = get_database()
+    db["xarxa_cases"].create_index("caseId", unique=True)
+    db["xarxa_cases"].create_index([("updatedAt", -1)])
+    db["xarxa_cases"].create_index([("createdAt", -1)])
+    db["xarxa_cases"].create_index([("pipelineStage", 1), ("priority", 1)])
+    db["xarxa_cases"].create_index([("centerId", 1), ("programId", 1), ("updatedAt", -1)])
+    db["xarxa_cases"].create_index([("requesterId", 1)])
+    db["xarxa_cases"].create_index([("assignedTo", 1)])
+
+    db["xarxa_tasks"].create_index([("caseId", 1), ("taskId", 1)], unique=True)
+    db["xarxa_events"].create_index([("caseId", 1), ("date", 1)])
+    db["xarxa_recommendations"].create_index([("caseId", 1)], unique=True)
+    db["xarxa_notes"].create_index([("caseId", 1)], unique=True)
+    db["xarxa_followups"].create_index([("caseId", 1), ("label", 1)], unique=True)
+    db["xarxa_agent_runs"].create_index([("caseId", 1), ("timestamp", -1)])
+    db["xarxa_agent_runs"].create_index([("agent", 1), ("timestamp", -1)])
+    db["xarxa_inbox_requests"].create_index([("receivedAt", -1)])
+    db["xarxa_inbox_requests"].create_index([("agentStatus", 1), ("createdCaseId", 1)])
+    db["xarxa_sessions"].create_index([("status", 1), ("date", 1)])
+    db["xarxa_professionals"].create_index([("centerId", 1), ("roleId", 1), ("status", 1)])
+    db["xarxa_programs"].create_index([("label", 1)])
+    _indexes_ready = True
+
+
 def _strip_mongo(doc: dict) -> dict:
     doc.pop("_id", None)
     return doc
@@ -79,6 +169,24 @@ def _event_id(case_id: str) -> str:
     return f"{case_id}-evt-{stamp}"
 
 
+def _next_sequence(name: str, start_from: int | None = None) -> int:
+    seed_value = start_from if start_from is not None else 0
+    counters = _col("xarxa_counters")
+    if not counters.find_one({"_id": name}, {"_id": 1}):
+        try:
+            counters.insert_one({"_id": name, "value": seed_value})
+        except DuplicateKeyError:
+            pass
+
+    result = counters.find_one_and_update(
+        {"_id": name},
+        {"$inc": {"value": 1}},
+        return_document=ReturnDocument.AFTER,
+        projection={"_id": 0, "value": 1},
+    )
+    return int(result["value"])
+
+
 def _touch_case(case_id: str, fields: dict[str, Any] | None = None) -> dict:
     update_doc = {"updatedAt": _now_iso(), **(fields or {})}
     result = _col("xarxa_cases").find_one_and_update(
@@ -89,6 +197,7 @@ def _touch_case(case_id: str, fields: dict[str, Any] | None = None) -> dict:
     )
     if not result:
         raise ValueError(f"Case not found: {case_id}")
+    _invalidate_case_related_cache(case_id)
     return result
 
 
@@ -162,6 +271,28 @@ def _append_agent_run(case_id: str, agent: str, message: str, status: str = "Com
             "timestamp": _now_iso(),
         }
     )
+
+
+def _case_orchestration_signature(case: dict[str, Any]) -> str:
+    relevant = {
+        "clinicalSummary": case.get("clinicalSummary"),
+        "patientProfile": case.get("patientProfile"),
+        "diseaseContext": case.get("diseaseContext"),
+        "therapyContext": case.get("therapyContext"),
+        "labDeterminants": case.get("labDeterminants"),
+        "gaps": case.get("gaps"),
+        "tasks": [
+            {
+                "title": task.get("title"),
+                "status": task.get("status"),
+                "priority": task.get("priority"),
+            }
+            for task in case.get("tasks") or []
+        ],
+    }
+    return hashlib.sha1(
+        json.dumps(_json_safe(relevant), sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
 
 
 def _upsert_singleton_case_doc(collection: str, case_id: str, prefix: str, payload: dict) -> None:
@@ -403,6 +534,7 @@ def _recompute_case_state(case_id: str, stage_override: str | None = None, next_
         "updatedAt": _now_iso(),
     }
     _col("xarxa_cases").update_one(_case_query(case_id), {"$set": case_update})
+    _invalidate_case_related_cache(case_id)
     return get_xarxa_case(case_id)
 
 
@@ -610,6 +742,8 @@ def _resolve_inbox_requester() -> tuple[dict[str, Any], dict[str, Any]]:
         )
     )
     if not professionals:
+        professionals = list(_col("xarxa_professionals").find({}).limit(20))
+    if not professionals:
         raise ValueError("No hay profesionales disponibles para generar solicitudes de inbox.")
 
     requester = random.choice(professionals)
@@ -621,8 +755,8 @@ def _resolve_inbox_requester() -> tuple[dict[str, Any], dict[str, Any]]:
 
 
 def _build_inbox_item(template: dict[str, Any], status: str = "ready") -> dict[str, Any]:
-    inbox_count = _col("xarxa_inbox_requests").count_documents({})
-    patient_seed = _col("xarxa_cases").count_documents({}) + inbox_count + 1048
+    inbox_sequence = _next_sequence("inbox", start_from=_col("xarxa_inbox_requests").count_documents({}))
+    patient_seed = _col("xarxa_cases").count_documents({}) + inbox_sequence + 1048
     patient_code = f"P-{patient_seed}"
     requester, center = _resolve_inbox_requester()
     extraction = {
@@ -636,7 +770,7 @@ def _build_inbox_item(template: dict[str, Any], status: str = "ready") -> dict[s
     )
     received_at = _now_iso()
     return {
-        "_id": f"inbox-{inbox_count + 1:04d}",
+        "_id": f"inbox-{inbox_sequence:04d}",
         "from": f"{requester['name'].lower().replace(' ', '.')}@demo-xarxa.cat".replace("..", "."),
         "subject": template["subject"],
         "receivedAt": received_at,
@@ -708,6 +842,19 @@ def list_xarxa_cases(
     search: str | None = None,
     days: int | None = None,
 ) -> list[dict]:
+    _ensure_xarxa_indexes()
+    cache_payload = {
+        "stage": stage,
+        "priority": priority,
+        "center": center,
+        "program": program,
+        "search": search,
+        "days": days,
+    }
+    cached = _cache_get("cases", cache_payload)
+    if cached is not None:
+        return cached
+
     query: dict[str, Any] = {}
     if stage:
         query["pipelineStage"] = stage
@@ -728,7 +875,30 @@ def list_xarxa_cases(
             {"pipelineStage": {"$regex": search, "$options": "i"}},
         ]
 
-    docs = list(_col("xarxa_cases").find(query, {"_id": 0}).sort("updatedAt", -1))
+    projection = {
+        "_id": 0,
+        "caseId": 1,
+        "title": 1,
+        "patientCode": 1,
+        "programId": 1,
+        "specialty": 1,
+        "centerId": 1,
+        "centerName": 1,
+        "requesterId": 1,
+        "requesterName": 1,
+        "assignedTo": 1,
+        "assignedName": 1,
+        "caseType": 1,
+        "entrySource": 1,
+        "priority": 1,
+        "pipelineStage": 1,
+        "nextAction": 1,
+        "createdAt": 1,
+        "updatedAt": 1,
+        "gaps": 1,
+        "tasks": 1,
+    }
+    docs = list(_col("xarxa_cases").find(query, projection).sort("updatedAt", -1))
     if days:
         docs = [doc for doc in docs if _within_last_days(doc.get("updatedAt") or doc.get("createdAt"), days)]
 
@@ -746,13 +916,14 @@ def list_xarxa_cases(
             doc,
             runs_by_case.get(doc.get("caseId", ""), []),
         )
-    return docs
+    return _cache_set("cases", cache_payload, docs)
 
 
 def create_xarxa_case(data: dict) -> dict:
+    _ensure_xarxa_indexes()
     col = _col("xarxa_cases")
-    count = col.count_documents({})
-    case_id = f"PKPD-{datetime.now(UTC).year}-{count + 1:04d}"
+    sequence = _next_sequence("case", start_from=col.count_documents({}))
+    case_id = f"PKPD-{datetime.now(UTC).year}-{sequence:04d}"
     drug_hint = re.search(r"(infliximab|adalimumab|ustekinumab|vedolizumab)", data.get("clinicalContext", ""), re.I)
     drug_str = f" — {drug_hint.group(0).capitalize()}" if drug_hint else ""
     title = data.get("title") or f"{data.get('caseType', 'Consulta PK/PD')}{drug_str}"
@@ -768,7 +939,7 @@ def create_xarxa_case(data: dict) -> dict:
         next_action = tasks[0]["title"] if tasks else "Revisión farmacéutica"
 
     doc = {
-        "_id": f"case-{count + 1:04d}",
+        "_id": f"case-{sequence:04d}",
         "caseId": case_id,
         "title": title,
         "patientCode": data["patientCode"],
@@ -829,10 +1000,17 @@ def create_xarxa_case(data: dict) -> dict:
 
     doc.pop("_id", None)
     doc["automationSummary"] = _build_automation_summary(doc, agent_runs)
+    _invalidate_case_related_cache(case_id)
+    _cache_invalidate("inbox")
     return _json_safe(doc)
 
 
 def get_xarxa_case(case_id: str) -> dict:
+    _ensure_xarxa_indexes()
+    cached = _cache_get("case", {"caseId": case_id})
+    if cached is not None:
+        return cached
+
     # Accept both caseId ("PKPD-2026-0002") and _id ("case-0002")
     doc = _col("xarxa_cases").find_one(_case_query(case_id), {"_id": 0})
     if not doc:
@@ -854,26 +1032,34 @@ def get_xarxa_case(case_id: str) -> dict:
         _col("xarxa_agent_runs").find({"caseId": cid}, {"_id": 0}).sort("timestamp", -1)
     )
     doc["automationSummary"] = _build_automation_summary(doc, doc["agentRuns"])
-    return doc
+    return _cache_set("case", {"caseId": case_id}, doc)
 
 
 def list_xarxa_inbox() -> list[dict]:
+    _ensure_xarxa_indexes()
+    cached = _cache_get("inbox", {})
+    if cached is not None:
+        return cached
     _seed_xarxa_inbox_if_empty()
-    return list(
+    items = list(
         _col("xarxa_inbox_requests")
         .find({}, {"_id": 1, "from": 1, "subject": 1, "receivedAt": 1, "body": 1, "agentStatus": 1, "agentSteps": 1, "programSuggestion": 1, "caseTypeSuggestion": 1, "confidence": 1, "detectedGaps": 1, "centerId": 1, "centerName": 1, "requesterId": 1, "requesterName": 1, "createdCaseId": 1, "extraction": 1, "priority": 1})
         .sort("receivedAt", -1)
     )
+    return _cache_set("inbox", {}, items)
 
 
 def generate_xarxa_inbox_item(status: str = "ready") -> dict:
+    _ensure_xarxa_indexes()
     template = random.choice(_INBOX_EMAIL_TEMPLATES)
     item = _build_inbox_item(template, status=status)
     _col("xarxa_inbox_requests").insert_one(item)
+    _cache_invalidate("inbox")
     return item
 
 
 def process_xarxa_inbox_item(item_id: str) -> dict:
+    _ensure_xarxa_indexes()
     item = _col("xarxa_inbox_requests").find_one({"_id": item_id})
     if not item:
         raise ValueError(f"Inbox item not found: {item_id}")
@@ -894,10 +1080,12 @@ def process_xarxa_inbox_item(item_id: str) -> dict:
     )
     if not processed:
         raise ValueError(f"Inbox item not found: {item_id}")
+    _cache_invalidate("inbox")
     return processed
 
 
 def create_xarxa_case_from_inbox(item_id: str) -> dict:
+    _ensure_xarxa_indexes()
     item = _col("xarxa_inbox_requests").find_one({"_id": item_id})
     if not item:
         raise ValueError(f"Inbox item not found: {item_id}")
@@ -1018,10 +1206,12 @@ def create_xarxa_case_from_inbox(item_id: str) -> dict:
         },
         return_document=ReturnDocument.AFTER,
     )
+    _cache_invalidate("inbox")
     return _json_safe({"item": updated_item, "case": case})
 
 
 def generate_xarxa_case_from_random_email() -> dict:
+    _ensure_xarxa_indexes()
     item = generate_xarxa_inbox_item(status="ready")
     return create_xarxa_case_from_inbox(item["_id"])
 
@@ -1089,6 +1279,10 @@ def _attach_case_to_next_session(case_id: str) -> dict:
 
 
 def list_xarxa_sessions() -> list[dict]:
+    _ensure_xarxa_indexes()
+    cached = _cache_get("sessions", {})
+    if cached is not None:
+        return cached
     _seed_xarxa_sessions_if_empty()
     sessions = list(_col("xarxa_sessions").find({}))
     cases_by_id = {
@@ -1101,16 +1295,17 @@ def list_xarxa_sessions() -> list[dict]:
         session["casesCount"] = len(session.get("caseIds", []))
     status_order = {"live": 0, "scheduled": 1, "done": 2}
     sessions.sort(key=lambda session: (status_order.get(session.get("status"), 9), session.get("date", "")))
-    return sessions
+    return _cache_set("sessions", {}, sessions)
 
 
 def create_xarxa_session(title: str | None = None, date: str | None = None) -> dict:
+    _ensure_xarxa_indexes()
     _seed_xarxa_sessions_if_empty()
-    count = _col("xarxa_sessions").count_documents({})
+    sequence = _next_sequence("session", start_from=_col("xarxa_sessions").count_documents({}))
     scheduled_date = date or (datetime.now(UTC) + timedelta(days=7)).replace(hour=10, minute=30, second=0, microsecond=0).isoformat()
     doc = {
-        "_id": f"ses-{count + 1:03d}",
-        "title": title or f"Sesión de red Crohn PK/PD #{count + 1}",
+        "_id": f"ses-{sequence:03d}",
+        "title": title or f"Sesión de red Crohn PK/PD #{sequence}",
         "date": scheduled_date,
         "duration": "60 min",
         "participants": ["Hospital Universitario de Bellvitge"],
@@ -1121,10 +1316,12 @@ def create_xarxa_session(title: str | None = None, date: str | None = None) -> d
         "createdAt": _now_iso(),
     }
     _col("xarxa_sessions").insert_one(doc)
+    _cache_invalidate("sessions", "kpis")
     return {key: value for key, value in doc.items() if key != "_id"} | {"sessionId": doc["_id"], "cases": []}
 
 
 def update_xarxa_session_status(session_id: str, status: str) -> dict:
+    _ensure_xarxa_indexes()
     label = {
         "live": "Sesión iniciada",
         "done": "Sesión cerrada",
@@ -1142,6 +1339,7 @@ def update_xarxa_session_status(session_id: str, status: str) -> dict:
     for case_id in result.get("caseIds", []):
         _append_event(case_id, "Decisiones", "Sesión", f"{label}: {result['title']}")
         _append_agent_run(case_id, "Agente de sesión", f"{label.lower()} para el caso en el circuito de red.")
+    _cache_invalidate("sessions", "cases", "case", "kpis", "agents")
     updated_sessions = list_xarxa_sessions()
     for session in updated_sessions:
         if session.get("sessionId") == session_id:
@@ -1157,6 +1355,7 @@ def bulk_act_on_xarxa_cases(
     priority: str | None = None,
     actor: dict[str, Any] | None = None,
 ) -> list[dict]:
+    _ensure_xarxa_indexes()
     updated_cases: list[dict] = []
     for case_id in case_ids:
         if action == "assign":
@@ -1220,6 +1419,7 @@ def bulk_act_on_xarxa_cases(
 
 
 def update_xarxa_case(case_id: str, patch: dict) -> dict:
+    _ensure_xarxa_indexes()
     mutable_fields = {
         "title",
         "clinicalSummary",
@@ -1262,10 +1462,12 @@ def update_xarxa_case(case_id: str, patch: dict) -> dict:
             actor=SYSTEM_ACTOR,
             meta={"triggeredBy": actor},
         )
+    _invalidate_case_related_cache(case_id)
     return updated_case
 
 
 def transition_xarxa_case(case_id: str, patch: dict) -> dict:
+    _ensure_xarxa_indexes()
     mutable_fields = {
         "pipelineStage",
         "nextAction",
@@ -1292,14 +1494,17 @@ def transition_xarxa_case(case_id: str, patch: dict) -> dict:
         _append_agent_run(case_id, "Agente de sesión", "Caso añadido a la próxima sesión de red para revisión colaborativa.")
     elif requested_stage == "Datos incompletos":
         _append_agent_run(case_id, "Agente de gaps", "Caso devuelto para completar determinantes y confirmar coherencia temporal.")
-    return _recompute_case_state(
+    updated_case = _recompute_case_state(
         case_id,
         stage_override=requested_stage,
         next_action_override=patch.get("nextAction"),
     )
+    _invalidate_case_related_cache(case_id)
+    return updated_case
 
 
 def update_xarxa_task(case_id: str, task_id: str, patch: dict) -> dict:
+    _ensure_xarxa_indexes()
     mutable_fields = {"status", "ownerRole", "ownerId", "dueDate", "title", "priority"}
     previous_case = get_xarxa_case(case_id)
     actor = _extract_actor(patch)
@@ -1338,10 +1543,12 @@ def update_xarxa_task(case_id: str, task_id: str, patch: dict) -> dict:
             actor=SYSTEM_ACTOR,
             meta={"triggeredBy": actor},
         )
+    _invalidate_case_related_cache(case_id)
     return updated_case
 
 
 def save_xarxa_recommendation(case_id: str, payload: dict) -> dict:
+    _ensure_xarxa_indexes()
     case = get_xarxa_case(case_id)
     actor = _extract_actor(payload)
     recommendation = {
@@ -1370,6 +1577,7 @@ def save_xarxa_recommendation(case_id: str, payload: dict) -> dict:
         actor=actor,
     )
     _append_agent_run(case_id, "Agente de recomendación", f"Se ha actualizado la propuesta clínica en estado {recommendation['status']}.")
+    _invalidate_case_related_cache(case_id)
     return get_xarxa_case(case_id)
 
 
@@ -1496,7 +1704,17 @@ def _draft_recommendation_text(case: dict) -> str:
 
 
 def orchestrate_xarxa_case(case_id: str) -> dict:
+    _ensure_xarxa_indexes()
     case = _recompute_case_state(case_id)
+    orchestration_signature = _case_orchestration_signature(case)
+    orchestration_cache = case.get("orchestrationCache") or {}
+    if (
+        orchestration_cache.get("key") == orchestration_signature
+        and (case.get("recommendation") or {}).get("text")
+        and (case.get("clinicalNote") or {}).get("text")
+    ):
+        return case
+
     interpretation = _draft_pkpd_interpretation(case)
     recommendation_text = _draft_recommendation_text({**case, "pkpdInterpretation": interpretation})
 
@@ -1527,6 +1745,15 @@ def orchestrate_xarxa_case(case_id: str) -> dict:
     }
     _upsert_singleton_case_doc("xarxa_notes", case["caseId"], "note", note)
     _touch_case(case_id, {"clinicalNote": note})
+    _touch_case(
+        case_id,
+        {
+            "orchestrationCache": {
+                "key": orchestration_signature,
+                "orchestratedAt": _now_iso(),
+            }
+        },
+    )
 
     _append_event(
         case["caseId"],
@@ -1556,14 +1783,17 @@ def orchestrate_xarxa_case(case_id: str) -> dict:
         "Borrador de nota HCE de demostración preparado para revisión profesional.",
     )
 
-    return _recompute_case_state(
+    updated_case = _recompute_case_state(
         case_id,
         stage_override="Análisis PK/PD generado",
         next_action_override="Revisión farmacéutica del paquete automático",
     )
+    _invalidate_case_related_cache(case_id)
+    return updated_case
 
 
 def save_xarxa_note(case_id: str, payload: dict) -> dict:
+    _ensure_xarxa_indexes()
     case = get_xarxa_case(case_id)
     actor = _extract_actor(payload)
     note = {
@@ -1592,10 +1822,12 @@ def save_xarxa_note(case_id: str, payload: dict) -> dict:
         actor=actor,
     )
     _append_agent_run(case_id, "Agente de informe HCE", f"Se ha actualizado el informe HCE con estado {note['status']}.")
+    _invalidate_case_related_cache(case_id)
     return get_xarxa_case(case_id)
 
 
 def generate_xarxa_note(case_id: str) -> dict:
+    _ensure_xarxa_indexes()
     case = get_xarxa_case(case_id)
     generated_text = _generate_note_text(case)
     return save_xarxa_note(
@@ -1611,6 +1843,7 @@ def generate_xarxa_note(case_id: str) -> dict:
 
 
 def save_xarxa_followup(case_id: str, payload: dict) -> dict:
+    _ensure_xarxa_indexes()
     label = payload.get("label")
     if not label:
         raise ValueError("Follow-up label is required")
@@ -1648,6 +1881,7 @@ def save_xarxa_followup(case_id: str, payload: dict) -> dict:
         actor=actor,
     )
     _append_agent_run(case_id, "Agente de aprendizaje", f"Se ha registrado {label.lower()} con estado {follow_up['status']}.")
+    _invalidate_case_related_cache(case_id)
     return get_xarxa_case(case_id)
 
 
@@ -1658,6 +1892,12 @@ def get_xarxa_kpis(
     program_id: str | None = None,
     days: int | None = None,
 ) -> dict:
+    _ensure_xarxa_indexes()
+    cache_payload = {"centerId": center_id, "programId": program_id, "days": days}
+    cached = _cache_get("kpis", cache_payload)
+    if cached is not None:
+        return cached
+
     reporting = _col("xarxa_reporting").find_one({}, {"_id": 0})
     case_match: dict[str, Any] = {}
     if center_id:
@@ -1813,10 +2053,10 @@ def get_xarxa_kpis(
     )
 
     if not reporting:
-        return {"kpis": live_kpis, "charts": live_charts}
+        return _cache_set("kpis", cache_payload, {"kpis": live_kpis, "charts": live_charts})
     reporting["kpis"] = live_kpis
     reporting["charts"] = live_charts
-    return reporting
+    return _cache_set("kpis", cache_payload, reporting)
 
 
 # ── professionals & centers ───────────────────────────────────────────────────
@@ -1881,8 +2121,10 @@ def _seed_xarxa_professional_requests_if_empty() -> None:
 
 
 def reset_xarxa_runtime_state() -> None:
-    global _professional_requests_seeded
+    global _professional_requests_seeded, _indexes_ready
     _professional_requests_seeded = False
+    _indexes_ready = False
+    _cache_invalidate()
 
 
 def _center_name(center_id: str) -> str:
@@ -1920,16 +2162,31 @@ def _enrich_professional(doc: dict) -> dict:
 
 
 def list_xarxa_professionals() -> list[dict]:
-    return [_enrich_professional(d) for d in _col("xarxa_professionals").find({}).sort("name", 1)]
+    _ensure_xarxa_indexes()
+    cached = _cache_get("professionals", {})
+    if cached is not None:
+        return cached
+    items = [_enrich_professional(d) for d in _col("xarxa_professionals").find({}).sort("name", 1)]
+    return _cache_set("professionals", {}, items)
 
 
 def list_xarxa_centers() -> list[dict]:
-    return [_keep_id(d) for d in _col("xarxa_centers").find({})]
+    _ensure_xarxa_indexes()
+    cached = _cache_get("centers", {})
+    if cached is not None:
+        return cached
+    items = [_keep_id(d) for d in _col("xarxa_centers").find({})]
+    return _cache_set("centers", {}, items)
 
 
 def list_xarxa_professional_requests() -> list[dict]:
+    _ensure_xarxa_indexes()
+    cached = _cache_get("requests", {})
+    if cached is not None:
+        return cached
     _seed_xarxa_professional_requests_if_empty()
-    return [_keep_id(d) for d in _col("xarxa_professional_requests").find({}).sort("requestedDate", -1)]
+    items = [_keep_id(d) for d in _col("xarxa_professional_requests").find({}).sort("requestedDate", -1)]
+    return _cache_set("requests", {}, items)
 
 
 def approve_xarxa_professional_request(
@@ -1937,6 +2194,7 @@ def approve_xarxa_professional_request(
     role_id: str | None = None,
     center_id: str | None = None,
 ) -> dict:
+    _ensure_xarxa_indexes()
     _seed_xarxa_professional_requests_if_empty()
     request = _col("xarxa_professional_requests").find_one({"_id": request_id})
     if not request:
@@ -1947,9 +2205,9 @@ def approve_xarxa_professional_request(
     role = _col("xarxa_roles").find_one({"_id": final_role_id}, {"label": 1})
     role_label = role.get("label", request["requestedRoleLabel"]) if role else request["requestedRoleLabel"]
 
-    next_index = _col("xarxa_professionals").count_documents({}) + 1
+    sequence = _next_sequence("professional", start_from=_col("xarxa_professionals").count_documents({}))
     slug = re.sub(r"[^a-z0-9]+", "-", request["name"].lower()).strip("-")
-    professional_id = f"pro-net-{next_index:03d}"
+    professional_id = f"pro-net-{sequence:03d}"
     _col("xarxa_professionals").insert_one(
         {
             "_id": professional_id,
@@ -1965,6 +2223,7 @@ def approve_xarxa_professional_request(
         }
     )
     _col("xarxa_professional_requests").delete_one({"_id": request_id})
+    _cache_invalidate("professionals", "requests")
     return _enrich_professional(_col("xarxa_professionals").find_one({"_id": professional_id}))
 
 
@@ -1974,6 +2233,7 @@ def update_xarxa_professional(
     center_id: str | None = None,
     status: str | None = None,
 ) -> dict:
+    _ensure_xarxa_indexes()
     update_doc: dict[str, Any] = {}
     if role_id:
         role = _col("xarxa_roles").find_one({"_id": role_id}, {"label": 1})
@@ -1997,12 +2257,17 @@ def update_xarxa_professional(
     )
     if not result:
         raise ValueError(f"Professional not found: {professional_id}")
+    _cache_invalidate("professionals")
     return _enrich_professional(result)
 
 
 # ── agents ────────────────────────────────────────────────────────────────────
 
 def list_xarxa_agents() -> list[dict]:
+    _ensure_xarxa_indexes()
+    cached = _cache_get("agents", {})
+    if cached is not None:
+        return cached
     agents = [_keep_id(agent) for agent in _col("xarxa_agents").find({})]
     for agent in agents:
         all_runs = list(_col("xarxa_agent_runs").find({"agent": agent["label"]}, {"_id": 0}).sort("timestamp", -1))
@@ -2045,23 +2310,35 @@ def list_xarxa_agents() -> list[dict]:
             "lastRunAt": recent_runs[0].get("timestamp") if recent_runs else None,
             "draftsPrepared": agent_metric.get("draftsPrepared", 0),
         }
-    return agents
+    return _cache_set("agents", {}, agents)
 
 
 # ── programs ──────────────────────────────────────────────────────────────────
 
 def list_xarxa_programs() -> list[dict]:
-    return [_keep_id(program) for program in _col("xarxa_programs").find({}).sort("label", 1)]
+    _ensure_xarxa_indexes()
+    cached = _cache_get("programs", {})
+    if cached is not None:
+        return cached
+    items = [_keep_id(program) for program in _col("xarxa_programs").find({}).sort("label", 1)]
+    return _cache_set("programs", {}, items)
 
 
 def list_xarxa_forms(program_id: str | None = None) -> list[dict]:
+    _ensure_xarxa_indexes()
+    cache_payload = {"programId": program_id}
+    cached = _cache_get("forms", cache_payload)
+    if cached is not None:
+        return cached
     query: dict[str, Any] = {}
     if program_id:
         query["programId"] = program_id
-    return [_keep_id(form) for form in _col("xarxa_forms").find(query).sort("label", 1)]
+    items = [_keep_id(form) for form in _col("xarxa_forms").find(query).sort("label", 1)]
+    return _cache_set("forms", cache_payload, items)
 
 
 def create_xarxa_program(payload: dict[str, Any]) -> dict:
+    _ensure_xarxa_indexes()
     label = payload.get("label", "").strip()
     specialty = payload.get("specialty", "").strip()
     if not label or not specialty:
@@ -2089,10 +2366,12 @@ def create_xarxa_program(payload: dict[str, Any]) -> dict:
         "createdAt": _now_iso(),
     }
     _col("xarxa_programs").insert_one(doc)
+    _cache_invalidate("programs", "forms")
     return {key: value for key, value in doc.items() if key != "_id"} | {"_id": program_id}
 
 
 def update_xarxa_program(program_id: str, payload: dict[str, Any]) -> dict:
+    _ensure_xarxa_indexes()
     mutable_fields = {
         "label",
         "specialty",
@@ -2121,6 +2400,7 @@ def update_xarxa_program(program_id: str, payload: dict[str, Any]) -> dict:
     )
     if not result:
         raise ValueError(f"Program not found: {program_id}")
+    _cache_invalidate("programs", "forms")
     return result | {"_id": program_id}
 
 
@@ -2148,4 +2428,9 @@ def publish_xarxa_program(program_id: str) -> dict:
 # ── roles ─────────────────────────────────────────────────────────────────────
 
 def list_xarxa_roles() -> list[dict]:
-    return [_keep_id(role) for role in _col("xarxa_roles").find({})]
+    _ensure_xarxa_indexes()
+    cached = _cache_get("roles", {})
+    if cached is not None:
+        return cached
+    items = [_keep_id(role) for role in _col("xarxa_roles").find({})]
+    return _cache_set("roles", {}, items)

@@ -26,6 +26,8 @@ _XARXA_COLLECTIONS = [
     "xarxa_inbox_requests",
     "xarxa_sessions",
     "xarxa_professional_requests",
+    "xarxa_counters",
+    "xarxa_reporting",
 ]
 
 # Old collections from previous prototype — dropped on reseed
@@ -39,10 +41,18 @@ _seeded = False
 
 def seed_xarxa_demo(force: bool = False) -> dict:
     global _seeded
+    db = get_database()
+
+    if not force:
+        existing_cases = db["xarxa_cases"].count_documents({})
+        existing_programs = db["xarxa_programs"].count_documents({})
+        if existing_cases > 0 and existing_programs > 0:
+            _seeded = True
+            return {"status": "already_seeded", "counts": {"cases": existing_cases, "programs": existing_programs}}
+
     if _seeded and not force:
         return {"status": "already_seeded"}
 
-    db = get_database()
     reset_xarxa_runtime_state()
 
     # Drop legacy collections
