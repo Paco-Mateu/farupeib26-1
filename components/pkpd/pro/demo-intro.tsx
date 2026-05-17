@@ -162,7 +162,7 @@ const WHY_NOW = [
 
 export function DemoIntro() {
   return (
-    <main className="min-h-screen bg-[#f7faf9] text-[#152520]">
+    <main className="min-h-screen bg-white text-[#152520]">
       {/* Clinical disclaimer */}
       <div className="border-b border-amber-200 bg-amber-50 px-6 py-3">
         <div className="mx-auto max-w-7xl">
@@ -179,9 +179,6 @@ export function DemoIntro() {
             <span className="rounded-full bg-[#edf7f6] px-3 py-1 text-xs font-semibold text-[#1a6860]">
               Plataforma colaborativa de inteligencia clínica PK/PD
             </span>
-            <span className="rounded-full bg-[#f1f8e6] px-3 py-1 text-xs font-semibold text-[#5a7820]">
-              Programa activo: Crohn PK/PD
-            </span>
           </div>
         </div>
       </section>
@@ -189,29 +186,16 @@ export function DemoIntro() {
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-[#edf7f6] px-3 py-1 text-xs font-semibold text-[#1a6860]">
-                Farmacia Hospitalaria + Digestivo + Enfermería + Laboratorio
-              </span>
-              <span className="rounded-full bg-[#f6f0fb] px-3 py-1 text-xs font-semibold text-[#7b3fa0]">
-                IA como capa de orquestación y preparación
-              </span>
-            </div>
-
-            <p className="mt-5 max-w-2xl text-lg font-medium leading-8 text-[#4a7068]">
-              La innovación sanitaria no empieza con la tecnología. Empieza con profesionales que identifican una necesidad real y se atreven a imaginar una forma mejor de trabajar.
-            </p>
-
-            <h1 className="mt-4 max-w-5xl text-4xl font-semibold tracking-tight text-[#152520]">
-              Xarxa PK/PD Intelligence Hub materializa esa visión: una plataforma colaborativa donde cada caso de optimización terapéutica se convierte en conocimiento compartido, trazable y aumentado por IA.
+            <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-[#152520]">
+              Xarxa PK/PD es una plataforma colaborativa donde cada caso de optimización terapéutica se convierte en conocimiento compartido, trazable y aumentado por IA.
             </h1>
 
             <p className="mt-5 max-w-4xl text-base leading-8 text-[#4a7068]">
-              Nace del proyecto &quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;, liderado por la Dra. María Badia en la 10ª Jornada FARUPEIB, y construido como prototipo conceptual para explorar cómo la IA generativa puede convertir una visión clínica en una experiencia digital tangible.
+              Nace del proyecto &quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;, liderado por la Dra. María Badia desde 2025 en el Hospital Universitari de Bellvitge, presentado en la 10ª Jornada FARUPEIB y construido como prototipo conceptual para explorar cómo la IA generativa puede convertir una visión clínica en una experiencia digital tangible.
             </p>
 
             <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
-              En lugar de presentar la PK/PD como un cálculo aislado, la plataforma la convierte en una experiencia colaborativa: casos estructurados, agentes IA supervisados, tareas compartidas, interpretación PK/PD, validación humana, documentación clínica y aprendizaje de red.
+              La plataforma convierte cada caso en una experiencia colaborativa: casos estructurados, agentes IA supervisados, tareas compartidas, interpretación PK/PD, validación humana, documentación clínica y aprendizaje de red.
             </p>
 
             <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
@@ -282,7 +266,7 @@ export function DemoIntro() {
         <div className="grid gap-6 lg:grid-cols-3">
           {WHY_NOW.map(({ icon: Icon, title, text }) => (
             <div key={title} className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
                 <Icon className="h-5 w-5" />
               </div>
               <h2 className="mt-5 text-base font-semibold text-[#152520]">{title}</h2>
@@ -349,7 +333,7 @@ export function DemoIntro() {
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {CAPABILITIES.map(({ icon: Icon, title, text }) => (
               <article key={title} className="rounded-3xl border border-slate-200 bg-[#fbfcfb] p-6">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h2 className="mt-4 text-base font-semibold text-[#152520]">{title}</h2>
@@ -462,7 +446,7 @@ function InfoCard({
 }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-[#fbfcfb] p-5">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
         <Icon className="h-5 w-5" />
       </div>
       <div>

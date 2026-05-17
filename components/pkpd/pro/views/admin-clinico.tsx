@@ -290,10 +290,10 @@ export function AdminClinico() {
               <p className="text-sm font-semibold text-[#152520]">Admin clínico</p>
             </div>
             <h2 className="mt-3 text-2xl font-semibold text-[#152520]">
-              Crohn PK/PD es el programa activo de demo, pero la plataforma está diseñada para múltiples especialidades.
+              Configuración de programas clínicos
             </h2>
             <p className="mt-2 text-sm leading-7 text-[#4a7068]">
-              Aquí se configura el circuito clínico: especialidad, enfermedades, fármacos, determinantes, tipos de caso, workflow y reglas de compartición. La demo se centra en Digestivo, pero la herramienta ya está preparada para crecer hacia Reumatología, Infecciosas, Oncología u otros dominios.
+              Cada programa define el circuito completo: especialidad, enfermedades, fármacos, determinantes, tipos de caso y reglas de compartición entre centros.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
@@ -306,7 +306,7 @@ export function AdminClinico() {
       </div>
 
       {notice ? (
-        <div className="mb-4 rounded-2xl border border-[#8dc63f]/20 bg-[#f0f7e3] px-4 py-3 text-sm text-[#5a7820]">
+        <div className="mb-4 rounded-2xl border border-[#7b3fa0]/20 bg-[#faf6fd] px-4 py-3 text-sm text-[#7b3fa0]">
           {notice}
         </div>
       ) : null}
@@ -338,17 +338,17 @@ export function AdminClinico() {
                 onClick={() => selectProgram(program)}
                 className={`w-full rounded-3xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
                   selectedId === program._id
-                    ? 'border-[#8dc63f]/30 bg-[#f8fcf1]'
+                    ? 'border-[#7b3fa0]/30 bg-[#faf6fd]'
                     : 'border-slate-200 bg-[#fbfcfb]'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
                     <FolderCog className="h-4 w-4" />
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                     program.status === 'Activo'
-                      ? 'bg-[#f1f8e6] text-[#5a7820]'
+                      ? 'bg-[#f1f8e6] text-[#7b3fa0]'
                       : 'bg-slate-100 text-slate-600'
                   }`}>
                     {program.status}
@@ -371,7 +371,7 @@ export function AdminClinico() {
                 {draft.label || 'Nuevo programa clínico'}
               </h3>
               <p className="mt-1 text-sm text-[#4a7068]">
-                Configura el alcance clínico y el workflow con un recorrido guiado. La herramienta debe servir para varias especialidades aunque la demo se centre en Crohn.
+                Configura el alcance clínico y el flujo de trabajo con un recorrido paso a paso.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -387,7 +387,7 @@ export function AdminClinico() {
               </Button>
               <Button
                 size="sm"
-                className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+                className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
                 onClick={publishProgram}
                 disabled={!draft._id || saving || publishing}
               >
@@ -416,16 +416,16 @@ export function AdminClinico() {
                     onClick={() => setWizardStep(step.id)}
                     className={`rounded-2xl border px-3 py-2 text-left transition ${
                       isActive
-                        ? 'border-[#8dc63f]/30 bg-[#f6fbec] text-[#5a7820]'
+                        ? 'border-[#7b3fa0]/30 bg-[#faf6fd] text-[#7b3fa0]'
                         : isCompleted
-                          ? 'border-[#d6e8b5] bg-[#fbfdf7] text-[#5a7820]'
+                          ? 'border-[#d6e8b5] bg-[#fbfdf7] text-[#7b3fa0]'
                           : 'border-slate-200 bg-white text-[#4a7068]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <span
                         className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
-                          isActive || isCompleted ? 'bg-[#8dc63f] text-white' : 'bg-slate-100 text-slate-600'
+                          isActive || isCompleted ? 'bg-[#7b3fa0] text-white' : 'bg-slate-100 text-slate-600'
                         }`}
                       >
                         {index + 1}
@@ -453,21 +453,21 @@ export function AdminClinico() {
                       <input
                         value={draft.label}
                         onChange={(event) => updateDraft('label', event.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40"
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40"
                       />
                     </Field>
                     <Field label="Especialidad">
                       <input
                         value={draft.specialty}
                         onChange={(event) => updateDraft('specialty', event.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40"
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40"
                       />
                     </Field>
                     <Field label="Estado">
                       <select
                         value={draft.status}
                         onChange={(event) => updateDraft('status', event.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40"
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40"
                       >
                         {['Activo', 'Borrador', 'En revisión clínica', 'Retirado', 'Archivado'].map((status) => (
                           <option key={status} value={status}>
@@ -480,7 +480,7 @@ export function AdminClinico() {
                       <input
                         value={draft.version}
                         onChange={(event) => updateDraft('version', event.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40"
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40"
                       />
                     </Field>
                   </div>
@@ -685,7 +685,7 @@ export function AdminClinico() {
                           isActive ? 'bg-white' : 'bg-transparent'
                         }`}
                       >
-                        <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#edf7f6] text-[#1a6860]">
+                        <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[#7b3fa0]">
                           {isCompleted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <span className="text-[10px] font-semibold">{index + 1}</span>}
                         </div>
                         <div>
@@ -733,7 +733,7 @@ export function AdminClinico() {
                   </Button>
                 </div>
                 <p className="mt-3 text-xs leading-6 text-[#4a7068]">
-                  Crohn sigue siendo el programa activo de demo, pero este asistente deja preparado el producto para nuevas especialidades y circuitos clínicos.
+                  Este asistente permite configurar nuevas especialidades y circuitos clínicos sin necesidad de desarrollo adicional.
                 </p>
               </div>
             </div>
@@ -869,7 +869,7 @@ function ReviewList({
           items.map((item) => (
             <span
               key={`${title}-${item}`}
-              className="rounded-full border border-[#8dc63f]/20 bg-[#f4f9ea] px-3 py-1 text-xs font-medium text-[#5a7820]"
+              className="rounded-full border border-[#7b3fa0]/20 bg-[#f5f0fa] px-3 py-1 text-xs font-medium text-[#7b3fa0]"
             >
               {item}
             </span>
@@ -922,7 +922,7 @@ function TextAreaField({
         rows={rows}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm leading-7 text-[#152520] outline-none focus:border-[#8dc63f]/40"
+        className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm leading-7 text-[#152520] outline-none focus:border-[#7b3fa0]/40"
       />
     </label>
   )

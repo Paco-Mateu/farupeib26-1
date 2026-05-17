@@ -8,7 +8,7 @@ import type { Agent } from '@/components/pkpd/pro/xarxa-types'
 import { fetchJson } from '@/lib/fetch-json'
 
 const STATUS_STYLE: Record<string, string> = {
-  Activo: 'bg-teal-50 text-teal-700 ring-1 ring-teal-200',
+  Activo: 'bg-[#faf6fd] text-[#7b3fa0] ring-1 ring-[#7b3fa0]/20',
   Pausado: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   Inactivo: 'bg-slate-100 text-slate-500',
 }
@@ -87,26 +87,11 @@ export function AgentesIa() {
         />
       ) : (
         <>
-          <div className="mb-6 rounded-[28px] border border-[#8dc63f]/20 bg-[#f0f7e3] p-6">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-              <div className="max-w-3xl">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5a7820]">
-                  Automatización supervisada en la red
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-[#152520]">
-                  Los agentes no solo dejan traza: ya están absorbiendo trabajo operativo real.
-                </h2>
-                <p className="mt-2 text-sm leading-7 text-[#4a7068]">
-                  Aquí se ve qué automatiza cada agente, cuántas veces ha intervenido, cuántos casos ha tocado y cuántos borradores deja preparados antes de la validación profesional.
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
-                <ImpactCard label="Pasos IA ejecutados" value={String(summary.totalRuns)} note="Ejecuciones registradas" />
-                <ImpactCard label="Casos tocados" value={String(summary.casesTouched)} note="Casos con intervención de agentes" />
-                <ImpactCard label="Borradores preparados" value={String(summary.draftsPrepared)} note="Salidas clínicas en borrador" />
-                <ImpactCard label="Agentes activos" value={String(agents.filter((agent) => agent.status === 'Activo').length)} note="Capacidades supervisadas en red" />
-              </div>
-            </div>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ImpactCard label="Pasos IA ejecutados" value={String(summary.totalRuns)} note="Ejecuciones registradas" />
+            <ImpactCard label="Casos tocados" value={String(summary.casesTouched)} note="Casos con intervención de agentes" />
+            <ImpactCard label="Borradores preparados" value={String(summary.draftsPrepared)} note="Salidas clínicas en borrador" />
+            <ImpactCard label="Agentes activos" value={String(agents.filter((agent) => agent.status === 'Activo').length)} note="Capacidades supervisadas en red" />
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -114,7 +99,7 @@ export function AgentesIa() {
               <div className="mb-4 flex items-center gap-2">
                 <Bot className="h-4 w-4 text-[#4a7068]" />
                 <p className="text-sm font-semibold text-[#152520]">Registro de agentes</p>
-                <span className="rounded-full bg-[#8dc63f] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                <span className="rounded-full bg-[#7b3fa0] px-1.5 py-0.5 text-[10px] font-bold text-white">
                   {agents.length}
                 </span>
               </div>
@@ -125,12 +110,12 @@ export function AgentesIa() {
                     onClick={() => setSelected(ag)}
                     className={`rounded-3xl border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
                       selected?._id === ag._id
-                        ? 'border-[#8dc63f]/30 bg-[#f8fcf1] shadow-sm'
+                        ? 'border-[#7b3fa0]/30 bg-[#faf6fd] shadow-sm'
                         : 'border-slate-200 bg-white'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
                         <Bot className="h-5 w-5" />
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLE[ag.status] ?? 'bg-slate-100 text-slate-600'}`}>
@@ -172,8 +157,8 @@ export function AgentesIa() {
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
                     <div className="mb-2 flex items-center gap-2">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#8dc63f]/10">
-                        <Bot className="h-4 w-4 text-[#8dc63f]" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#7b3fa0]/10">
+                        <Bot className="h-4 w-4 text-[#7b3fa0]" />
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLE[selected.status] ?? 'bg-slate-100 text-slate-600'}`}>
                         {selected.status}
@@ -201,7 +186,7 @@ export function AgentesIa() {
                   <ul className="space-y-1.5">
                     {selected.limits.map((limit, index) => (
                       <li key={index} className="flex items-start gap-2 text-xs leading-6 text-[#152520]">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8dc63f]" />
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#7b3fa0]" />
                         {limit}
                       </li>
                     ))}

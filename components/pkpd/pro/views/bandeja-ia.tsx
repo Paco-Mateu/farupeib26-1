@@ -38,13 +38,11 @@ type CreateCaseResponse = {
   case: { caseId: string }
 }
 
-type FlowStepState = 'done' | 'current' | 'locked'
-
 function AgentStatusBadge({ status }: { status: InboxItem['agentStatus'] }) {
   const map: Record<InboxItem['agentStatus'], { label: string; className: string }> = {
     pending: { label: 'En cola', className: 'bg-slate-100 text-slate-500' },
     processing: { label: 'Procesando', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
-    ready: { label: 'Listo para crear caso', className: 'bg-[#f0f7e3] text-[#5a7820] ring-1 ring-[#8dc63f]/30' },
+    ready: { label: 'Listo para crear caso', className: 'bg-[#faf6fd] text-[#7b3fa0] ring-1 ring-[#7b3fa0]/30' },
     error: { label: 'Error de extracción', className: 'bg-red-50 text-red-700 ring-1 ring-red-200' },
     created: { label: 'Caso creado', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
   }
@@ -56,161 +54,44 @@ function AgentStatusBadge({ status }: { status: InboxItem['agentStatus'] }) {
   )
 }
 
-function StepDot({ state }: { state: FlowStepState }) {
-  if (state === 'done') return <CheckCircle2 className="h-5 w-5 text-[#8dc63f]" />
-  if (state === 'current')
-    return (
-      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#7b3fa0]">
-        <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
-      </div>
-    )
-  return <div className="h-5 w-5 rounded-full border-2 border-slate-200 bg-white" />
-}
 
-function HorizontalStepper({
-  processState,
-  createState,
-  openState,
-}: {
-  processState: FlowStepState
-  createState: FlowStepState
-  openState: FlowStepState
-}) {
-  const steps = [
-    { label: 'Procesar email', state: processState },
-    { label: 'Crear caso', state: createState },
-    { label: 'Abrir cockpit', state: openState },
-  ]
+function AgentThinkingPanel({ steps }: { steps: Array<{ label: string; status: InboxStepStatus }> }) {
   return (
-    <div className="flex items-center">
+    <div className="space-y-1.5">
       {steps.map((step, i) => (
-        <div key={step.label} className="flex items-center">
-          <div className="flex flex-col items-center gap-1">
-            <StepDot state={step.state} />
-            <span
-              className={`text-[9px] font-semibold ${
-                step.state === 'current'
-                  ? 'text-[#7b3fa0]'
-                  : step.state === 'done'
-                    ? 'text-[#5a7820]'
-                    : 'text-slate-300'
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-          {i < steps.length - 1 && (
-            <div
-              className={`mx-2 mb-4 h-0.5 w-12 rounded-full ${
-                steps[i + 1].state !== 'locked' ? 'bg-[#8dc63f]' : 'bg-slate-200'
-              }`}
-            />
-          )}
+        <div
+          key={i}
+          className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-xs transition-all ${
+            step.status === 'done'
+              ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+              : step.status === 'running'
+                ? 'border-[#7b3fa0]/20 bg-[#faf6fd] text-[#7b3fa0]'
+                : 'border-slate-100 bg-slate-50 text-slate-400'
+          }`}
+        >
+          <span className="shrink-0">
+            {step.status === 'done' ? (
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            ) : step.status === 'running' ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7b3fa0]" />
+            ) : (
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-slate-200" />
+            )}
+          </span>
+          <span className={step.status === 'running' ? 'font-medium' : ''}>{step.label}</span>
         </div>
       ))}
     </div>
   )
 }
 
-function AgentThinkingPanel({ steps }: { steps: Array<{ label: string; status: InboxStepStatus }> }) {
-  return (
-    <div className="overflow-hidden rounded-xl bg-slate-900">
-      {/* Terminal chrome */}
-      <div className="flex items-center gap-1.5 border-b border-slate-800 bg-slate-800 px-4 py-2.5">
-        <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-        <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
-        <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-        <span className="ml-2 font-mono text-[10px] text-slate-400">agente-pkpd · extracción clínica supervisada</span>
-      </div>
-
-      {/* Steps */}
-      <div className="space-y-2.5 p-4 font-mono">
-        {steps.map((step, i) => (
-          <div
-            key={i}
-            className={`flex items-start gap-3 text-xs transition-all duration-300 ${
-              step.status === 'pending' ? 'opacity-20' : 'opacity-100'
-            }`}
-          >
-            <span className="mt-0.5 shrink-0">
-              {step.status === 'done' ? (
-                <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
-              ) : step.status === 'running' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
-              ) : (
-                <div className="h-3.5 w-3.5 rounded-full border border-slate-700" />
-              )}
-            </span>
-            <span
-              className={`leading-relaxed ${
-                step.status === 'done'
-                  ? 'text-green-300'
-                  : step.status === 'running'
-                    ? 'font-medium text-amber-200'
-                    : 'text-slate-600'
-              }`}
-            >
-              {step.label}
-              {step.status === 'running' && (
-                <span className="ml-1 text-amber-400">
-                  <span className="inline-block animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
-                  <span className="inline-block animate-bounce" style={{ animationDelay: '120ms' }}>.</span>
-                  <span className="inline-block animate-bounce" style={{ animationDelay: '240ms' }}>.</span>
-                </span>
-              )}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Thinking footer */}
-      <div className="flex items-center gap-2 border-t border-slate-800 px-4 py-2.5">
-        <div className="flex gap-1">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#8dc63f]"
-              style={{ animationDelay: `${i * 150}ms` }}
-            />
-          ))}
-        </div>
-        <span className="font-mono text-[9px] text-slate-500">
-          IA supervisada · revisión humana obligatoria al finalizar
-        </span>
-      </div>
-    </div>
-  )
-}
-
 function PendingPanel() {
-  const actions = [
-    'Identificar el programa clínico y tipo de consulta',
-    'Extraer datos del paciente, pauta y determinantes',
-    'Detectar gaps y datos faltantes antes del caso',
-    'Asignar prioridad y centro responsable',
-  ]
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
-          <Sparkles className="h-4 w-4 text-[#7b3fa0]" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-[#152520]">Qué hará la IA</p>
-          <p className="text-xs text-[#4a7068]">Al pulsar «Procesar email»</p>
-        </div>
+    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
+        <Sparkles className="h-5 w-5 text-slate-400" />
       </div>
-      <div className="space-y-2">
-        {actions.map((action) => (
-          <div key={action} className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2.5">
-            <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8dc63f]" />
-            <p className="text-xs text-[#152520]">{action}</p>
-          </div>
-        ))}
-      </div>
-      <p className="text-[10px] text-slate-400">
-        El resultado es visible antes de crear el caso. Puedes validar o corregir la extracción.
-      </p>
+      <p className="text-sm font-medium text-slate-500">Solicitud pendiente</p>
     </div>
   )
 }
@@ -241,17 +122,17 @@ function ReadyPanel({
       {/* Extracted data */}
       <div>
         <div className="mb-2 flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-[#8dc63f]" />
+          <CheckCircle2 className="h-4 w-4 text-[#7b3fa0]" />
           <p className="text-xs font-semibold text-[#152520]">
             Datos extraídos — {extractedFields.length} campos
           </p>
         </div>
-        <div className="overflow-hidden rounded-xl border border-[#8dc63f]/20 bg-[#f0f7e3]">
+        <div className="overflow-hidden rounded-xl border border-[#7b3fa0]/20 bg-[#faf6fd]">
           {extraction ? (
             <dl className="divide-y divide-[#8dc63f]/10">
               {extractedFields.map(([label, value]) => (
                 <div key={label} className="grid grid-cols-[96px_1fr] gap-2 px-3 py-2 text-xs">
-                  <dt className="text-[#5a7820]">{label}</dt>
+                  <dt className="text-[#7b3fa0]">{label}</dt>
                   <dd className="font-semibold text-[#152520]">{String(value)}</dd>
                 </div>
               ))}
@@ -278,9 +159,6 @@ function ReadyPanel({
               </div>
             ))}
           </div>
-          <p className="mt-2 text-[10px] text-slate-400">
-            Estos gaps se convertirán en tareas al crear el caso.
-          </p>
         </div>
       )}
 
@@ -315,13 +193,10 @@ function CreatedPanel({
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
         <p className="text-xs text-slate-500">Case ID</p>
         <p className="mt-0.5 text-base font-bold text-[#152520]">{item.createdCaseId}</p>
-        <p className="mt-1 text-xs text-[#4a7068]">
-          El caso ya tiene tareas, prioridades y trazas generadas automáticamente.
-        </p>
         {onOpen && (
           <Button
             size="sm"
-            className="mt-3 w-full gap-1.5 rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+            className="mt-3 w-full gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
             onClick={() => onOpen(item.createdCaseId!)}
           >
             Abrir Case Cockpit
@@ -329,9 +204,6 @@ function CreatedPanel({
           </Button>
         )}
       </div>
-      <p className="text-[10px] text-slate-400">
-        Revisión humana obligatoria antes de emitir recomendación clínica.
-      </p>
     </div>
   )
 }
@@ -513,65 +385,6 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
   const canProcess = selected.agentStatus === 'pending' || selected.agentStatus === 'processing' || selected.agentStatus === 'error'
   const canCreate = selected.agentStatus === 'ready'
   const canOpenCase = selected.agentStatus === 'created' && selected.createdCaseId
-  const processState: FlowStepState = canProcess ? 'current' : 'done'
-  const createState: FlowStepState = canOpenCase ? 'done' : canCreate ? 'current' : 'locked'
-  const openState: FlowStepState = canOpenCase ? 'current' : 'locked'
-
-  const nextAction = canProcess
-    ? {
-        step: '1 / 3',
-        who: 'Agente IA',
-        title: 'Procesar email y extraer datos clínicos',
-        detail:
-          'La IA leerá la solicitud, identificará el programa, extraerá datos del paciente y detectará gaps antes de crear el caso.',
-        label: 'Procesar con IA',
-        icon: Bot,
-        action: () => void processSelectedItem(),
-        busy: busyAction === 'process',
-        color: 'bg-[#7b3fa0] hover:bg-[#6c348f]',
-      }
-    : canCreate
-      ? {
-          step: '2 / 3',
-          who: 'Tú',
-          title: 'Revisar extracción y crear caso PK/PD',
-          detail:
-            'La extracción está lista. Revisa los datos y gaps, luego crea el caso con tareas, prioridades y trazas auditables.',
-          label: 'Crear caso PK/PD',
-          icon: ChevronRight,
-          action: () => void createCaseFromSelectedItem(),
-          busy: busyAction === 'create',
-          color: 'bg-[#8dc63f] hover:bg-[#9fd44e]',
-        }
-      : canOpenCase
-        ? {
-            step: '3 / 3',
-            who: 'Tú',
-            title: 'El caso está listo — ábrelo en el Case Cockpit',
-            detail:
-              'Tareas generadas, prioridades asignadas, trazas de auditoría activas. Continúa el circuito clínico desde el cockpit.',
-            label: 'Abrir caso',
-            icon: ChevronRight,
-            action: () => {
-              if (selected.createdCaseId) void onCaseCreated?.(selected.createdCaseId)
-            },
-            busy: false,
-            color: 'bg-[#8dc63f] hover:bg-[#9fd44e]',
-          }
-        : {
-            step: '—',
-            who: 'Sistema',
-            title: 'Selecciona o genera una solicitud',
-            detail: 'Genera una solicitud de email simulada o selecciona una de la lista para comenzar el flujo.',
-            label: 'Generar solicitud',
-            icon: Sparkles,
-            action: () => void generateInboxItem(),
-            busy: busyAction === 'generate',
-            color: 'bg-slate-700 hover:bg-slate-600',
-          }
-
-  const NextIcon = nextAction.icon
-
   return (
     <div className="flex h-full overflow-hidden">
       {/* ── Left: email list ────────────────────────────────── */}
@@ -581,7 +394,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-[#4a7068]" />
               <span className="text-sm font-semibold text-[#152520]">Solicitudes recibidas</span>
-              <span className="rounded-full bg-[#8dc63f] px-1.5 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[#7b3fa0] px-1.5 py-0.5 text-[10px] font-bold text-white">
                 {items.length}
               </span>
             </div>
@@ -613,7 +426,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
             </Button>
             <Button
               size="sm"
-              className="h-9 w-full justify-start gap-1.5 rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+              className="h-9 w-full justify-start gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
               onClick={() => void generateRandomCase()}
               disabled={busyAction !== null}
             >
@@ -633,7 +446,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
               <button
                 onClick={() => setSelectedId(item._id)}
                 className={`w-full px-4 py-3 text-left transition hover:bg-slate-50 ${
-                  selected._id === item._id ? 'bg-[#f0f7e3]' : ''
+                  selected._id === item._id ? 'bg-[#faf6fd]' : ''
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -672,32 +485,37 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
               : ''}
           </p>
 
-          {/* Row 3: compact action bar — stepper + single-line CTA */}
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-            {/* Inline stepper */}
-            <div className="flex items-center gap-1.5">
-              <HorizontalStepper
-                processState={processState}
-                createState={createState}
-                openState={openState}
-              />
-              <span className="ml-2 text-[10px] text-[#4a7068]">
-                {nextAction.who === 'Agente IA' ? '🤖' : '👤'}{' '}
-                <span className="font-medium text-[#152520]">{nextAction.title}</span>
-              </span>
-            </div>
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
             <Button
               size="sm"
-              className={`h-7 shrink-0 gap-1 rounded-xl px-3 text-xs font-semibold text-white ${nextAction.color}`}
-              onClick={nextAction.action}
-              disabled={busyAction !== null}
+              className="h-8 gap-1.5 rounded-xl bg-[#7b3fa0] px-3 text-xs font-semibold text-white hover:bg-[#6a3490]"
+              onClick={() => void processSelectedItem()}
+              disabled={!canProcess || busyAction !== null}
             >
-              {nextAction.busy ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <NextIcon className="h-3.5 w-3.5" />
-              )}
-              {nextAction.label}
+              {busyAction === 'process' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
+              Procesar email
+            </Button>
+            <Button
+              size="sm"
+              variant={canCreate ? 'default' : 'outline'}
+              className={`h-8 gap-1.5 rounded-xl px-3 text-xs font-semibold ${canCreate ? 'bg-emerald-600 text-white hover:bg-emerald-700' : ''}`}
+              onClick={() => void createCaseFromSelectedItem()}
+              disabled={!canCreate || busyAction !== null}
+            >
+              {busyAction === 'create' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              Crear caso
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5 rounded-xl px-3 text-xs font-semibold"
+              onClick={() => {
+                if (selected.createdCaseId) void onCaseCreated?.(selected.createdCaseId)
+              }}
+              disabled={!canOpenCase || busyAction !== null}
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+              Abrir caso
             </Button>
           </div>
 
@@ -748,15 +566,12 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
           </div>
 
           {/* Context panel */}
-          <div className="w-[320px] shrink-0 overflow-y-auto bg-[#f8faf9] px-5 py-5">
+          <div className="w-[320px] shrink-0 overflow-y-auto bg-white px-5 py-5">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#8dc63f]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#7b3fa0]">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-[#152520]">Extracción IA</p>
-                <p className="text-xs text-[#4a7068]">Supervisada · trazable · revisable</p>
-              </div>
+              <p className="text-sm font-semibold text-[#152520]">Extracción</p>
             </div>
             <ContextPanel item={selected} onOpen={onCaseCreated} />
           </div>

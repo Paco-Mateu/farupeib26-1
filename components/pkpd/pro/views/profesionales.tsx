@@ -530,7 +530,7 @@ export function Profesionales() {
                         {(center.programs ?? []).length > 0 && (
                           <div className="mb-3 flex flex-wrap gap-1">
                             {center.programs.map((prog) => (
-                              <span key={prog} className="rounded bg-[#8dc63f]/15 px-2 py-0.5 text-[10px] font-semibold text-[#5a7820]">
+                              <span key={prog} className="rounded bg-[#7b3fa0]/15 px-2 py-0.5 text-[10px] font-semibold text-[#7b3fa0]">
                                 {prog}
                               </span>
                             ))}

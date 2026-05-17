@@ -119,7 +119,7 @@ const MAIN_NAV: NavItem[] = [
 
 const ADMIN_NAV: NavItem[] = [
   { vista: 'agentes', label: 'Agentes IA', icon: Bot },
-  { vista: 'admin', label: 'Admin clínico', icon: ShieldCheck },
+  { vista: 'admin', label: 'Programas', icon: ShieldCheck },
   { vista: 'config', label: 'Configuración', icon: Cog },
 ]
 
@@ -151,7 +151,7 @@ function formatDateRangeLabel(days: number) {
 function metricToneClass(tone: HeaderMetric['tone']) {
   switch (tone) {
     case 'accent':
-      return 'border-[#8dc63f]/20 bg-[#8dc63f]/8 text-[#5a7820]'
+      return 'border-[#7b3fa0]/20 bg-[#7b3fa0]/8 text-[#7b3fa0]'
     case 'warning':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'danger':
@@ -193,11 +193,11 @@ function Sidebar({
             collapsed ? 'justify-center' : 'gap-2.5'
           } ${
             isActive
-              ? 'bg-[#f0f7e3] font-semibold text-[#152520]'
-              : 'text-[#4a7068] hover:bg-slate-50 hover:text-[#152520]'
+              ? 'bg-white font-semibold text-[#152520] shadow-sm'
+              : 'text-[#4a7068] hover:bg-white/70 hover:text-[#152520]'
           }`}
         >
-          <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#8dc63f]' : 'text-[#4a7068]'}`} />
+          <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#7b3fa0]' : 'text-[#4a7068]'}`} />
           {!collapsed && <span className="truncate">{label}</span>}
           {!collapsed && vista === 'bandeja' && bandejaCount > 0 ? (
             <span className="ml-auto rounded-full bg-[#e8501e] px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -214,7 +214,7 @@ function Sidebar({
 
   return (
     <aside
-      className={`relative flex h-full shrink-0 flex-col border-r border-slate-100 bg-white transition-all duration-200 ${
+      className={`relative flex h-full shrink-0 flex-col border-r border-slate-200 bg-[#f1f3f5] transition-all duration-200 ${
         collapsed ? 'w-14' : 'w-56'
       }`}
     >
@@ -279,9 +279,9 @@ function Sidebar({
         ) : (
           <button
             onClick={onOpenIntro}
-            className="mb-3 flex w-full items-start gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-left transition hover:border-slate-300 hover:bg-white"
+            className="mb-3 flex w-full items-start gap-2 rounded-2xl border border-slate-300/60 bg-white/80 px-3 py-3 text-left transition hover:bg-white"
           >
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#edf7f6] text-[#1a6860]">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
               <BookOpenCheck className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -296,14 +296,14 @@ function Sidebar({
         <div className={collapsed ? 'flex justify-center' : 'px-1'}>
         {collapsed ? (
           <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[11px] font-bold text-[#7b3fa0]"
             title="Farmacéutico referente · H.U. Bellvitge"
           >
             FM
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[11px] font-bold text-[#7b3fa0]">
               FM
             </div>
             <div className="min-w-0 flex-1">
@@ -342,7 +342,7 @@ function DesktopOnlyNotice() {
     <div className="flex min-h-screen flex-col bg-[#f7faf9] px-5 py-8 lg:hidden">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
             <Monitor className="h-6 w-6" />
           </div>
           <h1 className="mt-5 text-2xl font-semibold text-[#152520]">Demo interactiva disponible en escritorio</h1>
@@ -356,7 +356,7 @@ function DesktopOnlyNotice() {
           <div className="mt-6 flex flex-col gap-3">
             <a
               href="/"
-              className="inline-flex items-center justify-center rounded-2xl bg-[#8dc63f] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#9fd44e]"
+              className="inline-flex items-center justify-center rounded-2xl bg-[#7b3fa0] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#6a3490]"
             >
               Ver intro de la demo
             </a>
@@ -510,7 +510,7 @@ function TopHeader({
                           className="w-full rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2 text-left transition hover:border-slate-200 hover:bg-white"
                         >
                           <div className="flex items-start gap-2">
-                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-[#8dc63f]">
+                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-[#7b3fa0]">
                               <Icon className="h-4 w-4" />
                             </div>
                             <div className="min-w-0 flex-1">
@@ -532,7 +532,7 @@ function TopHeader({
           </div>
 
           <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-2.5 py-1.5 text-left transition hover:bg-slate-50">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7b3fa0]/10 text-[11px] font-bold text-[#7b3fa0]">
               FM
             </div>
             <div className="hidden text-left md:block">
@@ -543,15 +543,6 @@ function TopHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-5 py-3">
-        {metrics.map((metric) => (
-          <MetricPill key={metric.label} metric={metric} />
-        ))}
-        <div className="ml-auto hidden items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-[#4a7068] xl:flex">
-          <CalendarRange className="h-3.5 w-3.5" />
-          {formatDateRangeLabel(dateRangeDays)}
-        </div>
-      </div>
     </header>
   )
 }
@@ -663,10 +654,10 @@ function CommandPalette({
                             onClose()
                           }}
                           className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition ${
-                            isActive ? 'bg-[#f0f7e3]' : 'hover:bg-slate-50'
+                            isActive ? 'bg-[#faf6fd]' : 'hover:bg-slate-50'
                           }`}
                         >
-                          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#8dc63f] shadow-sm">
+                          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#7b3fa0] shadow-sm">
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -1169,7 +1160,7 @@ export function XarraPro() {
       {
         id: 'action-open-admin',
         label: 'Configurar programa clínico',
-        description: 'Entrar en Admin clínico para revisar programas, formularios y workflow.',
+        description: 'Entrar en Programas para revisar programas, formularios y workflow.',
         icon: FolderCog,
         onSelect: () => navigate('admin'),
       },
@@ -1428,7 +1419,7 @@ export function XarraPro() {
   return (
     <>
       <DesktopOnlyNotice />
-      <div className="hidden h-screen overflow-hidden bg-[#f4f7f6] lg:flex">
+      <div className="hidden h-screen overflow-hidden bg-white lg:flex">
       <Sidebar
         active={activeVista}
         onNavigate={navigate}

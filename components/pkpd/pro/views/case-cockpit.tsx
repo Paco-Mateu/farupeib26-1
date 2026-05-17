@@ -2,11 +2,14 @@
 
 import {
   Activity, AlertTriangle, ArrowLeft, BookOpen, Bot, CheckCircle2, ChevronDown,
-  Clock, ClipboardEdit, FileText, FlaskConical, LayoutDashboard, MessageSquareText,
-  PencilLine, Plus, Save, Shield, Sparkles, TrendingUp, Users, X, Zap,
+  Clock, ClipboardEdit, Droplet, Eye, FileText, FlaskConical, LayoutDashboard,
+  MessageCircle, MessageSquareText, Microscope, PencilLine, Pill, Plus, RefreshCw,
+  Save, Shield, Sparkles, Stethoscope, TrendingUp, Users, X, Zap,
 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
+import { PkpdSimulationChart } from '@/components/pkpd/pro/charts/pkpd-simulation-chart'
+import { TimelineLaneOverview } from '@/components/pkpd/pro/charts/timeline-lane-overview'
 import type { CasoCompleto } from '@/components/pkpd/pro/xarxa-types'
 import { PIPELINE_STAGES, PRIORITY_STYLE, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
 import { Badge } from '@/components/ui/badge'
@@ -14,21 +17,14 @@ import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetch-json'
 
 type Tab =
-  | 'resumen' | 'timeline' | 'datos' | 'gaps'
-  | 'analisis' | 'simulacion' | 'recomendacion'
-  | 'informe' | 'aprendizaje' | 'auditoria'
+  | 'resumen' | 'datos' | 'analisis' | 'recomendacion' | 'actividad'
 
 const TABS: Array<{ id: Tab; label: string; icon: React.ElementType }> = [
-  { id: 'resumen',       label: 'Resumen',              icon: LayoutDashboard },
-  { id: 'timeline',      label: 'Timeline',             icon: Clock },
+  { id: 'resumen',       label: 'Resumen y Gaps',       icon: LayoutDashboard },
   { id: 'datos',         label: 'Datos',                icon: FlaskConical },
-  { id: 'gaps',          label: 'Gaps y tareas',        icon: AlertTriangle },
-  { id: 'analisis',      label: 'Análisis PK/PD',       icon: TrendingUp },
-  { id: 'simulacion',    label: 'Simulación',           icon: Activity },
+  { id: 'analisis',      label: 'Análisis y Sim.',      icon: TrendingUp },
   { id: 'recomendacion', label: 'Recomendación',        icon: MessageSquareText },
-  { id: 'informe',       label: 'Informe HCE',          icon: FileText },
-  { id: 'aprendizaje',   label: 'Aprendizaje',          icon: BookOpen },
-  { id: 'auditoria',     label: 'Auditoría',            icon: Shield },
+  { id: 'actividad',     label: 'Actividad',            icon: Clock },
 ]
 
 const LANE_COLORS: Record<string, string> = {
@@ -90,7 +86,6 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
   const [actionBusy, setActionBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionNotice, setActionNotice] = useState<string | null>(null)
-  const [automationExpanded, setAutomationExpanded] = useState(false)
 
   useEffect(() => {
     setCurrentCase(caso)
@@ -254,7 +249,7 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
   }
 
   async function generateNoteDraft() {
-    setActiveTab('informe')
+    setActiveTab('recomendacion')
     return runCaseMutation(
       'note:generate',
       `/api/xarxa/cases/${currentCase.caseId}/note/generate`,
@@ -470,12 +465,12 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
           <div className="flex-1 min-w-0">
             <button
               onClick={onBack}
-              className="mb-2 flex items-center gap-1.5 text-xs text-[#4a7068] hover:text-[#5a7820]"
+              className="mb-2 flex items-center gap-1.5 text-xs text-[#4a7068] hover:text-[#7b3fa0]"
             >
               <ArrowLeft className="h-3 w-3" /> Volver a casos
             </button>
             <div className="flex flex-wrap items-center gap-2">
-	              <span className="text-xs font-semibold text-[#8dc63f]">{currentCase.caseId}</span>
+	              <span className="text-xs font-semibold text-[#7b3fa0]">{currentCase.caseId}</span>
 	              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${PRIORITY_STYLE[currentCase.priority] ?? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
 	                {currentCase.priority}
 	              </span>
@@ -492,14 +487,20 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                 {' · '}
                 {currentCase.centerName} · Solicitante: {currentCase.requesterName}
 	            </p>
-	            <p className="mt-1 text-xs text-[#4a7068]">
-	              <span className="font-medium">Siguiente paso:</span> {currentCase.nextAction}
-	              {totalGaps > 0 && (
-	                <span className="ml-3 text-amber-600">
-	                  · {totalGaps} gap{totalGaps > 1 ? 's' : ''}{criticalGaps.length > 0 ? ` (${criticalGaps.length} crítico${criticalGaps.length > 1 ? 's' : ''})` : ''}
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-[#4a7068]"><span className="font-medium text-[#152520]">Siguiente paso:</span> {currentCase.nextAction}</span>
+              {criticalGaps.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
+                  <AlertTriangle className="h-3 w-3" />
+                  {criticalGaps.length} crítico{criticalGaps.length > 1 ? 's' : ''}
                 </span>
               )}
-            </p>
+              {totalGaps > criticalGaps.length && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">
+                  {totalGaps - criticalGaps.length} gap{totalGaps - criticalGaps.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             <StageActions
@@ -531,17 +532,6 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
         </div>
       </div>
 
-      {/* Collapsible automation chip */}
-      <div className="shrink-0 border-b border-slate-200 bg-[#f8faf9] px-6 py-3">
-        <AutomationChip
-          caso={currentCase}
-          expanded={automationExpanded}
-          onToggle={() => setAutomationExpanded((v) => !v)}
-          onRun={() => void orchestrateCase()}
-          busy={actionBusy === 'orchestrate'}
-        />
-      </div>
-
       {/* Tabs + content + pipeline panel */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left column: tabs + scrollable content */}
@@ -551,17 +541,14 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
               {TABS.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
-                const isGaps = tab.id === 'gaps'
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 text-xs font-semibold tracking-wide transition ${
                       isActive
-                        ? 'border-[#8dc63f] text-[#7b3fa0]'
-                        : isGaps
-                          ? 'border-transparent text-amber-500 hover:text-amber-700'
-                          : 'border-transparent text-slate-500 hover:text-slate-800'
+                        ? 'border-[#7b3fa0] text-[#7b3fa0]'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -579,62 +566,68 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
               </div>
             ) : null}
             {actionNotice ? (
-              <div className="mb-4 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-[#5a7820]">
+              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-[#7b3fa0]">
                 {actionNotice}
               </div>
             ) : null}
             <div className="min-w-0">
               {activeTab === 'resumen' && (
-                <TabResumen
-                  caso={currentCase}
-                  onConfirm={() =>
-                    void transitionCase(
-                      {
-                        pipelineStage: 'Determinantes recibidos',
-                        nextAction: 'Revisión farmacéutica',
-                        eventLabel: 'Caso confirmado para revisión farmacéutica',
-                      },
-                      'El caso ha avanzado a revisión farmacéutica.',
-                    )
-                  }
-                  onRequestData={() =>
-                    void transitionCase(
-                      {
-                        pipelineStage: 'Datos incompletos',
-                        nextAction: 'Completar determinantes críticos',
-                        eventLabel: 'Se han solicitado datos adicionales para la revisión',
-                      },
-                      'Se han solicitado datos adicionales para el caso.',
-                    )
-                  }
-                />
+                <>
+                  <TabResumen
+                    caso={currentCase}
+                    onConfirm={() =>
+                      void transitionCase(
+                        {
+                          pipelineStage: 'Determinantes recibidos',
+                          nextAction: 'Revisión farmacéutica',
+                          eventLabel: 'Caso confirmado para revisión farmacéutica',
+                        },
+                        'El caso ha avanzado a revisión farmacéutica.',
+                      )
+                    }
+                    onRequestData={() =>
+                      void transitionCase(
+                        {
+                          pipelineStage: 'Datos incompletos',
+                          nextAction: 'Completar determinantes críticos',
+                          eventLabel: 'Se han solicitado datos adicionales para la revisión',
+                        },
+                        'Se han solicitado datos adicionales para el caso.',
+                      )
+                    }
+                  />
+                  <div className="my-6 border-t border-slate-100" />
+                  <TabGaps
+                    caso={currentCase}
+                    busyKey={actionBusy}
+                    onRequestGap={requestGapFollowUp}
+                    onResolveTask={(taskId) =>
+                      void updateTask(
+                        taskId,
+                        { status: 'Resuelta', eventLabel: 'Tarea marcada como resuelta' },
+                        'La tarea se ha marcado como resuelta.',
+                      )
+                    }
+                    onStartTask={(taskId) =>
+                      void updateTask(
+                        taskId,
+                        { status: 'En curso', eventLabel: 'Tarea puesta en curso' },
+                        'La tarea queda en curso.',
+                      )
+                    }
+                  />
+                </>
               )}
-              {activeTab === 'timeline' && <TabTimeline caso={currentCase} />}
               {activeTab === 'datos' && <TabDatos caso={currentCase} onEdit={openEditor} />}
-              {activeTab === 'gaps' && (
-                <TabGaps
-                  caso={currentCase}
-                  busyKey={actionBusy}
-                  onRequestGap={requestGapFollowUp}
-                  onResolveTask={(taskId) =>
-                    void updateTask(
-                      taskId,
-                      { status: 'Resuelta', eventLabel: 'Tarea marcada como resuelta' },
-                      'La tarea se ha marcado como resuelta.',
-                    )
-                  }
-                  onStartTask={(taskId) =>
-                    void updateTask(
-                      taskId,
-                      { status: 'En curso', eventLabel: 'Tarea puesta en curso' },
-                      'La tarea queda en curso.',
-                    )
-                  }
-                />
+              {activeTab === 'analisis' && (
+                <>
+                  <TabAnalisis caso={currentCase} />
+                  <div className="my-6 border-t border-slate-100" />
+                  <TabSimulacion caso={currentCase} />
+                </>
               )}
-              {activeTab === 'analisis' && <TabAnalisis caso={currentCase} />}
-              {activeTab === 'simulacion' && <TabSimulacion caso={currentCase} />}
               {activeTab === 'recomendacion' && (
+                <>
                 <TabRecomendacion
                   caso={currentCase}
                   recText={recText}
@@ -700,8 +693,7 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                     )
                   }
                 />
-              )}
-              {activeTab === 'informe' && (
+                <div className="my-6 border-t border-slate-100" />
                 <TabInforme
                   caso={currentCase}
                   noteText={noteText}
@@ -744,39 +736,45 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
                   }
                   onExportPdf={openPrintableNote}
                 />
+                </>
               )}
-              {activeTab === 'aprendizaje' && (
-                <TabAprendizaje
-                  caso={currentCase}
-                  busyKey={actionBusy}
-                  onRegisterFollowUp={(label, dueDate) =>
-                    void saveFollowUp(
-                      {
-                        label,
-                        status: 'Programado',
-                        dueDate,
-                        pipelineStage: label,
-                        nextAction: `Esperar ${label.toLowerCase()}`,
-                        eventLabel: `${label} programado`,
-                      },
-                      `Se ha programado ${label.toLowerCase()}.`,
-                    )
-                  }
-                  onCompleteFollowUp={(label) =>
-                    void saveFollowUp(
-                      {
-                        label,
-                        status: 'Completado',
-                        nextAction: 'Registrar resultado y lección aprendida',
-                        eventLabel: `${label} completado`,
-                      },
-                      `${label} se ha marcado como completado.`,
-                    )
-                  }
-                  nextFollowupDate={nextFollowupDate}
-                />
+              {activeTab === 'actividad' && (
+                <>
+                  <TabTimeline caso={currentCase} />
+                  <div className="my-6 border-t border-slate-100" />
+                  <TabAprendizaje
+                    caso={currentCase}
+                    busyKey={actionBusy}
+                    onRegisterFollowUp={(label, dueDate) =>
+                      void saveFollowUp(
+                        {
+                          label,
+                          status: 'Programado',
+                          dueDate,
+                          pipelineStage: label,
+                          nextAction: `Esperar ${label.toLowerCase()}`,
+                          eventLabel: `${label} programado`,
+                        },
+                        `Se ha programado ${label.toLowerCase()}.`,
+                      )
+                    }
+                    onCompleteFollowUp={(label) =>
+                      void saveFollowUp(
+                        {
+                          label,
+                          status: 'Completado',
+                          nextAction: 'Registrar resultado y lección aprendida',
+                          eventLabel: `${label} completado`,
+                        },
+                        `${label} se ha marcado como completado.`,
+                      )
+                    }
+                    nextFollowupDate={nextFollowupDate}
+                  />
+                  <div className="my-6 border-t border-slate-100" />
+                  <TabAuditoria caso={currentCase} />
+                </>
               )}
-              {activeTab === 'auditoria' && <TabAuditoria caso={currentCase} />}
             </div>
           </div>
         </div>
@@ -825,10 +823,9 @@ function TabResumen({
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Resumen IA</p>
-            <p className="mt-1 text-xs text-slate-400 italic">Borrador generado por IA · Requiere validación farmacéutica</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Resumen clínico</p>
           </div>
-          <Sparkles className="h-5 w-5 shrink-0 text-[#8dc63f]" />
+          <Sparkles className="h-5 w-5 shrink-0 text-[#7b3fa0]" />
         </div>
         <p className="mt-3 text-sm leading-7 text-[#152520]">{caso.clinicalSummary}</p>
       </div>
@@ -856,20 +853,19 @@ function TabResumen({
                 <p key={i} className="text-sm text-red-800">· {g.label}</p>
               ))}
             </div>
-            <p className="mt-3 text-xs text-red-600 italic">Faltan datos críticos para interpretar el caso.</p>
           </div>
         )}
-        <div className="rounded-xl border border-[#8dc63f]/20 bg-teal-50/50 p-4">
+        <div className="rounded-xl border border-[#7b3fa0]/20 bg-slate-50 p-4">
           <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Siguiente paso</p>
           <p className="mt-2 text-base font-semibold text-[#152520]">{caso.nextAction}</p>
           {caso.tasks?.[0] && (
-            <div className="mt-3 rounded-xl border border-[#8dc63f]/20 bg-white px-3 py-2">
+            <div className="mt-3 rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-2">
               <p className="text-xs text-[#4a7068]">Tarea pendiente: <span className="font-medium text-[#152520]">{caso.tasks[0].title}</span></p>
               <p className="text-xs text-[#4a7068]">Responsable: {caso.tasks[0].ownerRole}</p>
             </div>
           )}
           <div className="mt-3 flex gap-2">
-            <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onConfirm}>Confirmar</Button>
+            <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onConfirm}>Confirmar</Button>
             <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestData}>Solicitar datos</Button>
           </div>
         </div>
@@ -879,19 +875,18 @@ function TabResumen({
       {(caso.agentRuns ?? []).length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Bot className="h-4 w-4 text-[#8dc63f]" />
+            <Bot className="h-4 w-4 text-[#7b3fa0]" />
             <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Actividad de agentes</p>
           </div>
           <div className="space-y-2">
             {(caso.agentRuns ?? []).map((run, i) => (
               <div key={i} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
-                <span className="shrink-0 rounded-full bg-[#8dc63f]/10 px-2 py-0.5 text-[10px] text-[#5a7820]">{run.agent}</span>
+                <span className="shrink-0 rounded-full bg-[#7b3fa0]/10 px-2 py-0.5 text-[10px] text-[#7b3fa0]">{run.agent}</span>
                 <span className="text-[#152520]">{run.message}</span>
                 <span className="ml-auto shrink-0 text-xs text-slate-400">{new Date(run.timestamp).toLocaleDateString('es-ES')}</span>
               </div>
             ))}
           </div>
-          <p className="mt-2 text-[10px] text-slate-400 italic">Revisión humana obligatoria antes de actuar sobre sugerencias de agentes.</p>
         </div>
       )}
     </div>
@@ -900,7 +895,7 @@ function TabResumen({
 
 function StatusCard({ label, value, note, color }: { label: string; value: string; note: string; color: string }) {
   const colorMap: Record<string, string> = {
-    teal: 'border-teal-100 bg-teal-50/50',
+    teal: 'border-teal-100 bg-[#faf6fd]',
     blue: 'border-blue-100 bg-blue-50/50',
     red: 'border-red-100 bg-red-50/50',
     amber: 'border-amber-100 bg-amber-50/50',
@@ -957,7 +952,7 @@ function StageActions({
   if (reportStages.includes(stage)) {
     return (
       <div className="flex gap-2">
-        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
           <FileText className="mr-1.5 h-3.5 w-3.5" /> Generar informe
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
@@ -973,9 +968,9 @@ function StageActions({
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar paquete IA'}
+          {actionBusy === 'orchestrate' ? 'Actualizando…' : 'Actualizar paquete'}
         </Button>
-        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
           <FileText className="mr-1.5 h-3.5 w-3.5" /> Informe
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs text-slate-500" onClick={onClose}>Cerrar</Button>
@@ -988,7 +983,7 @@ function StageActions({
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar paquete IA'}
+          {actionBusy === 'orchestrate' ? 'Actualizando…' : 'Actualizar paquete'}
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
@@ -1003,7 +998,7 @@ function StageActions({
     <div className="flex gap-2">
       <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
         <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-        {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar paquete IA'}
+        {actionBusy === 'orchestrate' ? 'Actualizando…' : 'Actualizar paquete'}
       </Button>
       <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
         <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
@@ -1013,110 +1008,43 @@ function StageActions({
   )
 }
 
-// ── Automation chip (collapsible) ─────────────────────────────────────────────
-
-function AutomationChip({
-  caso,
-  expanded,
-  onToggle,
-  onRun,
-  busy,
-}: {
-  caso: CasoCompleto
-  expanded: boolean
-  onToggle: () => void
-  onRun: () => void
-  busy: boolean
-}) {
-  const automation = caso.automationSummary
-  const hasAutomation = (automation?.stepsCompleted ?? 0) > 0
-
-  return (
-    <div className="rounded-xl border border-[#8dc63f]/20 bg-[#f0f7e3] overflow-hidden">
-      {/* Collapsed row */}
-      <button
-        onClick={onToggle}
-        className="flex w-full items-center gap-3 px-4 py-2.5 text-left"
-      >
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#8dc63f]">
-          {busy ? (
-            <Sparkles className="h-3.5 w-3.5 animate-pulse text-white" />
-          ) : (
-            <Bot className="h-3.5 w-3.5 text-white" />
-          )}
-        </div>
-        <div className="flex min-w-0 flex-1 items-center gap-3 text-xs">
-          {busy ? (
-            <span className="font-semibold text-[#7b3fa0]">Orquestando con IA…</span>
-          ) : hasAutomation ? (
-            <>
-              <span className="font-semibold text-[#152520]">{automation?.headline}</span>
-              <span className="text-[#5a7820]">·</span>
-              <span className="text-[#5a7820]">{automation?.stepsCompleted ?? 0} pasos</span>
-              <span className="text-[#5a7820]">·</span>
-              <span className="text-[#5a7820]">{automation?.draftsReady ?? 0} borradores</span>
-            </>
-          ) : (
-            <span className="text-[#4a7068]">Paquete IA aún no ejecutado — pulsa para preparar el caso automáticamente</span>
-          )}
-        </div>
-        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-[#5a7820] transition-transform ${expanded ? 'rotate-180' : ''}`} />
-      </button>
-
-      {/* Expanded panel */}
-      {expanded && (
-        <div className="border-t border-[#8dc63f]/20 px-4 pb-4 pt-3">
-          <div className="flex flex-wrap items-start gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="mb-3 text-xs text-[#4a7068]">
-                La plataforma puede leer el caso, detectar gaps, preparar interpretación PK/PD, dejar una propuesta clínica y redactar un borrador HCE antes de la validación humana.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-4">
-                {[
-                  { label: 'Pasos IA', value: String(automation?.stepsCompleted ?? 0) },
-                  { label: 'Tareas creadas', value: String(automation?.tasksCreated ?? 0) },
-                  { label: 'Borradores', value: String(automation?.draftsReady ?? 0) },
-                  { label: 'Pendientes', value: String(automation?.pendingTasks ?? 0) },
-                ].map((m) => (
-                  <div key={m.label} className="rounded-xl border border-[#8dc63f]/20 bg-white px-3 py-2.5 shadow-sm">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">{m.label}</p>
-                    <p className="mt-0.5 text-lg font-bold text-[#152520]">{m.value}</p>
-                  </div>
-                ))}
-              </div>
-              {(automation?.highlights?.length ?? 0) > 0 && (
-                <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
-                  {automation!.highlights.map((h) => (
-                    <div key={h} className="rounded-lg border border-[#8dc63f]/10 bg-white px-3 py-2 text-xs text-[#152520]">{h}</div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="shrink-0">
-              <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onRun} disabled={busy}>
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                {busy ? 'Orquestando…' : hasAutomation ? 'Regenerar paquete IA' : 'Ejecutar paquete IA'}
-              </Button>
-              <p className="mt-1.5 text-[10px] text-[#4a7068]">Revisión humana obligatoria.</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Tab: Timeline (swim lanes) ────────────────────────────────────────────────
 
 const LANE_ORDER = ['Clínica', 'Tratamiento', 'Laboratorio', 'Decisiones', 'Tareas', 'Administración']
 
-const LANE_ICON: Record<string, string> = {
-  Clínica: '🩺',
-  Tratamiento: '💊',
-  Laboratorio: '🧪',
-  Decisiones: '⚡',
-  Tareas: '✅',
-  Administración: '📋',
+const LANE_ICON_COMPONENT: Record<string, React.ElementType> = {
+  Clínica:        Stethoscope,
+  Tratamiento:    Pill,
+  Laboratorio:    FlaskConical,
+  Decisiones:     Zap,
+  Tareas:         CheckCircle2,
+  Administración: ClipboardEdit,
+}
+
+const LANE_DOT_ICON_COLOR: Record<string, string> = {
+  Clínica:        'text-violet-500',
+  Tratamiento:    'text-blue-500',
+  Laboratorio:    'text-teal-500',
+  Decisiones:     'text-amber-500',
+  Tareas:         'text-orange-500',
+  Administración: 'text-slate-400',
+}
+
+const EVENT_TYPE_ICON_COMPONENT: Record<string, React.ElementType> = {
+  'Solicitud':             FileText,
+  'Estado':                RefreshCw,
+  'Recomendación':         MessageCircle,
+  'Informe':               FileText,
+  'Informe HCE':           FileText,
+  'Inicio de tratamiento': Pill,
+  'Determinante recibido': FlaskConical,
+  'Seguimiento':           Eye,
+  'Análisis':              TrendingUp,
+  'Biomarcador':           Microscope,
+  'Diagnóstico':           Stethoscope,
+  'Extracción':            Droplet,
+  'Sesión':                Users,
+  'Administración':        ClipboardEdit,
 }
 
 function TabTimeline({ caso }: { caso: CasoCompleto }) {
@@ -1126,9 +1054,59 @@ function TabTimeline({ caso }: { caso: CasoCompleto }) {
   const filtered = activeLane ? sorted.filter((e) => e.lane === activeLane) : sorted
 
   const agentLanes = new Set(['Decisiones', 'Tareas'])
+  const groupedByDay = filtered.reduce<Array<{ day: string; items: typeof filtered }>>((groups, event) => {
+    const day = new Date(event.date).toLocaleDateString('es-ES', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+    const existing = groups.find((group) => group.day === day)
+    if (existing) {
+      existing.items.push(event)
+      return groups
+    }
+    groups.push({ day, items: [event] })
+    return groups
+  }, [])
+  const latestEvent = filtered[filtered.length - 1]
 
   return (
     <div className="space-y-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_320px]">
+        <TimelineLaneOverview timeline={sorted} />
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Foco actual</p>
+          <p className="mt-1 text-sm font-semibold text-[#152520]">
+            {activeLane ? `Leyendo solo la pista «${activeLane}»` : 'Vista completa del recorrido del caso'}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-[#4a7068]">
+            {activeLane
+              ? 'Úsalo para revisar una sola dimensión clínica sin ruido del resto del caso.'
+              : 'Empieza por el conjunto y después baja a la pista que quieras validar con más detalle.'}
+          </p>
+
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-[#f8faf9] p-3">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">Último hito</p>
+            {latestEvent ? (
+              <>
+                <p className="mt-1 text-sm font-semibold text-[#152520]">{latestEvent.label}</p>
+                <p className="mt-1 text-xs text-[#4a7068]">
+                  {latestEvent.lane} · {new Date(latestEvent.date).toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-[#4a7068]">Todavía no hay eventos registrados en esta vista.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Lane filter chips */}
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -1151,54 +1129,68 @@ function TabTimeline({ caso }: { caso: CasoCompleto }) {
                 : `${LANE_COLORS[lane] ?? 'bg-slate-100 text-slate-600'} opacity-60 hover:opacity-100`
             }`}
           >
-            <span>{LANE_ICON[lane] ?? '•'}</span>
+            {(() => { const LI = LANE_ICON_COMPONENT[lane]; return LI ? <LI className="h-3 w-3" /> : null })()}
             {lane}
           </button>
         ))}
       </div>
 
       {/* Timeline */}
-      <div className="relative">
-        {/* Vertical stem — centered on the 40px dots */}
-        <div className="absolute left-[23px] top-0 bottom-0 w-0.5 bg-slate-200" />
-        <div className="space-y-2">
-          {filtered.map((event, i) => {
-            const isAgent = agentLanes.has(event.lane)
-            return (
-              <div key={i} className="relative flex items-start gap-4 pl-[60px]">
-                {/* Large white dot with colored ring + lane emoji */}
-                <div
-                  className={`absolute left-[4px] top-[10px] flex h-[38px] w-[38px] items-center justify-center rounded-full bg-white shadow-md ring-2 ${LANE_DOT_RING[event.lane] ?? 'ring-slate-200'}`}
-                >
-                  <span className="text-base leading-none">{LANE_ICON[event.lane] ?? '·'}</span>
-                </div>
+      <div className="space-y-5">
+        {groupedByDay.map((group) => (
+          <div key={group.day} className="rounded-2xl border border-slate-100 bg-[#fbfcfb] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <p className="text-sm font-semibold capitalize text-[#152520]">{group.day}</p>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-[#4a7068]">
+                {group.items.length} eventos
+              </span>
+            </div>
 
-                {/* Event card */}
-                <div
-                  className={`flex-1 rounded-xl border px-4 py-3 ${
-                    isAgent ? 'border-[#8dc63f]/20 bg-[#f0f7e3]' : 'border-slate-200 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'}`}>
-                        {event.lane}
-                      </span>
-                      {isAgent && (
-                        <span className="rounded-full bg-[#7b3fa0]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#7b3fa0]">IA</span>
-                      )}
-                      <span className="text-[10px] text-slate-400">{event.type}</span>
+            <div className="relative">
+              <div className="absolute left-[23px] top-0 bottom-0 w-0.5 bg-slate-200" />
+              <div className="space-y-2">
+                {group.items.map((event, i) => {
+                  const isAgent = agentLanes.has(event.lane)
+                  return (
+                    <div key={`${group.day}-${i}`} className="relative flex items-start gap-4 pl-[60px]">
+                      {(() => {
+                        const DotIcon = EVENT_TYPE_ICON_COMPONENT[event.type] ?? LANE_ICON_COMPONENT[event.lane] ?? Activity
+                        const dotColor = LANE_DOT_ICON_COLOR[event.lane] ?? 'text-slate-400'
+                        return (
+                          <div className={`absolute left-[4px] top-[10px] flex h-[38px] w-[38px] items-center justify-center rounded-full bg-white shadow-md ring-2 ${LANE_DOT_RING[event.lane] ?? 'ring-slate-200'}`}>
+                            <DotIcon className={`h-4 w-4 ${dotColor}`} />
+                          </div>
+                        )
+                      })()}
+
+                      <div
+                        className={`flex-1 rounded-xl border px-4 py-3 ${
+                          isAgent ? 'border-[#7b3fa0]/20 bg-[#faf6fd]' : 'border-slate-200 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'}`}>
+                              {event.lane}
+                            </span>
+                            {isAgent && (
+                              <span className="rounded-full bg-[#7b3fa0]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#7b3fa0]">IA</span>
+                            )}
+                            <span className="text-[10px] text-slate-400">{event.type}</span>
+                          </div>
+                          <span className="shrink-0 text-[10px] text-slate-400">
+                            {new Date(event.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm font-medium text-[#152520]">{event.label}</p>
+                      </div>
                     </div>
-                    <span className="shrink-0 text-[10px] text-slate-400">
-                      {new Date(event.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm font-medium text-[#152520]">{event.label}</p>
-                </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {filtered.length === 0 && (
@@ -1220,7 +1212,7 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
   }
   const statusStyle: Record<string, string> = {
     Confirmado: 'text-green-700 bg-green-50',
-    'Extraído por IA': 'text-[#8dc63f] bg-teal-50',
+    'Extraído por IA': 'text-[#7b3fa0] bg-teal-50',
     Pendiente: 'text-amber-700 bg-amber-50',
     Faltante: 'text-slate-500 bg-slate-100',
     Conflictivo: 'text-red-700 bg-red-50',
@@ -1228,12 +1220,8 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-[#8dc63f]/20 bg-teal-50/50 px-4 py-3">
-        <div>
-          <p className="text-sm font-semibold text-[#152520]">Editar datos clínicos en panel lateral</p>
-          <p className="text-xs text-[#4a7068]">Mantén el contexto del caso mientras actualizas datos, tratamiento y determinantes.</p>
-        </div>
-        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onEdit}>
+      <div className="flex justify-end">
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" />
           Abrir editor
         </Button>
@@ -1281,7 +1269,7 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
       <Section title="Determinantes PK/PD" icon={FlaskConical}>
         <div className="grid gap-3 lg:grid-cols-2">
           {(caso.labDeterminants ?? []).map((det, i) => (
-            <div key={i} className="rounded-xl border border-slate-200 bg-[#f8faf9] p-4">
+            <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-2">
                 <p className="font-medium text-[#152520]">{det.label}</p>
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusStyle[det.status] ?? 'bg-slate-100 text-slate-600'}`}>
@@ -1295,7 +1283,7 @@ function TabDatos({ caso, onEdit }: { caso: CasoCompleto; onEdit: () => void }) 
                 <p className="mt-1 text-xs text-[#4a7068]">{det.interpretation}</p>
               )}
               {det.relationToDose && (
-                <p className="mt-1 text-xs text-[#8dc63f]">{det.relationToDose}</p>
+                <p className="mt-1 text-xs text-[#7b3fa0]">{det.relationToDose}</p>
               )}
               <p className="mt-1 text-[10px] text-slate-400">Fuente: {det.source}</p>
             </div>
@@ -1338,90 +1326,107 @@ function TabGaps({
     Bloqueada: 'bg-red-50 text-red-700 ring-1 ring-red-200',
   }
 
+  const GAP_CARD: Record<string, { border: string; bg: string; icon: string; badge: string }> = {
+    Crítico:    { border: 'border-red-200',    bg: 'bg-red-50',    icon: 'text-red-500',    badge: 'bg-red-600 text-white' },
+    Importante: { border: 'border-amber-200',  bg: 'bg-amber-50',  icon: 'text-amber-500',  badge: 'bg-amber-500 text-white' },
+    Informativo:{ border: 'border-blue-200',   bg: 'bg-blue-50',   icon: 'text-blue-500',   badge: 'bg-blue-500 text-white' },
+  }
+
+  const orderedGaps = [...(caso.gaps ?? [])].sort((a, b) => {
+    const order = { Crítico: 0, Importante: 1, Informativo: 2 }
+    return (order[a.severity as keyof typeof order] ?? 3) - (order[b.severity as keyof typeof order] ?? 3)
+  })
+
   return (
     <div className="space-y-5">
-      <Section title="Gaps detectados" icon={Activity}>
-        {(caso.gaps ?? []).length === 0 ? (
+      <Section title="Gaps detectados" icon={AlertTriangle}>
+        {orderedGaps.length === 0 ? (
           <p className="text-sm text-[#4a7068]">No se han detectado gaps en este caso.</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200">
-            <table className="min-w-full text-left">
-              <thead className="bg-[#f8faf9] text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Gap</th>
-                  <th className="px-4 py-3 font-medium">Impacto</th>
-                  <th className="px-4 py-3 font-medium">Estado</th>
-                  <th className="px-4 py-3 font-medium">Acción</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {caso.gaps?.map((gap, i) => (
-                  <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-[#152520]">{gap.label}</td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${SEVERITY_STYLE[gap.severity] ?? 'bg-slate-100 text-slate-600'}`}>
+          <div className="space-y-2">
+            {orderedGaps.map((gap, i) => {
+              const style = GAP_CARD[gap.severity] ?? { border: 'border-slate-200', bg: 'bg-white', icon: 'text-slate-400', badge: 'bg-slate-100 text-slate-600' }
+              const isCritical = gap.severity === 'Crítico'
+              return (
+                <div key={i} className={`flex items-start gap-3 rounded-xl border ${style.border} ${style.bg} px-4 py-3`}>
+                  <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${style.icon} ${isCritical ? 'animate-pulse' : ''}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.badge}`}>
                         {gap.severity}
                       </span>
-                    </td>
-	                    <td className="px-4 py-3 text-sm text-[#4a7068]">{gap.status}</td>
-	                    <td className="px-4 py-3">
-	                      <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl text-xs"
-                          onClick={() => onRequestGap(gap.label)}
-                          disabled={busyKey !== null}
-                        >
-                          Solicitar
-                        </Button>
-	                    </td>
-	                  </tr>
-	                ))}
-              </tbody>
-            </table>
+                      <p className="text-sm font-semibold text-[#152520]">{gap.label}</p>
+                    </div>
+                    <p className="mt-1 text-xs text-[#4a7068]">{gap.status}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 rounded-xl text-xs"
+                    onClick={() => onRequestGap(gap.label)}
+                    disabled={busyKey !== null}
+                  >
+                    Solicitar
+                  </Button>
+                </div>
+              )
+            })}
           </div>
         )}
       </Section>
 
       <Section title="Tareas" icon={ClipboardEdit}>
         <div className="space-y-3">
-          {(caso.tasks ?? []).map((task, i) => (
-            <div key={i} className="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-[#152520]">{task.title}</p>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${taskStatusStyle[task.status] ?? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
-                    {task.status}
-                  </span>
+          {(caso.tasks ?? []).map((task, i) => {
+            const isResolved = task.status === 'Resuelta'
+            const isInProgress = task.status === 'En curso'
+            return (
+              <div key={i} className={`flex items-start gap-4 rounded-xl border p-4 ${isResolved ? 'border-green-100 bg-green-50/40' : 'border-slate-200 bg-white'}`}>
+                <div className="mt-0.5 shrink-0">
+                  {isResolved ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  ) : isInProgress ? (
+                    <Activity className="h-5 w-5 text-blue-500" />
+                  ) : (
+                    <ClipboardEdit className="h-5 w-5 text-amber-500" />
+                  )}
                 </div>
-                <p className="mt-1 text-xs text-[#4a7068]">
-                  Responsable: <span className="font-medium">{task.ownerRole}</span>
-                  {task.dueDate && <> · Fecha límite: {new Date(task.dueDate).toLocaleDateString('es-ES')}</>}
-                  {task.createdBy && <> · Creado por: {task.createdBy}</>}
-                </p>
-	              </div>
-	              <div className="flex gap-2 shrink-0">
-	                <Button
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className={`font-medium ${isResolved ? 'text-slate-400 line-through' : 'text-[#152520]'}`}>{task.title}</p>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${taskStatusStyle[task.status] ?? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
+                      {task.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#4a7068]">
+                    Responsable: <span className="font-medium">{task.ownerRole}</span>
+                    {task.dueDate && <> · Fecha límite: {new Date(task.dueDate).toLocaleDateString('es-ES')}</>}
+                    {task.createdBy && <> · Creado por: {task.createdBy}</>}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Button
                     size="sm"
-                    variant="outline"
-                    className="rounded-xl text-xs"
+                    className="rounded-xl bg-emerald-600 text-xs text-white hover:bg-emerald-700"
                     onClick={() => onResolveTask(task.taskId)}
-                    disabled={task.status === 'Resuelta' || busyKey !== null}
+                    disabled={isResolved || busyKey !== null}
                   >
-                    Marcar resuelta
+                    <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                    Resuelta
                   </Button>
-	                <Button
+                  <Button
                     size="sm"
                     variant="outline"
                     className="rounded-xl text-xs"
                     onClick={() => onStartTask(task.taskId)}
-                    disabled={task.status === 'En curso' || busyKey !== null}
+                    disabled={isInProgress || busyKey !== null}
                   >
-                    Poner en curso
+                    En curso
                   </Button>
-	              </div>
-	            </div>
-          ))}
+                </div>
+              </div>
+            )
+          })}
         </div>
       </Section>
     </div>
@@ -1432,24 +1437,25 @@ function TabGaps({
 
 function TabAnalisis({ caso }: { caso: CasoCompleto }) {
   const interpretation = caso.pkpdInterpretation
+  const det = caso.labDeterminants ?? []
+  const confirmed = det.filter((d) => d.status === 'Confirmado').length
+  const total = det.length || 1
+  const completeness = Math.round((confirmed / total) * 100)
   const confidenceDimensions = [
-    { label: 'Calidad de datos', pct: 85 },
-    { label: 'Coherencia temporal', pct: 70 },
-    { label: 'Concordancia clínica', pct: 75 },
-    { label: 'Completitud de determinantes', pct: 80 },
-    { label: 'Consenso del protocolo', pct: 90 },
+    { label: 'Completitud de determinantes', pct: completeness },
+    { label: 'Interpretabilidad PK/PD', pct: interpretation?.confidence === 'Alta' ? 90 : interpretation?.confidence === 'Media' ? 65 : 40 },
+    { label: 'Coherencia de datos', pct: Math.min(100, completeness + 10) },
   ]
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-[#8dc63f]/20 bg-teal-50/50 p-5">
+      <div className="rounded-xl border border-[#7b3fa0]/20 bg-slate-50 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Patrón sugerido</p>
             <p className="mt-1 text-xl font-semibold text-[#152520]">{interpretation?.pattern ?? '—'}</p>
-            <p className="mt-1 text-xs text-slate-400 italic">El sistema propone revisar exposición antes de cambiar de mecanismo.</p>
           </div>
-          <TrendingUp className="h-6 w-6 shrink-0 text-[#8dc63f]" />
+          <TrendingUp className="h-6 w-6 shrink-0 text-[#7b3fa0]" />
         </div>
         <p className="mt-3 text-sm leading-7 text-[#152520]">{interpretation?.summary}</p>
       </div>
@@ -1464,7 +1470,7 @@ function TabAnalisis({ caso }: { caso: CasoCompleto }) {
                   <span className="text-[#4a7068]">{dim.pct}%</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-slate-100">
-                  <div className="h-1.5 rounded-full bg-[#8dc63f]" style={{ width: `${dim.pct}%` }} />
+                  <div className="h-1.5 rounded-full bg-[#7b3fa0]" style={{ width: `${dim.pct}%` }} />
                 </div>
               </div>
             ))}
@@ -1483,15 +1489,16 @@ function TabAnalisis({ caso }: { caso: CasoCompleto }) {
         </Section>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Limitaciones</p>
-        <ul className="mt-3 space-y-1 text-sm text-[#4a7068]">
-          <li>· No se puede concluir con los datos actuales sobre adherencia reciente.</li>
-          <li>· La muestra no está confirmada como valle en todos los registros.</li>
-          <li>· No se dispone de datos endoscópicos recientes para este caso.</li>
-        </ul>
-        <p className="mt-3 text-[10px] text-slate-400 italic">Revisión humana obligatoria antes de emitir recomendación.</p>
-      </div>
+      {det.filter((d) => d.status !== 'Confirmado').length > 0 && (
+        <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-4">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-amber-700">Datos pendientes de confirmar</p>
+          <ul className="mt-3 space-y-1 text-sm text-amber-800">
+            {det.filter((d) => d.status !== 'Confirmado').map((d, i) => (
+              <li key={i}>· {d.label}{d.value ? ` — ${String(d.value)} ${d.unit ?? ''}` : ''}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
@@ -1503,69 +1510,8 @@ function TabSimulacion({
 }: {
   caso: CasoCompleto
 }) {
-  const sim = caso.simulation
-  const scenarios = [
-    { label: 'Mantener dosis', outcome: 'Sin cambio en exposición', risk: 'Alto', data: 'Adherencia confirmada' },
-    { label: 'Acortar intervalo', outcome: 'Aumento del ~40% de exposición', risk: 'Bajo', data: 'Confirmación peso actual' },
-    { label: 'Aumentar dosis', outcome: 'Aumento del ~25% de exposición', risk: 'Medio', data: 'Función renal actualizada' },
-    { label: 'Cambiar mecanismo', outcome: 'Mecanismo de acción distinto', risk: 'Alto', data: 'Historial de biológicos' },
-    { label: 'Repetir determinantes', outcome: 'Confirmación del patrón', risk: 'Muy bajo', data: 'Extracción en vale' },
-  ]
-
   return (
-    <div className="space-y-5">
-      {/* Mock PK curve */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Exposición estimada · Escenario actual vs. propuesto</p>
-        <p className="mb-4 text-xs text-slate-400 italic">Simulación indicativa — no sustituye modelo PK individualizado</p>
-        <svg viewBox="0 0 600 180" className="w-full">
-          {/* Target zone */}
-          <rect x="0" y="30" width="600" height="60" fill="#8dc63f15" />
-          <text x="5" y="28" fontSize="9" fill="#8dc63f">Zona objetivo</text>
-          {/* Current curve */}
-          <polyline
-            points="0,160 80,140 160,120 240,110 320,108 400,110 480,115 600,118"
-            fill="none" stroke="#ef4444" strokeWidth="2" strokeDasharray="6,3"
-          />
-          {/* Proposed curve */}
-          <polyline
-            points="0,160 80,130 160,90 240,65 320,60 400,62 480,68 600,72"
-            fill="none" stroke="#8dc63f" strokeWidth="2"
-          />
-          {/* Sample marker */}
-          <circle cx="320" cy="108" r="5" fill="#ef4444" />
-          <text x="325" y="105" fontSize="9" fill="#ef4444">Muestra</text>
-          {/* Labels */}
-          <text x="490" y="125" fontSize="9" fill="#ef4444">Escenario actual</text>
-          <text x="490" y="80" fontSize="9" fill="#8dc63f">Acortar intervalo</text>
-          <text x="490" y="45" fontSize="9" fill="#8dc63f">Zona objetivo</text>
-        </svg>
-      </div>
-
-      {/* Scenario cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {scenarios.map((sc) => {
-          const isPreferred = sc.label === sim?.preferredScenario
-          return (
-            <div
-              key={sc.label}
-              className={`rounded-xl border p-4 ${isPreferred ? 'border-[#8dc63f] bg-teal-50/50' : 'border-slate-200 bg-white'}`}
-            >
-              {isPreferred && (
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8dc63f]">Escenario preferido</p>
-              )}
-              <p className="font-semibold text-[#152520]">{sc.label}</p>
-              <p className="mt-1 text-xs text-[#4a7068]">Resultado esperado: {sc.outcome}</p>
-              <p className="mt-1 text-xs text-[#4a7068]">Riesgo: {sc.risk}</p>
-              <p className="mt-1 text-xs text-slate-400">Requiere: {sc.data}</p>
-              <p className="mt-3 text-[11px] text-[#4a7068]">
-                Úsalo como escenario de discusión clínica dentro de la validación farmacéutica y médica.
-              </p>
-            </div>
-          )
-        })}
-      </div>
-    </div>
+    <PkpdSimulationChart caso={caso} preferredScenario={caso.simulation?.preferredScenario ?? null} />
   )
 }
 
@@ -1599,7 +1545,6 @@ function TabRecomendacion({
     <div className="space-y-5">
       <div className="flex items-center gap-3">
         <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusInfo.style}`}>{statusInfo.label}</span>
-        <p className="text-xs text-slate-400 italic">Este borrador requiere validación farmacéutica.</p>
       </div>
 
       <Section title="Propuesta del sistema" icon={Sparkles}>
@@ -1607,13 +1552,12 @@ function TabRecomendacion({
           value={recText}
           onChange={(e) => onRecChange(e.target.value)}
           rows={5}
-          className="w-full rounded-xl border border-slate-200 bg-[#f8faf9] px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40 focus:bg-white"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40 focus:bg-white"
         />
-        <p className="mt-1 text-[10px] text-slate-400 italic">Editable · El sistema propone, el profesional valida.</p>
       </Section>
 
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onAcceptDraft} disabled={busy}>Aceptar como borrador</Button>
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onAcceptDraft} disabled={busy}>Aceptar como borrador</Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestData} disabled={busy}>Solicitar más datos</Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onSendDigestivo} disabled={busy}>Enviar a digestivo</Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onSendSession} disabled={busy}>Enviar a sesión de red</Button>
@@ -1672,7 +1616,6 @@ function TabInforme({
     <div className="space-y-5">
       <div className="flex items-center gap-3">
         <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusInfo.style}`}>{note?.status ?? 'Borrador'}</span>
-        <p className="text-xs text-slate-400 italic">No escribe en HCE sin validación profesional.</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -1684,15 +1627,12 @@ function TabInforme({
           value={noteText}
           onChange={(e) => onNoteChange(e.target.value)}
           rows={8}
-          className="w-full rounded-xl border border-slate-200 bg-[#f8faf9] px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#8dc63f]/40 focus:bg-white"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]/40 focus:bg-white"
         />
-        <p className="mt-1 text-[10px] text-slate-400 italic">
-          “Generar borrador automático” prepara el texto del informe HCE a partir de los datos estructurados del caso. No descarga el PDF.
-        </p>
       </Section>
 
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateDraft} disabled={busy}>
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={onGenerateDraft} disabled={busy}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generar borrador automático
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onSaveDraft} disabled={busy}>Guardar borrador</Button>
@@ -1727,7 +1667,7 @@ function TabAprendizaje({
             <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
 	              <p className="font-medium text-[#152520]">{fu.label}</p>
 	              <p className="mt-1 text-xs text-[#4a7068]">Estado: {fu.status}</p>
-	              {fu.dueDate && <p className="mt-1 text-xs text-[#8dc63f]">Fecha: {new Date(fu.dueDate).toLocaleDateString('es-ES')}</p>}
+	              {fu.dueDate && <p className="mt-1 text-xs text-[#7b3fa0]">Fecha: {new Date(fu.dueDate).toLocaleDateString('es-ES')}</p>}
 	              <Button
                   size="sm"
                   variant="outline"
@@ -1789,7 +1729,7 @@ function TabAprendizaje({
           ))}
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#8dc63f]/20 bg-teal-50/40 px-4 py-3">
+        <div className="mt-4 rounded-xl border border-[#7b3fa0]/20 bg-slate-50 px-4 py-3">
           <p className="text-sm font-medium text-[#152520]">Aprendizaje de red</p>
           <p className="mt-1 text-[11px] leading-6 text-[#4a7068]">
             El caso pasa a aprendizaje compartido cuando hay seguimiento clínico completado, recomendación validada y cierre del circuito con trazabilidad profesional.
@@ -1853,6 +1793,8 @@ function PipelinePanel({
 }) {
   const stageIndex = PIPELINE_STAGES.findIndex((s) => s === caso.pipelineStage)
   const [expandedStage, setExpandedStage] = useState<string | null>(caso.pipelineStage)
+  const [block1Open, setBlock1Open] = useState(true)
+  const [block2Open, setBlock2Open] = useState(true)
   const pendingTasks = (caso.tasks ?? []).filter((t) => t.status !== 'Resuelta')
   const pendingFollowUps = (caso.followUps ?? []).filter((followUp) => followUp.status !== 'Completado')
   const approvalItems = [
@@ -1867,10 +1809,22 @@ function PipelinePanel({
   }, [caso.pipelineStage])
 
   return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-slate-50">
+    <aside className="flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-[#f1f3f5]">
 
       {/* ── Block 1: Pipeline stages (independently scrollable) ── */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto border-b border-slate-200 px-3 py-4 space-y-3">
+      <div className={`flex flex-col border-b-2 border-[#7b3fa0]/20 ${block1Open ? 'flex-1 min-h-0' : 'shrink-0'}`}>
+        <button
+          onClick={() => setBlock1Open((v) => !v)}
+          className="flex w-full items-center justify-between gap-2 bg-[#7b3fa0]/8 px-3 py-2.5 text-left hover:bg-[#7b3fa0]/12 transition"
+        >
+          <div className="flex items-center gap-2">
+            <Activity className="h-3.5 w-3.5 text-[#7b3fa0]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#7b3fa0]">Flujo del caso</span>
+          </div>
+          <ChevronDown className={`h-3.5 w-3.5 text-[#7b3fa0] transition-transform ${block1Open ? '' : '-rotate-90'}`} />
+        </button>
+        {block1Open && (
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 space-y-3">
 
         {/* Siguiente paso callout */}
         <div className="rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-3 shadow-sm">
@@ -1981,10 +1935,24 @@ function PipelinePanel({
           </div>
         </div>
 
+        </div>
+        )}
       </div>
 
       {/* ── Block 2: Context (independently scrollable) ── */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-4 space-y-3">
+      <div className={`flex flex-col ${block2Open ? 'flex-1 min-h-0' : 'shrink-0'}`}>
+        <button
+          onClick={() => setBlock2Open((v) => !v)}
+          className="flex w-full items-center justify-between gap-2 bg-[#7b3fa0]/10 px-3 py-2.5 text-left hover:bg-[#7b3fa0]/15 transition"
+        >
+          <div className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5 text-[#7b3fa0]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#7b3fa0]">Contexto y acciones</span>
+          </div>
+          <ChevronDown className={`h-3.5 w-3.5 text-[#7b3fa0] transition-transform ${block2Open ? '' : '-rotate-90'}`} />
+        </button>
+        {block2Open && (
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 space-y-3">
 
         {/* People */}
         <div className="flex items-start gap-2">
@@ -2026,17 +1994,17 @@ function PipelinePanel({
           <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Ir a sección</p>
           <div className="grid grid-cols-2 gap-1">
             {([
-              { tab: 'gaps' as Tab, label: 'Gaps' },
+              { tab: 'resumen' as Tab, label: 'Resumen' },
+              { tab: 'analisis' as Tab, label: 'Análisis' },
               { tab: 'recomendacion' as Tab, label: 'Recom.' },
-              { tab: 'informe' as Tab, label: 'Informe' },
-              { tab: 'aprendizaje' as Tab, label: 'Seguim.' },
+              { tab: 'actividad' as Tab, label: 'Actividad' },
             ] as const).map((item) => (
               <button
                 key={item.tab}
                 onClick={() => onJump(item.tab)}
                 className={`rounded-lg px-2 py-1.5 text-[11px] font-medium transition ${
                   activeTab === item.tab
-                    ? 'bg-[#8dc63f] text-white'
+                    ? 'bg-[#7b3fa0] text-white'
                     : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -2046,6 +2014,8 @@ function PipelinePanel({
           </div>
         </div>
 
+      </div>
+        )}
       </div>
 
     </aside>
@@ -2079,7 +2049,7 @@ function TabAuditoria({ caso }: { caso: CasoCompleto }) {
       <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Registro de auditoría · {caso.caseId}</p>
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <table className="min-w-full text-left">
-          <thead className="bg-[#f8faf9] text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">
+          <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">
             <tr>
               <th className="px-4 py-3 font-medium">Evento</th>
               <th className="px-4 py-3 font-medium">Actor</th>
@@ -2109,7 +2079,7 @@ function Section({ title, icon: Icon, children }: { title: string; icon: typeof 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-[#8dc63f]" />
+        <Icon className="h-4 w-4 text-[#7b3fa0]" />
         <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{title}</p>
       </div>
       {children}
@@ -2199,7 +2169,7 @@ function humanizeFieldLabel(value: string) {
 }
 
 const sheetInputCls =
-  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none transition placeholder:text-slate-400 focus:border-[#8dc63f] focus:ring-2 focus:ring-[#8dc63f]/15'
+  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#152520] outline-none transition placeholder:text-slate-400 focus:border-[#7b3fa0] focus:ring-2 focus:ring-[#7b3fa0]/15'
 
 function CaseEditorSheet({
   draft,
@@ -2260,7 +2230,7 @@ function CaseEditorSheet({
       <div className="flex h-full w-full max-w-[760px] flex-col overflow-hidden bg-white shadow-[0_30px_90px_rgba(15,30,28,0.2)]">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8dc63f]">Editor clínico lateral</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Editor clínico lateral</p>
             <h3 className="mt-1 text-xl font-semibold text-[#152520]">Actualizar datos, tratamiento y determinantes</h3>
             <p className="mt-1 text-sm text-[#4a7068]">
               Mantén el caso visible y edita la información clave sin salir del cockpit.
@@ -2273,7 +2243,7 @@ function CaseEditorSheet({
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50/60 p-4">
+            <div className="rounded-3xl border border-slate-200 bg-white p-4">
               <p className="mb-3 text-sm font-semibold text-[#152520]">Resumen y siguiente paso</p>
               <div className="space-y-4">
                 <div>
@@ -2356,7 +2326,7 @@ function CaseEditorSheet({
               </div>
               <div className="space-y-4">
                 {draft.labDeterminants.map((item) => (
-                  <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
                     <div className="mb-3 flex items-center justify-between">
                       <p className="text-sm font-medium text-[#152520]">{item.label || 'Nuevo determinante'}</p>
                       {draft.labDeterminants.length > 1 ? (
@@ -2395,7 +2365,7 @@ function CaseEditorSheet({
             <Button variant="outline" className="rounded-xl text-sm" onClick={onClose}>
               Cancelar
             </Button>
-            <Button className="rounded-xl bg-[#8dc63f] text-sm text-white hover:bg-[#9fd44e]" onClick={onSave} disabled={saving}>
+            <Button className="rounded-xl bg-[#7b3fa0] text-sm text-white hover:bg-[#6a3490]" onClick={onSave} disabled={saving}>
               {saving ? <Save className="mr-2 h-4 w-4 animate-pulse" /> : <Save className="mr-2 h-4 w-4" />}
               Guardar cambios
             </Button>

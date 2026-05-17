@@ -3,32 +3,12 @@
 import { BarChart3, TrendingDown, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { ReportingChartCard } from '@/components/pkpd/pro/charts/reporting-charts'
 import { WorkspaceEmptyState, WorkspaceErrorState, WorkspaceLoadingState } from '@/components/pkpd/pro/workspace-state'
 import type { ReportingData } from '@/components/pkpd/pro/xarxa-types'
 import { fetchJson } from '@/lib/fetch-json'
 
 type KpiCard = { label: string; value: number; unit?: string; trend?: string; up?: boolean }
-
-type BarData = { label: string; value: number; max: number }
-
-function SimpleBarChart({ data, colorClass }: { data: BarData[]; colorClass: string }) {
-  return (
-    <div className="space-y-2.5">
-      {data.map((d) => (
-        <div key={d.label} className="flex items-center gap-3">
-          <p className="w-44 shrink-0 truncate text-xs text-[#4a7068]">{d.label}</p>
-          <div className="flex-1 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className={`h-2 rounded-full ${colorClass}`}
-              style={{ width: `${(d.value / d.max) * 100}%` }}
-            />
-          </div>
-          <span className="w-6 shrink-0 text-right text-xs font-semibold text-[#152520]">{d.value}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 export function Reporting({
   centerId = '',
@@ -75,13 +55,7 @@ export function Reporting({
   }, [reloadKey, centerId, programId, dateRangeDays])
 
   const kpis = (data?.kpis ?? []) as KpiCard[]
-  const chartGroups = (data?.charts ?? []).map((group) => {
-    const max = Math.max(...group.data.map((item) => item.value), 1)
-    return {
-      label: group.label,
-      data: group.data.map((item) => ({ ...item, max })),
-    }
-  })
+  const chartGroups = data?.charts ?? []
   const getKpiValue = (label: string) => kpis.find((item) => item.label === label)?.value ?? 0
   const automationRuns = getKpiValue('Pasos IA ejecutados')
   const automationCases = getKpiValue('Casos preparados por IA')
@@ -120,30 +94,15 @@ export function Reporting({
           />
         ) : (
           <>
-        <div className="mb-6 rounded-[28px] border border-[#8dc63f]/20 bg-[#f0f7e3] p-5">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5a7820]">
-                Automatización supervisada
-              </p>
-              <h3 className="mt-2 text-xl font-semibold text-[#152520]">
-                La red ya puede cuantificar cuánto trabajo preparan los agentes antes de la validación profesional.
-              </h3>
-              <p className="mt-2 text-sm leading-7 text-[#4a7068]">
-                Este panel resume cuántos pasos IA se han ejecutado, cuántos casos han llegado ya estructurados y cuántos borradores clínicos se han preparado antes de la validación humana.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
-              <AutomationImpactCard label="Pasos IA" value={String(automationRuns)} note="Ejecuciones registradas" />
-              <AutomationImpactCard label="Casos preparados" value={String(automationCases)} note="Casos tocados por IA" />
-              <AutomationImpactCard label="Borradores" value={String(automationDrafts)} note="Recomendaciones y notas" />
-              <AutomationImpactCard label="Cobertura IA" value={`${automationCases}/${getKpiValue('Casos activos') || 0}`} note="Casos activos con apoyo automatizado" />
-            </div>
-          </div>
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <AutomationImpactCard label="Pasos IA" value={String(automationRuns)} note="Ejecuciones registradas" />
+          <AutomationImpactCard label="Casos preparados" value={String(automationCases)} note="Casos tocados por IA" />
+          <AutomationImpactCard label="Borradores" value={String(automationDrafts)} note="Recomendaciones y notas" />
+          <AutomationImpactCard label="Cobertura IA" value={`${automationCases}/${getKpiValue('Casos activos') || 0}`} note="Casos activos con apoyo automatizado" />
         </div>
 
         {/* KPI grid */}
-        <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
           {kpis.map((k) => (
             <div key={k.label} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="text-xs text-[#4a7068]">{k.label}</p>
@@ -166,17 +125,9 @@ export function Reporting({
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-2 gap-4">
-          {chartGroups.map((group, index) => (
-            <div key={group.label} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#4a7068]">
-                {group.label}
-              </p>
-              <SimpleBarChart
-                data={group.data}
-                colorClass={index % 2 === 0 ? 'bg-[#8dc63f]' : 'bg-violet-400'}
-              />
-            </div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          {chartGroups.map((group) => (
+            <ReportingChartCard key={group.label} label={group.label} data={group.data} />
           ))}
         </div>
           </>

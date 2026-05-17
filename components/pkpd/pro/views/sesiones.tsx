@@ -96,33 +96,22 @@ function MockVideoGrid({ participants }: { participants: string[] }) {
         ))}
       </div>
 
-      {/* Preview overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-slate-800/80 px-6 py-5 text-center shadow-xl">
-          <VideoOff className="h-8 w-8 text-slate-300" />
-          <p className="text-sm font-semibold text-slate-100">Integración de videoconferencia</p>
-          <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
-            Disponible en producción
-          </span>
+      {/* Not-started overlay */}
+      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/40 backdrop-blur-[1px]">
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-slate-800/70 px-6 py-5 text-center shadow-xl">
+          <VideoOff className="h-7 w-7 text-slate-400" />
+          <p className="text-sm font-medium text-slate-200">Sesión no iniciada</p>
         </div>
       </div>
 
-      {/* Mock controls bar */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 bg-slate-900/75 px-4 py-2.5">
+      {/* Controls bar */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2 bg-slate-900/60 px-4 py-2.5">
         {[Mic, Video, Monitor].map((Icon, i) => (
-          <button
-            key={i}
-            disabled
-            className="cursor-not-allowed rounded-full bg-slate-700 p-1.5 opacity-40"
-          >
+          <button key={i} className="rounded-full bg-slate-700 p-1.5 opacity-60 hover:opacity-100 transition">
             <Icon className="h-3.5 w-3.5 text-slate-300" />
           </button>
         ))}
-        <span className="mx-2 text-[9px] tracking-widest text-slate-600">· VISTA PREVIA ·</span>
-        <button
-          disabled
-          className="cursor-not-allowed rounded-full bg-red-700/50 p-1.5 opacity-40"
-        >
+        <button className="rounded-full bg-red-700/70 p-1.5 hover:bg-red-700 transition">
           <X className="h-3.5 w-3.5 text-white" />
         </button>
       </div>
@@ -223,26 +212,12 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Preview notice banner */}
-      <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-2.5">
-        <div className="flex items-start gap-2">
-          <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
-          <p className="text-xs text-amber-800">
-            <span className="font-semibold">Vista previa</span> · La videoconferencia integrada no está en producción.
-            La gestión de sesiones, agenda de casos y actas está operativa; el canal de vídeo se integrará en la versión de producción.
-          </p>
-        </div>
-      </div>
-
       {/* Page header */}
       <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold text-[#152520]">Sesiones de red</h2>
-              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-600">
-                Preview
-              </span>
             </div>
             <p className="text-xs text-[#4a7068]">
               Agenda colaborativa para casos con incertidumbre clínica o pendientes de discusión compartida.
@@ -250,7 +225,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
           </div>
           <Button
             size="sm"
-            className="gap-1.5 rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+            className="gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
             onClick={() => void createSession()}
             disabled={busyKey === 'create'}
           >
@@ -303,9 +278,6 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">
                           {session.casesCount} caso{session.casesCount !== 1 ? 's' : ''}
                         </span>
-                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-600">
-                          Preview
-                        </span>
                       </div>
 
                       {/* Title */}
@@ -353,7 +325,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                       {isScheduled && (
                         <Button
                           size="sm"
-                          className="gap-1.5 rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+                          className="gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
                           onClick={() => void updateSessionStatus(session.sessionId, 'live')}
                           disabled={!!busyKey}
                         >
@@ -368,7 +340,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                       {isScheduled && (
                         <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] text-slate-400">
                           <VideoOff className="h-3 w-3" />
-                          Unirse a videollamada · próximamente
+                          Sala no iniciada
                         </div>
                       )}
                       {isLive && (
@@ -386,8 +358,8 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                             Cerrar sesión
                           </Button>
                           <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] text-slate-400">
-                            <VideoOff className="h-3 w-3" />
-                            Videollamada · próximamente
+                            <Video className="h-3 w-3" />
+                            Sala activa
                           </div>
                         </>
                       )}
@@ -454,21 +426,6 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
           })}
         </div>
 
-        {/* Feature roadmap hint */}
-        <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-5 py-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#7b3fa0]/10">
-              <Video className="h-4 w-4 text-[#7b3fa0]" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[#152520]">Funcionalidad en desarrollo</p>
-              <p className="mt-0.5 text-xs text-[#4a7068]">
-                La versión de producción integrará videollamada nativa, grabación, transcripción automática
-                y generación de acta estructurada con decisiones clínicas y compromisos de seguimiento.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

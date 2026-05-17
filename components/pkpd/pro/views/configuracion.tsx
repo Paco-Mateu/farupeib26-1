@@ -18,7 +18,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   return (
     <button
       onClick={() => onChange(!checked)}
-      className={`relative h-5 w-9 rounded-full transition ${checked ? 'bg-[#8dc63f]' : 'bg-slate-200'}`}
+      className={`relative h-5 w-9 rounded-full transition ${checked ? 'bg-[#7b3fa0]' : 'bg-slate-200'}`}
     >
       <span
         className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
@@ -52,11 +52,11 @@ export function Configuracion() {
                 onClick={() => setActive(id)}
                 className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition ${
                   active === id
-                    ? 'bg-[#8dc63f]/[0.08] font-medium text-[#152520]'
+                    ? 'bg-[#7b3fa0]/[0.08] font-medium text-[#152520]'
                     : 'text-[#4a7068] hover:bg-slate-50'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${active === id ? 'text-[#8dc63f]' : 'text-[#4a7068]'}`} />
+                <Icon className={`h-4 w-4 ${active === id ? 'text-[#7b3fa0]' : 'text-[#4a7068]'}`} />
                 {label}
               </button>
             </li>
@@ -94,7 +94,7 @@ export function Configuracion() {
             <div className="mt-6">
               <Button
                 size="sm"
-                className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+                className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
                 onClick={() => showPreview('La persistencia completa de configuración global sigue en vista previa. Los cambios visuales de esta pantalla son demostrativos.')}
               >
                 Guardar cambios
