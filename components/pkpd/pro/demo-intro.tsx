@@ -163,6 +163,15 @@ const WHY_NOW = [
 export function DemoIntro() {
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#152520]">
+      {/* Clinical disclaimer */}
+      <div className="border-b border-amber-200 bg-amber-50 px-6 py-3">
+        <div className="mx-auto max-w-7xl">
+          <p className="text-xs leading-relaxed text-amber-800">
+            <strong>Aviso importante:</strong> Este prototipo ha sido desarrollado exclusivamente para demostrar las capacidades actuales de la IA en el desarrollo acelerado de aplicaciones. El contenido clínico — workflows, interpretaciones PK/PD, recomendaciones y datos — puede contener errores y <strong>no ha sido diseñado ni validado para uso clínico real</strong>. No debe utilizarse para tomar decisiones terapéuticas.
+          </p>
+        </div>
+      </div>
+
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <div className="flex flex-wrap items-center gap-3">
@@ -198,7 +207,7 @@ export function DemoIntro() {
             </h1>
 
             <p className="mt-5 max-w-4xl text-base leading-8 text-[#4a7068]">
-              Nace del proyecto &quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;, liderado por la Dra. María Badia en la 10ª Jornada FARUPEIB, y desarrollado como prototipo conceptual por Francesc Mateu, Principal, Healthcare Industry Solutions at MongoDB.
+              Nace del proyecto &quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;, liderado por la Dra. María Badia en la 10ª Jornada FARUPEIB, y construido como prototipo conceptual para explorar cómo la IA generativa puede convertir una visión clínica en una experiencia digital tangible.
             </p>
 
             <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
@@ -252,7 +261,7 @@ export function DemoIntro() {
               <strong className="text-[#152520]">Dra. María Badia, Jefa del Servicio de Farmacia del Hospital Universitari de Bellvitge</strong>, fue seleccionado como proyecto ganador por su capacidad para impulsar una nueva forma de colaboración clínica en torno a la optimización terapéutica.
             </p>
             <p className="mt-3 text-sm leading-7 text-[#4a7068]">
-              Como siguiente paso, <strong className="text-[#152520]">Francesc Mateu, Principal, Healthcare Industry Solutions at MongoDB</strong>, desarrolló este prototipo conceptual mostrando cómo la IA generativa, los agentes inteligentes y el desarrollo acelerado pueden convertir una visión clínica en una experiencia digital tangible.
+              Como siguiente paso, el equipo técnico desarrolló este prototipo conceptual para mostrar cómo la IA generativa, los agentes inteligentes y el desarrollo acelerado pueden convertir una visión clínica en una experiencia digital tangible en cuestión de horas.
             </p>
             <div className="mt-5 space-y-2">
               {TAGLINES.map((tagline) => (

@@ -9,9 +9,15 @@ Este prototipo surge de la actividad **Networking Lazareto, Proyectos de Innovac
 
 En la sesión se presentaron 14 proyectos de innovación impulsados por profesionales de diferentes hospitales y áreas terapéuticas. Entre ellos, **"Cómo innovar en PK/PD desde la Farmacia Hospitalaria"**, liderado por la **Dra. María Badia, Jefa del Servicio de Farmacia del Hospital Universitari de Bellvitge**, fue seleccionado como proyecto ganador por su capacidad para transformar la forma en que Farmacia Hospitalaria contribuye a las decisiones terapéuticas complejas.
 
-A partir de esta idea, **Francesc Mateu, Principal, Healthcare Industry Solutions at MongoDB**, desarrolló este prototipo como un ejercicio de *art of possible*: una demostración de cómo las tecnologías actuales, la IA generativa, los agentes inteligentes, el desarrollo acelerado y las arquitecturas modernas de datos pueden convertir una visión clínica en una experiencia digital tangible.
+A partir de esta idea, el equipo técnico desarrolló este prototipo como un ejercicio de *art of possible*: una demostración de cómo las tecnologías actuales, la IA generativa, los agentes inteligentes, el desarrollo acelerado y las arquitecturas modernas de datos pueden convertir una visión clínica en una experiencia digital tangible.
 
 El prototipo fue construido en aproximadamente cinco horas como prototipo conceptual, no como producto final. Representa una visión: cómo Farmacia Hospitalaria puede elevar su rol como consultor experto, colaborar de forma más estructurada con Digestivo, Enfermería y Laboratorio, y convertir cada caso PK/PD en conocimiento compartido para la red.
+
+---
+
+---
+
+> **Aviso importante:** Este prototipo ha sido desarrollado exclusivamente para demostrar las capacidades actuales de la IA en el desarrollo acelerado de aplicaciones. El contenido clínico — workflows, interpretaciones PK/PD, recomendaciones y datos — puede contener errores y **no ha sido diseñado ni validado para uso clínico real**. No debe utilizarse para tomar decisiones terapéuticas.
 
 ---
 
@@ -303,11 +309,7 @@ La tecnología cambia rápidamente. Lo que hoy requiere 5 horas de vibe coding, 
 - **Next.js**: [nextjs.org](https://nextjs.org) — framework de aplicaciones web
 - **Tailwind CSS**: [tailwindcss.com](https://tailwindcss.com) — sistema de diseño para interfaces
 
-Para cualquier consulta sobre cómo replicar este proyecto o adaptarlo a tu contexto clínico, el punto de contacto es:
-
-**Francesc Mateu**
-Principal, Healthcare Industry Solutions at MongoDB
-[francesc.mateu@mongodb.com](mailto:francesc.mateu@mongodb.com)
+Para cualquier consulta sobre cómo replicar este proyecto o adaptarlo a tu contexto clínico, puedes contactar a través de los canales del equipo FARUPEIB o de los profesionales que impulsaron la iniciativa original.
 
 ---
 

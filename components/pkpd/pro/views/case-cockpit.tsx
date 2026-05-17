@@ -276,6 +276,10 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
     )
   }
 
+  function escapeHtml(s: string | undefined | null): string {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  }
+
   function openPrintableNote() {
     const noteBody = noteText || currentCase.clinicalNote?.text || 'Sin contenido disponible.'
     const printable = `<!doctype html>
@@ -853,7 +857,7 @@ function StageActions({
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar con IA demo'}
+          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar paquete IA'}
         </Button>
         <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
           <FileText className="mr-1.5 h-3.5 w-3.5" /> Informe
@@ -868,7 +872,7 @@ function StageActions({
       <div className="flex gap-2">
         <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar con IA demo'}
+          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar paquete IA'}
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
           <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
@@ -883,7 +887,7 @@ function StageActions({
     <div className="flex gap-2">
       <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
         <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-        {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar con IA demo'}
+        {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar paquete IA'}
       </Button>
       <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
         <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
@@ -949,7 +953,7 @@ function AutomationChip({
           <div className="flex flex-wrap items-start gap-4">
             <div className="min-w-0 flex-1">
               <p className="mb-3 text-xs text-[#4a7068]">
-                La plataforma puede leer el caso, detectar gaps, preparar interpretación PK/PD, dejar una propuesta clínica y redactar un borrador HCE antes de la validación humana. En esta demo, la orquestación del paquete se ejecuta como vista previa supervisada.
+                La plataforma puede leer el caso, detectar gaps, preparar interpretación PK/PD, dejar una propuesta clínica y redactar un borrador HCE antes de la validación humana.
               </p>
               <div className="grid gap-2 sm:grid-cols-4">
                 {[
@@ -975,7 +979,7 @@ function AutomationChip({
             <div className="shrink-0">
               <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onRun} disabled={busy}>
                 <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                {busy ? 'Orquestando…' : hasAutomation ? 'Regenerar demo IA' : 'Ejecutar IA demo'}
+                {busy ? 'Orquestando…' : hasAutomation ? 'Regenerar paquete IA' : 'Ejecutar paquete IA'}
               </Button>
               <p className="mt-1.5 text-[10px] text-[#4a7068]">Revisión humana obligatoria.</p>
             </div>
@@ -1387,10 +1391,8 @@ function TabAnalisis({ caso }: { caso: CasoCompleto }) {
 
 function TabSimulacion({
   caso,
-  onPreview,
 }: {
   caso: CasoCompleto
-  onPreview: (message: string) => void
 }) {
   const sim = caso.simulation
   const scenarios = [
@@ -1447,14 +1449,9 @@ function TabSimulacion({
               <p className="mt-1 text-xs text-[#4a7068]">Resultado esperado: {sc.outcome}</p>
               <p className="mt-1 text-xs text-[#4a7068]">Riesgo: {sc.risk}</p>
               <p className="mt-1 text-xs text-slate-400">Requiere: {sc.data}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-3 w-full rounded-xl text-xs"
-                onClick={() => onPreview(`La comparación detallada del escenario «${sc.label}» sigue en vista previa, pero el caso ya puede pasar a validación clínica.`)}
-              >
-                Comparar escenario
-              </Button>
+              <p className="mt-3 text-[11px] text-[#4a7068]">
+                Úsalo como escenario de discusión clínica dentro de la validación farmacéutica y médica.
+              </p>
             </div>
           )
         })}
@@ -1539,7 +1536,7 @@ function TabInforme({
   onSaveDraft,
   onRequestCovalidation,
   onSendToEhr,
-  onExportPreview,
+  onExportPdf,
 }: {
   caso: CasoCompleto
   noteText: string
@@ -1549,7 +1546,7 @@ function TabInforme({
   onSaveDraft: () => void
   onRequestCovalidation: () => void
   onSendToEhr: () => void
-  onExportPreview: () => void
+  onExportPdf: () => void
 }) {
   const note = caso.clinicalNote
   const statusInfo = NOTE_STATUS[note?.status ?? ''] ?? { style: 'bg-slate-100 text-slate-600' }
@@ -1587,7 +1584,7 @@ function TabInforme({
           <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generar borrador
         </Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onSaveDraft} disabled={busy}>Guardar borrador</Button>
-        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onExportPreview}>Exportar PDF · vista previa</Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onExportPdf}>Imprimir / guardar PDF</Button>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestCovalidation} disabled={busy}>Solicitar co-validación</Button>
         <Button size="sm" className="ml-auto rounded-xl bg-slate-900 text-xs text-white hover:bg-slate-800" onClick={onSendToEhr} disabled={busy}>Enviar a HCE</Button>
       </div>
@@ -1603,17 +1600,13 @@ function TabAprendizaje({
   onRegisterFollowUp,
   onCompleteFollowUp,
   nextFollowupDate,
-  onPreviewRegister,
 }: {
   caso: CasoCompleto
   busyKey: string | null
   onRegisterFollowUp: (label: string, dueDate: string) => void
   onCompleteFollowUp: (label: string) => void
   nextFollowupDate: (days: number) => string
-  onPreviewRegister: (label: string) => void
 }) {
-  const [networkLearningReady, setNetworkLearningReady] = useState(false)
-
   return (
     <div className="space-y-5">
       <Section title="Seguimiento programado" icon={Clock}>
@@ -1667,16 +1660,11 @@ function TabAprendizaje({
 	          {['Respuesta clínica', 'Respuesta bioquímica', 'Resultado PK/PD'].map((label) => (
 	            <div key={label} className="rounded-xl border border-slate-200 bg-white p-4">
 	              <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{label}</p>
-	              <p className="mt-2 text-sm text-slate-400 italic">Pendiente de registrar</p>
-	              <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3 w-full rounded-xl text-xs"
-                  disabled={busyKey !== null}
-                  onClick={() => onPreviewRegister(label)}
-                >
-                  Registrar · vista previa
-                </Button>
+	              <p className="mt-2 text-sm text-[#152520]">
+                  {(caso.followUps ?? []).some((item) => item.status === 'Completado')
+                    ? 'Ya existe seguimiento completado. El equipo puede usar este resultado para cierre y aprendizaje de red.'
+                    : 'Se documentará cuando el seguimiento clínico esté completado y validado por el equipo.'}
+                </p>
 	            </div>
 	          ))}
 	        </div>
@@ -1689,19 +1677,12 @@ function TabAprendizaje({
           ))}
         </div>
 
-        <div className="mt-4 flex items-center gap-3 rounded-xl border border-[#8dc63f]/20 bg-teal-50/40 px-4 py-3">
-          <input
-            type="checkbox"
-            id="network-learning"
-            className="h-4 w-4 accent-[#8dc63f]"
-            checked={networkLearningReady}
-            onChange={(event) => setNetworkLearningReady(event.target.checked)}
-          />
-          <label htmlFor="network-learning" className="text-sm text-[#152520]">Apto para aprendizaje de red (caso anonimizado)</label>
+        <div className="mt-4 rounded-xl border border-[#8dc63f]/20 bg-teal-50/40 px-4 py-3">
+          <p className="text-sm font-medium text-[#152520]">Aprendizaje de red</p>
+          <p className="mt-1 text-[11px] leading-6 text-[#4a7068]">
+            El caso pasa a aprendizaje compartido cuando hay seguimiento clínico completado, recomendación validada y cierre del circuito con trazabilidad profesional.
+          </p>
         </div>
-        <p className="text-[11px] text-[#4a7068]">
-          Esta selección funciona como marca local de demo. La persistencia completa de outcomes ampliados sigue en vista previa.
-        </p>
       </Section>
     </div>
   )
@@ -2323,4 +2304,13 @@ function LabeledInput({
       <input className={sheetInputCls} value={value} onChange={(event) => onChange(event.target.value)} />
     </div>
   )
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
 }
