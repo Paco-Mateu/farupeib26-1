@@ -1,0 +1,249 @@
+[
+  {
+    "_id": "DRUG-INFLIXIMAB",
+    "name": "Infliximab",
+    "normalizedName": "infliximab",
+    "class": "biologic",
+    "therapeuticArea": "biologics",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "Remicade",
+      "anti-TNF",
+      "IFX"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "anti_drug_antibodies",
+      "CRP",
+      "albumin",
+      "clinical_activity_score"
+    ],
+    "unit": "ug/mL",
+    "targetRange": {
+      "min": 3,
+      "max": 7
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-ADALIMUMAB",
+    "name": "Adalimumab",
+    "normalizedName": "adalimumab",
+    "class": "biologic",
+    "therapeuticArea": "biologics",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "Humira",
+      "anti-TNF",
+      "ADA"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "anti_drug_antibodies",
+      "CRP",
+      "clinical_activity_score"
+    ],
+    "unit": "ug/mL",
+    "targetRange": {
+      "min": 5,
+      "max": 12
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-USTEKINUMAB",
+    "name": "Ustekinumab",
+    "normalizedName": "ustekinumab",
+    "class": "biologic",
+    "therapeuticArea": "biologics",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "Stelara",
+      "IL-12/23 inhibitor",
+      "UST"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "CRP",
+      "clinical_activity_score"
+    ],
+    "unit": "ug/mL",
+    "targetRange": {
+      "min": 1,
+      "max": 4.5
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-VANCOMYCIN",
+    "name": "Vancomycin",
+    "normalizedName": "vancomycin",
+    "class": "glycopeptide antibiotic",
+    "therapeuticArea": "antibiotics",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "Vanco"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "AUC_MIC",
+      "creatinine",
+      "eGFR"
+    ],
+    "unit": "mg/L",
+    "targetRange": {
+      "min": 10,
+      "max": 20
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-TACROLIMUS",
+    "name": "Tacrolimus",
+    "normalizedName": "tacrolimus",
+    "class": "calcineurin inhibitor",
+    "therapeuticArea": "immunosuppressants",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "FK506"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "creatinine",
+      "toxicity_symptoms"
+    ],
+    "unit": "ng/mL",
+    "targetRange": {
+      "min": 5,
+      "max": 12
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-VORICONAZOLE",
+    "name": "Voriconazole",
+    "normalizedName": "voriconazole",
+    "class": "triazole antifungal",
+    "therapeuticArea": "antifungals",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "VRC"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "ALT",
+      "AST",
+      "bilirubin",
+      "drug_interactions"
+    ],
+    "unit": "mg/L",
+    "targetRange": {
+      "min": 1,
+      "max": 5.5
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-POSACONAZOLE",
+    "name": "Posaconazole",
+    "normalizedName": "posaconazole",
+    "class": "triazole antifungal",
+    "therapeuticArea": "antifungals",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "PSC"
+    ],
+    "typicalPkpdSignals": [
+      "trough_level",
+      "drug_interactions"
+    ],
+    "unit": "mg/L",
+    "targetRange": {
+      "min": 0.7,
+      "max": 3.75
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-GENTAMICIN",
+    "name": "Gentamicin",
+    "normalizedName": "gentamicin",
+    "class": "aminoglycoside antibiotic",
+    "therapeuticArea": "antibiotics",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "GEN"
+    ],
+    "typicalPkpdSignals": [
+      "peak_level",
+      "trough_level",
+      "creatinine",
+      "eGFR"
+    ],
+    "unit": "mg/L",
+    "targetRange": {
+      "min": 0.5,
+      "max": 2
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  },
+  {
+    "_id": "DRUG-AMIKACIN",
+    "name": "Amikacin",
+    "normalizedName": "amikacin",
+    "class": "aminoglycoside antibiotic",
+    "therapeuticArea": "antibiotics",
+    "monitoringType": "therapeutic_drug_monitoring",
+    "aliases": [
+      "AMK"
+    ],
+    "typicalPkpdSignals": [
+      "peak_level",
+      "trough_level",
+      "creatinine",
+      "eGFR"
+    ],
+    "unit": "mg/L",
+    "targetRange": {
+      "min": 2,
+      "max": 10
+    },
+    "terminology": {
+      "rxnormRxcui": null,
+      "atc": null,
+      "sourceNote": "Curated synthetic demo entry. Enrich with RxNorm, ATC or local pharmacy master data before production use."
+    }
+  }
+]

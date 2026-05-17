@@ -1,0 +1,314 @@
+[
+  {
+    "_id": "PROT-INFLIXIMAB-REF-2026",
+    "title": "Reference protocol for Infliximab PK/PD monitoring",
+    "hospitalId": "HOSP-REF-01",
+    "networkId": "CAT-PKPD-NET",
+    "drugName": "Infliximab",
+    "therapeuticArea": "biologics",
+    "version": "2026.1-demo",
+    "status": "active",
+    "scope": "Biologic therapeutic drug monitoring for suspected loss of response.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "text": "Support consistent review of infliximab therapeutic drug monitoring cases across the hospital network."
+      },
+      {
+        "heading": "Escalation criteria",
+        "text": "Escalate when subtherapeutic trough level is combined with suspected loss of response, positive anti-drug antibodies, high inflammatory markers, or missing critical context."
+      },
+      {
+        "heading": "Required data",
+        "text": "Include last dose date, trough timing, measured level, anti-drug antibodies, CRP, albumin, clinical activity score, and treatment history."
+      },
+      {
+        "heading": "AI use guardrail",
+        "text": "AI may summarize, retrieve protocol sections, identify missing data, and draft documentation. Final clinical decision requires expert validation."
+      }
+    ],
+    "approval": {
+      "approvedBy": "reference_pkpd_committee",
+      "approvedDate": "2026-05-01"
+    },
+    "synthetic": true,
+    "embedding": [
+      0.2421,
+      -0.1922,
+      0.1998,
+      -0.155,
+      -0.2278,
+      -0.032,
+      0.01,
+      0.1533,
+      0.0934,
+      0.2201,
+      0.1185,
+      -0.1515,
+      -0.0344,
+      0.2244,
+      0.2104,
+      0.0616
+    ]
+  },
+  {
+    "_id": "PROT-ADALIMUMAB-REF-2026",
+    "title": "Reference protocol for Adalimumab PK/PD monitoring",
+    "hospitalId": "HOSP-REF-01",
+    "networkId": "CAT-PKPD-NET",
+    "drugName": "Adalimumab",
+    "therapeuticArea": "biologics",
+    "version": "2026.1-demo",
+    "status": "active",
+    "scope": "Biologic TDM and loss-of-response review.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "text": "Standardize review of adalimumab monitoring across satellite hospitals."
+      },
+      {
+        "heading": "Escalation criteria",
+        "text": "Escalate when trough level is below target, anti-drug antibodies are present, adherence uncertainty exists, or clinical activity is worsening."
+      },
+      {
+        "heading": "Required data",
+        "text": "Include dosing interval, last administration, level timing, antibodies, CRP, clinical score, and adherence notes."
+      },
+      {
+        "heading": "AI use guardrail",
+        "text": "AI output is a draft and must not be treated as a prescription or diagnosis."
+      }
+    ],
+    "approval": {
+      "approvedBy": "reference_pkpd_committee",
+      "approvedDate": "2026-05-01"
+    },
+    "synthetic": true,
+    "embedding": [
+      0.0817,
+      -0.1877,
+      0.2,
+      0.0036,
+      0.0834,
+      -0.0869,
+      0.0986,
+      0.0272,
+      -0.1541,
+      0.0825,
+      -0.0604,
+      0.1241,
+      -0.163,
+      0.0346,
+      -0.047,
+      0.1669
+    ]
+  },
+  {
+    "_id": "PROT-USTEKINUMAB-REF-2026",
+    "title": "Reference protocol for Ustekinumab PK/PD monitoring",
+    "hospitalId": "HOSP-REF-01",
+    "networkId": "CAT-PKPD-NET",
+    "drugName": "Ustekinumab",
+    "therapeuticArea": "biologics",
+    "version": "2026.1-demo",
+    "status": "active",
+    "scope": "Biologic monitoring for selected complex cases.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "text": "Provide a consistent workflow for ustekinumab PK/PD review."
+      },
+      {
+        "heading": "Escalation criteria",
+        "text": "Escalate if drug level is low with persistent activity, complex comedication, or unresolved interpretation."
+      },
+      {
+        "heading": "Required data",
+        "text": "Include weight, last dose date, measured level, CRP, albumin, disease activity and previous biologic exposure."
+      },
+      {
+        "heading": "AI use guardrail",
+        "text": "AI may compare cases and protocols but does not autonomously recommend therapy."
+      }
+    ],
+    "approval": {
+      "approvedBy": "reference_pkpd_committee",
+      "approvedDate": "2026-05-01"
+    },
+    "synthetic": true,
+    "embedding": [
+      -0.0981,
+      -0.1449,
+      0.1429,
+      0.0533,
+      -0.0889,
+      -0.0291,
+      0.0878,
+      0.0056,
+      0.1469,
+      0.2299,
+      0.118,
+      0.0794,
+      -0.1081,
+      0.0819,
+      0.0596,
+      -0.2033
+    ]
+  },
+  {
+    "_id": "PROT-VANCOMYCIN-REF-2026",
+    "title": "Reference protocol for Vancomycin PK/PD monitoring",
+    "hospitalId": "HOSP-REF-01",
+    "networkId": "CAT-PKPD-NET",
+    "drugName": "Vancomycin",
+    "therapeuticArea": "antibiotics",
+    "version": "2026.1-demo",
+    "status": "active",
+    "scope": "Antibiotic therapeutic drug monitoring for severe infection contexts.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "text": "Help hospitals identify high-risk vancomycin monitoring cases requiring expert review."
+      },
+      {
+        "heading": "Escalation criteria",
+        "text": "Escalate when levels are outside target, kidney function worsens, timing of sampling is uncertain, or patient is critically ill."
+      },
+      {
+        "heading": "Required data",
+        "text": "Include dose schedule, administration times, sample time, drug level, creatinine trend, weight, renal replacement therapy status, and infection context."
+      },
+      {
+        "heading": "AI use guardrail",
+        "text": "AI may prepare a case packet and retrieve protocol excerpts. Dosing decisions remain under clinician responsibility."
+      }
+    ],
+    "approval": {
+      "approvedBy": "reference_pkpd_committee",
+      "approvedDate": "2026-05-01"
+    },
+    "synthetic": true,
+    "embedding": [
+      0.226,
+      -0.1326,
+      -0.0948,
+      0.1533,
+      -0.1763,
+      -0.2269,
+      0.242,
+      0.0556,
+      0.1342,
+      -0.0223,
+      0.1931,
+      0.0378,
+      0.1092,
+      -0.058,
+      -0.0502,
+      -0.1762
+    ]
+  },
+  {
+    "_id": "PROT-TACROLIMUS-REF-2026",
+    "title": "Reference protocol for Tacrolimus PK/PD monitoring",
+    "hospitalId": "HOSP-REF-01",
+    "networkId": "CAT-PKPD-NET",
+    "drugName": "Tacrolimus",
+    "therapeuticArea": "immunosuppressants",
+    "version": "2026.1-demo",
+    "status": "active",
+    "scope": "Immunosuppressant monitoring for complex variability cases.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "text": "Coordinate interpretation of tacrolimus levels in patients with variability or toxicity risk."
+      },
+      {
+        "heading": "Escalation criteria",
+        "text": "Escalate if trough levels are repeatedly outside range, interacting medicines are present, or renal toxicity risk increases."
+      },
+      {
+        "heading": "Required data",
+        "text": "Include trough timing, dose, interacting drugs, creatinine, transplantation or immunosuppression context, and toxicity symptoms."
+      },
+      {
+        "heading": "AI use guardrail",
+        "text": "AI may extract comedications and summarize history but cannot approve final dose changes."
+      }
+    ],
+    "approval": {
+      "approvedBy": "reference_pkpd_committee",
+      "approvedDate": "2026-05-01"
+    },
+    "synthetic": true,
+    "embedding": [
+      0.0938,
+      0.1963,
+      0.1802,
+      0.1927,
+      0.1392,
+      -0.1406,
+      0.1521,
+      0.098,
+      -0.0177,
+      0.0287,
+      0.2087,
+      -0.1893,
+      -0.1833,
+      -0.0177,
+      0.0156,
+      0.0295
+    ]
+  },
+  {
+    "_id": "PROT-VORICONAZOLE-REF-2026",
+    "title": "Reference protocol for Voriconazole PK/PD monitoring",
+    "hospitalId": "HOSP-REF-01",
+    "networkId": "CAT-PKPD-NET",
+    "drugName": "Voriconazole",
+    "therapeuticArea": "antifungals",
+    "version": "2026.1-demo",
+    "status": "active",
+    "scope": "Antifungal TDM and toxicity prevention.",
+    "sections": [
+      {
+        "heading": "Purpose",
+        "text": "Support antifungal monitoring, especially in complex oncology or immunosuppressed patients."
+      },
+      {
+        "heading": "Escalation criteria",
+        "text": "Escalate when levels are below target, above safety range, liver enzymes rise, or relevant CYP interactions are identified."
+      },
+      {
+        "heading": "Required data",
+        "text": "Include dose, timing, level, ALT, AST, bilirubin, comedications, infection indication and absorption concerns."
+      },
+      {
+        "heading": "AI use guardrail",
+        "text": "AI may detect missing information and draft review notes. Expert review is required for clinical action."
+      }
+    ],
+    "approval": {
+      "approvedBy": "reference_pkpd_committee",
+      "approvedDate": "2026-05-01"
+    },
+    "synthetic": true,
+    "embedding": [
+      -0.0914,
+      0.1276,
+      -0.0287,
+      0.1575,
+      0.196,
+      -0.0366,
+      0.2034,
+      -0.027,
+      -0.1704,
+      0.1807,
+      -0.025,
+      0.1259,
+      0.1699,
+      -0.1113,
+      0.1388,
+      -0.0077
+    ]
+  }
+]

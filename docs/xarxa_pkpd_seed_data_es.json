@@ -1,0 +1,1991 @@
+{
+  "metadata": {
+    "datasetName": "Xarxa PK/PD Demo Seed Data",
+    "language": "es",
+    "version": "0.1",
+    "createdFor": "Prototipo art-of-possible",
+    "disclaimer": "Datos ficticios y sintéticos. No representan profesionales, pacientes, actividad ni red oficial del Hospital Universitario de Bellvitge.",
+    "activeProgram": "Crohn PK/PD"
+  },
+  "specialties": [
+    {
+      "_id": "esp-digestivo",
+      "label": "Digestivo",
+      "status": "Activo"
+    },
+    {
+      "_id": "esp-farmacia",
+      "label": "Farmacia Hospitalaria",
+      "status": "Activo"
+    },
+    {
+      "_id": "esp-laboratorio",
+      "label": "Laboratorio",
+      "status": "Activo"
+    },
+    {
+      "_id": "esp-enfermeria",
+      "label": "Enfermería EII",
+      "status": "Activo"
+    },
+    {
+      "_id": "esp-reumatologia",
+      "label": "Reumatología",
+      "status": "Borrador"
+    },
+    {
+      "_id": "esp-infecciosas",
+      "label": "Infecciosas",
+      "status": "Borrador"
+    }
+  ],
+  "roles": [
+    {
+      "_id": "rol-admin-red",
+      "label": "Administrador de red",
+      "scope": "Red",
+      "permissions": [
+        "Gestionar programas",
+        "Gestionar centros",
+        "Ver auditoría"
+      ]
+    },
+    {
+      "_id": "rol-coordinador-programa",
+      "label": "Coordinador de programa",
+      "scope": "Programa",
+      "permissions": [
+        "Configurar programa",
+        "Validar formularios",
+        "Preparar sesiones"
+      ]
+    },
+    {
+      "_id": "rol-farmaceutico-experto",
+      "label": "Farmacéutico experto",
+      "scope": "Centro",
+      "permissions": [
+        "Revisar casos",
+        "Editar recomendación",
+        "Validar informe"
+      ]
+    },
+    {
+      "_id": "rol-digestologo",
+      "label": "Digestólogo",
+      "scope": "Centro",
+      "permissions": [
+        "Solicitar revisión",
+        "Revisar recomendación",
+        "Aportar datos clínicos"
+      ]
+    },
+    {
+      "_id": "rol-enfermeria-eii",
+      "label": "Enfermería EII",
+      "scope": "Centro",
+      "permissions": [
+        "Gestionar tareas",
+        "Confirmar administración",
+        "Registrar seguimiento"
+      ]
+    },
+    {
+      "_id": "rol-laboratorio",
+      "label": "Laboratorio",
+      "scope": "Centro",
+      "permissions": [
+        "Registrar determinantes",
+        "Validar unidades",
+        "Marcar muestra no interpretable"
+      ]
+    },
+    {
+      "_id": "rol-residente",
+      "label": "Residente",
+      "scope": "Centro",
+      "permissions": [
+        "Ver casos docentes",
+        "Proponer interpretación"
+      ]
+    },
+    {
+      "_id": "rol-observador-docente",
+      "label": "Observador docente",
+      "scope": "Red",
+      "permissions": [
+        "Ver casos docentes",
+        "Participar en votaciones formativas"
+      ]
+    }
+  ],
+  "centers": [
+    {
+      "_id": "ctr-hub",
+      "name": "Hospital Universitario de Bellvitge",
+      "type": "Hospital de alta complejidad",
+      "territory": "Barcelona Metropolitana Sud",
+      "city": "L'Hospitalet de Llobregat",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Centro de referencia del prototipo"
+    },
+    {
+      "_id": "ctr-viladecans",
+      "name": "Hospital de Viladecans",
+      "type": "Hospital de proximidad",
+      "territory": "Baix Llobregat",
+      "city": "Viladecans",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Centro colaborador ficticio para la demo"
+    },
+    {
+      "_id": "ctr-cap-bellvitge",
+      "name": "CAP Bellvitge",
+      "type": "Atención primaria",
+      "territory": "L'Hospitalet de Llobregat",
+      "city": "L'Hospitalet de Llobregat",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Centro de apoyo para tareas y seguimiento"
+    },
+    {
+      "_id": "ctr-cap-prat",
+      "name": "CAP El Prat",
+      "type": "Atención primaria",
+      "territory": "Baix Llobregat",
+      "city": "El Prat de Llobregat",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Centro de apoyo para seguimiento"
+    },
+    {
+      "_id": "ctr-cap-gava",
+      "name": "CAP Gavà",
+      "type": "Atención primaria",
+      "territory": "Baix Llobregat",
+      "city": "Gavà",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Centro de apoyo para seguimiento"
+    },
+    {
+      "_id": "ctr-baix-sud",
+      "name": "Unidad Territorial Baix Llobregat Sur",
+      "type": "Unidad territorial demo",
+      "territory": "Baix Llobregat",
+      "city": "Sant Boi de Llobregat",
+      "status": "Piloto",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Unidad ficticia para agrupar actividad territorial"
+    },
+    {
+      "_id": "ctr-garraf-demo",
+      "name": "Unidad Territorial Garraf",
+      "type": "Unidad territorial demo",
+      "territory": "Garraf",
+      "city": "Sant Pere de Ribes",
+      "status": "Piloto",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Unidad ficticia para simular expansión"
+    },
+    {
+      "_id": "ctr-penedes-demo",
+      "name": "Unidad Territorial Penedès",
+      "type": "Unidad territorial demo",
+      "territory": "Penedès",
+      "city": "Vilafranca del Penedès",
+      "status": "Piloto",
+      "programs": [
+        "prog-crohn-pkpd"
+      ],
+      "demoNote": "Unidad ficticia para simular expansión"
+    }
+  ],
+  "professionals": [
+    {
+      "_id": "pro-farm-001",
+      "name": "Dra. Laura Vidal",
+      "roleId": "rol-farmaceutico-experto",
+      "roleLabel": "Farmacéutico experto",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Farmacia Hospitalaria"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-farm-002",
+      "name": "Dr. Marcos Ortega",
+      "roleId": "rol-farmaceutico-experto",
+      "roleLabel": "Farmacéutico experto",
+      "centerId": "ctr-viladecans",
+      "specialties": [
+        "Farmacia Hospitalaria"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-dig-001",
+      "name": "Dra. Ana Beltrán",
+      "roleId": "rol-digestologo",
+      "roleLabel": "Digestólogo",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Digestivo"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-dig-002",
+      "name": "Dr. Javier Soler",
+      "roleId": "rol-digestologo",
+      "roleLabel": "Digestólogo",
+      "centerId": "ctr-viladecans",
+      "specialties": [
+        "Digestivo"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-dig-003",
+      "name": "Dra. Marta Iglesias",
+      "roleId": "rol-digestologo",
+      "roleLabel": "Digestólogo",
+      "centerId": "ctr-baix-sud",
+      "specialties": [
+        "Digestivo"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-enf-001",
+      "name": "Enf. Clara Moreno",
+      "roleId": "rol-enfermeria-eii",
+      "roleLabel": "Enfermería EII",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Enfermería EII"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-enf-002",
+      "name": "Enf. Nuria Campos",
+      "roleId": "rol-enfermeria-eii",
+      "roleLabel": "Enfermería EII",
+      "centerId": "ctr-cap-prat",
+      "specialties": [
+        "Enfermería EII"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-lab-001",
+      "name": "Dra. Elena Ruiz",
+      "roleId": "rol-laboratorio",
+      "roleLabel": "Laboratorio",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Laboratorio"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-lab-002",
+      "name": "Dr. Víctor Molina",
+      "roleId": "rol-laboratorio",
+      "roleLabel": "Laboratorio",
+      "centerId": "ctr-viladecans",
+      "specialties": [
+        "Laboratorio"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-coord-001",
+      "name": "Dra. Silvia Romero",
+      "roleId": "rol-coordinador-programa",
+      "roleLabel": "Coordinador de programa",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Farmacia Hospitalaria",
+        "Digestivo"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-res-001",
+      "name": "Dr. Carlos Medina",
+      "roleId": "rol-residente",
+      "roleLabel": "Residente",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Digestivo"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    },
+    {
+      "_id": "pro-admin-001",
+      "name": "Sra. Patricia León",
+      "roleId": "rol-admin-red",
+      "roleLabel": "Administrador de red",
+      "centerId": "ctr-hub",
+      "specialties": [
+        "Gestión de red"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo"
+    }
+  ],
+  "clinicalPrograms": [
+    {
+      "_id": "prog-crohn-pkpd",
+      "label": "Crohn PK/PD",
+      "specialty": "Digestivo",
+      "status": "Activo",
+      "version": "v1.0",
+      "conditions": [
+        "Enfermedad de Crohn"
+      ],
+      "caseTypes": [
+        "Debutante",
+        "Inducción",
+        "Mantenimiento",
+        "Pérdida de respuesta",
+        "Cambio de medicación",
+        "Desintensificación",
+        "Ratificación"
+      ],
+      "drugs": [
+        "Infliximab",
+        "Adalimumab",
+        "Ustekinumab",
+        "Vedolizumab"
+      ],
+      "determinants": [
+        "Concentración sérica del fármaco",
+        "Anticuerpos anti-fármaco",
+        "PCR",
+        "Calprotectina fecal",
+        "Albúmina",
+        "Peso"
+      ],
+      "workflowStages": [
+        "Solicitud recibida",
+        "Caso creado por IA",
+        "Datos incompletos",
+        "Pendiente de determinantes",
+        "Determinantes recibidos",
+        "Análisis PK/PD generado",
+        "Revisión farmacéutica",
+        "Revisión médica",
+        "Discusión en red",
+        "Informe generado",
+        "Informe validado",
+        "Registrado en HCE",
+        "Seguimiento 4 semanas",
+        "Seguimiento 8 semanas",
+        "Cerrado con resultado"
+      ],
+      "sharingPolicy": "Casos anonimizados para aprendizaje de red"
+    },
+    {
+      "_id": "prog-colitis-pkpd",
+      "label": "Colitis ulcerosa PK/PD",
+      "specialty": "Digestivo",
+      "status": "Borrador",
+      "version": "v0.1"
+    },
+    {
+      "_id": "prog-reuma-biologicos",
+      "label": "Biológicos en reumatología",
+      "specialty": "Reumatología",
+      "status": "Borrador",
+      "version": "v0.1"
+    },
+    {
+      "_id": "prog-tdm-antibioticos",
+      "label": "TDM antibióticos",
+      "specialty": "Infecciosas",
+      "status": "Borrador",
+      "version": "v0.1"
+    }
+  ],
+  "agents": [
+    {
+      "_id": "agt-ingesta",
+      "label": "Agente de ingesta",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Convierte emails y texto libre en casos estructurados",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No crea recomendaciones clínicas finales",
+        "No firma informes"
+      ]
+    },
+    {
+      "_id": "agt-gaps",
+      "label": "Agente de gaps",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Detecta datos faltantes, conflictivos u obsoletos",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No cierra tareas sin confirmación humana"
+      ]
+    },
+    {
+      "_id": "agt-lab",
+      "label": "Agente de laboratorio",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Valida determinantes, unidades y relación con dosis",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No modifica resultados de laboratorio"
+      ]
+    },
+    {
+      "_id": "agt-pkpd",
+      "label": "Agente PK/PD",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Clasifica patrones PK/PD a partir de datos confirmados",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No prescribe",
+        "No cambia dosis"
+      ]
+    },
+    {
+      "_id": "agt-recomendacion",
+      "label": "Agente de recomendación",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Prepara una propuesta revisable con alternativas",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No emite decisión final"
+      ]
+    },
+    {
+      "_id": "agt-informe",
+      "label": "Agente de informe HCE",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Redacta borradores de informe para historia clínica",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No escribe en HCE sin validación"
+      ]
+    },
+    {
+      "_id": "agt-sesion",
+      "label": "Agente de sesión",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Prepara casos para sesiones de red",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No decide agenda final"
+      ]
+    },
+    {
+      "_id": "agt-aprendizaje",
+      "label": "Agente de aprendizaje",
+      "status": "Activo",
+      "programId": "prog-crohn-pkpd",
+      "function": "Captura resultados y sugiere casos docentes",
+      "requiresHumanValidation": true,
+      "limits": [
+        "No comparte datos identificables"
+      ]
+    }
+  ],
+  "forms": [
+    {
+      "_id": "form-solicitud-crohn",
+      "label": "Solicitud PK/PD Crohn",
+      "programId": "prog-crohn-pkpd",
+      "sections": [
+        {
+          "label": "Motivo",
+          "fields": [
+            "Tipo de caso",
+            "Motivo de consulta",
+            "Prioridad"
+          ]
+        },
+        {
+          "label": "Paciente",
+          "fields": [
+            "Código de paciente",
+            "Edad",
+            "Sexo",
+            "Peso actual"
+          ]
+        },
+        {
+          "label": "Enfermedad",
+          "fields": [
+            "Fenotipo",
+            "Localización",
+            "Actividad clínica",
+            "Calprotectina fecal",
+            "PCR"
+          ]
+        },
+        {
+          "label": "Tratamiento",
+          "fields": [
+            "Fármaco actual",
+            "Dosis actual",
+            "Intervalo actual",
+            "Última administración"
+          ]
+        },
+        {
+          "label": "Determinantes",
+          "fields": [
+            "Concentración sérica del fármaco",
+            "Anticuerpos anti-fármaco",
+            "Fecha de extracción"
+          ]
+        }
+      ]
+    },
+    {
+      "_id": "form-seguimiento-4s",
+      "label": "Seguimiento 4 semanas",
+      "programId": "prog-crohn-pkpd",
+      "sections": [
+        {
+          "label": "Evolución",
+          "fields": [
+            "Síntomas",
+            "Adherencia",
+            "Eventos adversos"
+          ]
+        },
+        {
+          "label": "Biomarcadores",
+          "fields": [
+            "PCR",
+            "Calprotectina fecal",
+            "Albúmina"
+          ]
+        },
+        {
+          "label": "Decisión",
+          "fields": [
+            "Tratamiento aplicado",
+            "Próximo paso"
+          ]
+        }
+      ]
+    },
+    {
+      "_id": "form-seguimiento-8s",
+      "label": "Seguimiento 8 semanas",
+      "programId": "prog-crohn-pkpd",
+      "sections": [
+        {
+          "label": "Resultado",
+          "fields": [
+            "Respuesta clínica",
+            "Respuesta bioquímica",
+            "Nivel de fármaco",
+            "Decisión final"
+          ]
+        },
+        {
+          "label": "Aprendizaje",
+          "fields": [
+            "Lección aprendida",
+            "Apto para aprendizaje de red"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "_id": "case-0001",
+      "caseId": "PKPD-2026-0001",
+      "title": "Debutante con Crohn ileocolónico",
+      "patientCode": "P-1001",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-hub",
+      "centerName": "Hospital Universitario de Bellvitge",
+      "requesterId": "pro-dig-001",
+      "requesterName": "Dra. Ana Beltrán",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Debutante",
+      "entrySource": "Formulario normalizado",
+      "priority": "Media",
+      "pipelineStage": "Datos incompletos",
+      "nextAction": "Completar cribado y peso actualizado",
+      "createdAt": "2026-05-06T09:12:00+02:00",
+      "updatedAt": "2026-05-16T11:20:00+02:00",
+      "clinicalSummary": "Paciente debutante con enfermedad de Crohn ileocolónica y actividad moderada-alta. Se solicita valoración inicial para tratamiento biológico y plan de determinantes.",
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileocolónico",
+        "activity": "Moderada-alta",
+        "extraintestinal": "No documentadas"
+      },
+      "therapyContext": {
+        "currentDrug": "Sin biológico previo",
+        "candidateDrug": "Ustekinumab",
+        "previousTherapies": [
+          "Corticoides",
+          "Mesalazina"
+        ],
+        "currentDose": null,
+        "interval": null
+      },
+      "labDeterminants": [
+        {
+          "label": "PCR",
+          "value": 18,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 780,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Albúmina",
+          "value": 3.2,
+          "unit": "g/dL",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Falta cribado infeccioso completo",
+          "severity": "Crítico",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Falta peso actualizado",
+          "severity": "Importante",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Falta objetivo terapéutico documentado",
+          "severity": "Importante",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0001",
+          "title": "Completar cribado infeccioso",
+          "ownerRole": "Digestólogo",
+          "ownerId": "pro-dig-001",
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-05-18",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0002",
+          "title": "Registrar peso actualizado",
+          "ownerRole": "Enfermería EII",
+          "ownerId": "pro-enf-001",
+          "priority": "Media",
+          "status": "Pendiente",
+          "dueDate": "2026-05-18",
+          "createdBy": "Agente de gaps"
+        }
+      ],
+      "timeline": [
+        {
+          "date": "2026-04-20",
+          "lane": "Clínica",
+          "type": "Diagnóstico",
+          "label": "Diagnóstico de Crohn ileocolónico"
+        },
+        {
+          "date": "2026-05-02",
+          "lane": "Laboratorio",
+          "type": "Biomarcador",
+          "label": "Calprotectina fecal elevada"
+        },
+        {
+          "date": "2026-05-06",
+          "lane": "Decisiones",
+          "type": "Solicitud",
+          "label": "Solicitud inicial PK/PD"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Datos insuficientes para interpretación",
+        "confidence": "Media",
+        "summary": "Caso debutante pendiente de datos de seguridad y peso actualizado antes de validar inicio y plan de monitorización."
+      },
+      "recommendation": {
+        "status": "Borrador IA",
+        "text": "Completar datos críticos antes de validar la estrategia inicial. Definir objetivo terapéutico y plan de seguimiento con determinantes según protocolo local."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Pendiente de completar cribado infeccioso, peso actualizado y objetivo terapéutico antes de emitir recomendación farmacoterapéutica final."
+      },
+      "followUps": []
+    },
+    {
+      "_id": "case-0002",
+      "caseId": "PKPD-2026-0002",
+      "title": "Pérdida de respuesta secundaria con exposición baja",
+      "patientCode": "P-1048",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-hub",
+      "centerName": "Hospital Universitario de Bellvitge",
+      "requesterId": "pro-dig-001",
+      "requesterName": "Dra. Ana Beltrán",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Pérdida de respuesta",
+      "entrySource": "Email",
+      "priority": "Alta",
+      "pipelineStage": "Análisis PK/PD generado",
+      "nextAction": "Revisión farmacéutica",
+      "createdAt": "2026-05-09T08:45:00+02:00",
+      "updatedAt": "2026-05-16T13:10:00+02:00",
+      "emailOriginal": "Paciente con Crohn en adalimumab, pérdida parcial de respuesta y calprotectina elevada. ¿Podéis revisar niveles y valorar ajuste?",
+      "clinicalSummary": "Paciente con Crohn en adalimumab, con pérdida parcial de respuesta y biomarcadores inflamatorios elevados. Nivel valle bajo y anticuerpos negativos.",
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileal",
+        "activity": "Activa",
+        "symptoms": "Dolor abdominal y aumento de deposiciones"
+      },
+      "therapyContext": {
+        "currentDrug": "Adalimumab",
+        "currentDose": "40 mg",
+        "interval": "Cada 14 días",
+        "route": "Subcutánea",
+        "lastAdministration": "2026-05-03T08:00:00+02:00"
+      },
+      "labDeterminants": [
+        {
+          "label": "Concentración sérica de adalimumab",
+          "value": 3.1,
+          "unit": "µg/mL",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Valle confirmado",
+          "interpretation": "Baja exposición"
+        },
+        {
+          "label": "Anticuerpos anti-adalimumab",
+          "value": "Negativos",
+          "unit": null,
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "interpretation": "Sin inmunogenicidad documentada"
+        },
+        {
+          "label": "PCR",
+          "value": 14,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 620,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Albúmina",
+          "value": 3.4,
+          "unit": "g/dL",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Falta confirmar adherencia en las últimas 8 semanas",
+          "severity": "Importante",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Falta registro de síntomas actualizado",
+          "severity": "Informativo",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0003",
+          "title": "Confirmar adherencia reciente",
+          "ownerRole": "Enfermería EII",
+          "ownerId": "pro-enf-001",
+          "priority": "Media",
+          "status": "Pendiente",
+          "dueDate": "2026-05-17",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0004",
+          "title": "Revisar propuesta de optimización",
+          "ownerRole": "Farmacéutico experto",
+          "ownerId": "pro-farm-001",
+          "priority": "Alta",
+          "status": "En curso",
+          "dueDate": "2026-05-17",
+          "createdBy": "Agente PK/PD"
+        }
+      ],
+      "timeline": [
+        {
+          "date": "2025-11-04",
+          "lane": "Tratamiento",
+          "type": "Inicio de tratamiento",
+          "label": "Inicio de adalimumab"
+        },
+        {
+          "date": "2026-03-15",
+          "lane": "Clínica",
+          "type": "Seguimiento",
+          "label": "Mejoría clínica inicial"
+        },
+        {
+          "date": "2026-05-03",
+          "lane": "Administración",
+          "type": "Administración",
+          "label": "Última administración registrada"
+        },
+        {
+          "date": "2026-05-10",
+          "lane": "Laboratorio",
+          "type": "Extracción",
+          "label": "Muestra valle confirmada"
+        },
+        {
+          "date": "2026-05-12",
+          "lane": "Laboratorio",
+          "type": "Determinante recibido",
+          "label": "Nivel bajo y anticuerpos negativos"
+        },
+        {
+          "date": "2026-05-16",
+          "lane": "Decisiones",
+          "type": "Análisis",
+          "label": "Análisis PK/PD generado"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Baja exposición sin inmunogenicidad documentada",
+        "confidence": "Alta",
+        "summary": "El patrón es compatible con fallo farmacocinético por baja exposición. Antes de cambiar mecanismo, se sugiere valorar optimización de exposición si se confirma adherencia."
+      },
+      "simulation": {
+        "currentScenario": "Mantener dosis",
+        "preferredScenario": "Acortar intervalo",
+        "scenarios": [
+          "Mantener dosis",
+          "Acortar intervalo",
+          "Aumentar dosis",
+          "Cambiar mecanismo",
+          "Repetir determinantes"
+        ]
+      },
+      "recommendation": {
+        "status": "Borrador IA",
+        "text": "Valorar optimización de exposición antes de cambio de mecanismo. Confirmar adherencia reciente y revisar respuesta clínica tras ajuste con seguimiento a 4 y 8 semanas."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Paciente con Crohn en adalimumab y pérdida de respuesta secundaria. Nivel valle bajo, anticuerpos anti-fármaco negativos y biomarcadores elevados. Patrón compatible con baja exposición sin inmunogenicidad documentada. Se propone valorar optimización de exposición, confirmar adherencia y programar seguimiento a 4 y 8 semanas."
+      },
+      "followUps": [
+        {
+          "label": "Seguimiento 4 semanas",
+          "status": "Programado",
+          "dueDate": "2026-06-14"
+        },
+        {
+          "label": "Seguimiento 8 semanas",
+          "status": "Programado",
+          "dueDate": "2026-07-12"
+        }
+      ]
+    },
+    {
+      "_id": "case-0003",
+      "caseId": "PKPD-2026-0003",
+      "title": "Inmunogenicidad probable con infliximab",
+      "patientCode": "P-1072",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-viladecans",
+      "centerName": "Hospital de Viladecans",
+      "requesterId": "pro-dig-002",
+      "requesterName": "Dr. Javier Soler",
+      "assignedTo": "pro-farm-002",
+      "assignedName": "Dr. Marcos Ortega",
+      "caseType": "Cambio de medicación",
+      "entrySource": "Email",
+      "priority": "Alta",
+      "pipelineStage": "Revisión farmacéutica",
+      "nextAction": "Validar recomendación y enviar a digestivo",
+      "createdAt": "2026-05-11T10:02:00+02:00",
+      "updatedAt": "2026-05-16T09:30:00+02:00",
+      "emailOriginal": "Paciente en infliximab con brote, nivel muy bajo y anticuerpos positivos. ¿Revisamos cambio?",
+      "clinicalSummary": "Paciente con Crohn en infliximab, actividad inflamatoria y determinantes compatibles con inmunogenicidad probable.",
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Fistulizante",
+        "activity": "Activa",
+        "symptoms": "Brote con aumento de deposiciones y dolor"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "5 mg/kg",
+        "interval": "Cada 8 semanas",
+        "route": "Intravenosa",
+        "lastAdministration": "2026-04-28T09:00:00+02:00"
+      },
+      "labDeterminants": [
+        {
+          "label": "Concentración sérica de infliximab",
+          "value": 0.8,
+          "unit": "µg/mL",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Valle probable",
+          "interpretation": "Muy baja exposición"
+        },
+        {
+          "label": "Anticuerpos anti-infliximab",
+          "value": "Positivos altos",
+          "unit": null,
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "interpretation": "Inmunogenicidad probable"
+        },
+        {
+          "label": "PCR",
+          "value": 24,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 980,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Falta documentar motivo de suspensión de biológico previo",
+          "severity": "Importante",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0005",
+          "title": "Revisar historial de biológicos previos",
+          "ownerRole": "Farmacéutico experto",
+          "ownerId": "pro-farm-002",
+          "priority": "Alta",
+          "status": "En curso",
+          "dueDate": "2026-05-17",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0006",
+          "title": "Confirmar estrategia de cambio con digestivo",
+          "ownerRole": "Digestólogo",
+          "ownerId": "pro-dig-002",
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-05-18",
+          "createdBy": "Agente de recomendación"
+        }
+      ],
+      "timeline": [
+        {
+          "date": "2025-08-14",
+          "lane": "Tratamiento",
+          "type": "Inicio de tratamiento",
+          "label": "Inicio de infliximab"
+        },
+        {
+          "date": "2026-02-03",
+          "lane": "Clínica",
+          "type": "Seguimiento",
+          "label": "Respuesta parcial"
+        },
+        {
+          "date": "2026-04-28",
+          "lane": "Administración",
+          "type": "Administración",
+          "label": "Última infusión registrada"
+        },
+        {
+          "date": "2026-05-10",
+          "lane": "Laboratorio",
+          "type": "Determinante recibido",
+          "label": "Nivel muy bajo y anticuerpos positivos"
+        },
+        {
+          "date": "2026-05-16",
+          "lane": "Decisiones",
+          "type": "Recomendación",
+          "label": "Propuesta de cambio pendiente de validación"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Baja exposición con anticuerpos anti-fármaco positivos",
+        "confidence": "Alta",
+        "summary": "Patrón compatible con pérdida de exposición por inmunogenicidad. La optimización simple puede no ser suficiente."
+      },
+      "recommendation": {
+        "status": "Editado por farmacia",
+        "text": "Valorar cambio de estrategia terapéutica por inmunogenicidad probable. Revisar biológicos previos y consensuar alternativa con digestivo."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Determinantes compatibles con inmunogenicidad: infliximab muy bajo y anticuerpos anti-fármaco positivos altos, con actividad inflamatoria. Se recomienda revisar historial terapéutico y valorar cambio de estrategia con digestivo."
+      },
+      "followUps": [
+        {
+          "label": "Seguimiento 4 semanas",
+          "status": "Pendiente de programar"
+        }
+      ]
+    },
+    {
+      "_id": "case-0004",
+      "caseId": "PKPD-2026-0004",
+      "title": "Actividad inflamatoria con exposición adecuada",
+      "patientCode": "P-1091",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-baix-sud",
+      "centerName": "Unidad Territorial Baix Llobregat Sur",
+      "requesterId": "pro-dig-003",
+      "requesterName": "Dra. Marta Iglesias",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Cambio de medicación",
+      "entrySource": "Formulario normalizado",
+      "priority": "Media",
+      "pipelineStage": "Discusión en red",
+      "nextAction": "Revisar en sesión quincenal",
+      "createdAt": "2026-05-08T12:30:00+02:00",
+      "updatedAt": "2026-05-15T17:45:00+02:00",
+      "clinicalSummary": "Paciente con Crohn en ustekinumab, exposición dentro del objetivo local, anticuerpos negativos y persistencia de actividad inflamatoria.",
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Colónico",
+        "activity": "Activa",
+        "symptoms": "Síntomas persistentes y biomarcadores elevados"
+      },
+      "therapyContext": {
+        "currentDrug": "Ustekinumab",
+        "currentDose": "90 mg",
+        "interval": "Cada 8 semanas",
+        "route": "Subcutánea",
+        "lastAdministration": "2026-04-23T08:30:00+02:00"
+      },
+      "labDeterminants": [
+        {
+          "label": "Concentración sérica de ustekinumab",
+          "value": 5.4,
+          "unit": "µg/mL",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Valle confirmado",
+          "interpretation": "Exposición adecuada"
+        },
+        {
+          "label": "Anticuerpos anti-ustekinumab",
+          "value": "Negativos",
+          "unit": null,
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "PCR",
+          "value": 16,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 710,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Falta resultado endoscópico reciente",
+          "severity": "Importante",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Falta descartar causa no inflamatoria de síntomas",
+          "severity": "Informativo",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0007",
+          "title": "Añadir resultado endoscópico reciente",
+          "ownerRole": "Digestólogo",
+          "ownerId": "pro-dig-003",
+          "priority": "Media",
+          "status": "Pendiente",
+          "dueDate": "2026-05-20",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0008",
+          "title": "Preparar resumen para sesión",
+          "ownerRole": "Farmacéutico experto",
+          "ownerId": "pro-farm-001",
+          "priority": "Media",
+          "status": "En curso",
+          "dueDate": "2026-05-19",
+          "createdBy": "Agente de sesión"
+        }
+      ],
+      "timeline": [
+        {
+          "date": "2025-09-01",
+          "lane": "Tratamiento",
+          "type": "Inicio de tratamiento",
+          "label": "Inicio de ustekinumab"
+        },
+        {
+          "date": "2026-04-23",
+          "lane": "Administración",
+          "type": "Administración",
+          "label": "Última administración registrada"
+        },
+        {
+          "date": "2026-05-07",
+          "lane": "Laboratorio",
+          "type": "Determinante recibido",
+          "label": "Nivel valle adecuado"
+        },
+        {
+          "date": "2026-05-12",
+          "lane": "Decisiones",
+          "type": "Análisis",
+          "label": "Posible fallo farmacodinámico"
+        },
+        {
+          "date": "2026-05-15",
+          "lane": "Decisiones",
+          "type": "Sesión",
+          "label": "Caso marcado para sesión de red"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Exposición adecuada con actividad inflamatoria",
+        "confidence": "Media",
+        "summary": "La persistencia de actividad con exposición adecuada sugiere posible fallo farmacodinámico o mecanismo no adecuado. Requiere revisión multidisciplinar."
+      },
+      "recommendation": {
+        "status": "Pendiente de revisión médica",
+        "text": "Llevar a sesión de red. Valorar cambio de mecanismo si se confirma actividad inflamatoria objetiva y se descartan causas alternativas."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Exposición adecuada a ustekinumab con actividad inflamatoria persistente. Se propone discusión multidisciplinar para valorar cambio de mecanismo, pendiente de completar información endoscópica."
+      },
+      "followUps": []
+    },
+    {
+      "_id": "case-0005",
+      "caseId": "PKPD-2026-0005",
+      "title": "Remisión con exposición alta",
+      "patientCode": "P-1120",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-hub",
+      "centerName": "Hospital Universitario de Bellvitge",
+      "requesterId": "pro-dig-001",
+      "requesterName": "Dra. Ana Beltrán",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Desintensificación",
+      "entrySource": "Seguimiento programado",
+      "priority": "Baja",
+      "pipelineStage": "Informe generado",
+      "nextAction": "Validar informe y programar seguimiento",
+      "createdAt": "2026-05-03T09:40:00+02:00",
+      "updatedAt": "2026-05-16T15:00:00+02:00",
+      "clinicalSummary": "Paciente con Crohn en remisión clínica y bioquímica, con exposición alta a infliximab. Se valora desintensificación con seguimiento estrecho.",
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileocolónico",
+        "activity": "Remisión",
+        "symptoms": "Asintomático"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "5 mg/kg",
+        "interval": "Cada 6 semanas",
+        "route": "Intravenosa",
+        "lastAdministration": "2026-05-01T09:30:00+02:00"
+      },
+      "labDeterminants": [
+        {
+          "label": "Concentración sérica de infliximab",
+          "value": 14.5,
+          "unit": "µg/mL",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Valle confirmado",
+          "interpretation": "Exposición alta"
+        },
+        {
+          "label": "Anticuerpos anti-infliximab",
+          "value": "Negativos",
+          "unit": null,
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "PCR",
+          "value": 2,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 80,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Falta confirmar preferencia del paciente",
+          "severity": "Informativo",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0009",
+          "title": "Confirmar preferencia del paciente",
+          "ownerRole": "Enfermería EII",
+          "ownerId": "pro-enf-001",
+          "priority": "Baja",
+          "status": "Pendiente",
+          "dueDate": "2026-05-20",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0010",
+          "title": "Validar informe de desintensificación",
+          "ownerRole": "Farmacéutico experto",
+          "ownerId": "pro-farm-001",
+          "priority": "Media",
+          "status": "En curso",
+          "dueDate": "2026-05-17",
+          "createdBy": "Agente de informe HCE"
+        }
+      ],
+      "timeline": [
+        {
+          "date": "2024-10-10",
+          "lane": "Tratamiento",
+          "type": "Inicio de tratamiento",
+          "label": "Inicio de infliximab"
+        },
+        {
+          "date": "2025-10-01",
+          "lane": "Clínica",
+          "type": "Seguimiento",
+          "label": "Remisión mantenida"
+        },
+        {
+          "date": "2026-05-01",
+          "lane": "Administración",
+          "type": "Administración",
+          "label": "Última infusión registrada"
+        },
+        {
+          "date": "2026-05-08",
+          "lane": "Laboratorio",
+          "type": "Determinante recibido",
+          "label": "Nivel alto con biomarcadores normales"
+        },
+        {
+          "date": "2026-05-16",
+          "lane": "Decisiones",
+          "type": "Informe",
+          "label": "Informe generado"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Exposición alta con remisión clínica",
+        "confidence": "Alta",
+        "summary": "Paciente potencialmente candidato a desintensificación, siempre con validación clínica y seguimiento estrecho."
+      },
+      "recommendation": {
+        "status": "Borrador IA",
+        "text": "Valorar espaciar intervalo si se confirma remisión sostenida y preferencia del paciente. Programar seguimiento clínico y bioquímico tras el cambio."
+      },
+      "clinicalNote": {
+        "status": "Informe generado",
+        "text": "Paciente en remisión clínica y bioquímica con exposición alta a infliximab y anticuerpos negativos. Se propone valorar desintensificación mediante espaciamiento de intervalo, con seguimiento a 4 y 8 semanas y confirmación de preferencia del paciente."
+      },
+      "followUps": [
+        {
+          "label": "Seguimiento 4 semanas",
+          "status": "Programado",
+          "dueDate": "2026-06-13"
+        },
+        {
+          "label": "Seguimiento 8 semanas",
+          "status": "Programado",
+          "dueDate": "2026-07-11"
+        }
+      ]
+    }
+  ],
+  "agentRuns": [
+    {
+      "_id": "run-0001",
+      "caseId": "PKPD-2026-0002",
+      "agent": "Agente de ingesta",
+      "status": "Completado",
+      "message": "Email convertido en caso estructurado",
+      "timestamp": "2026-05-09T08:46:00+02:00"
+    },
+    {
+      "_id": "run-0002",
+      "caseId": "PKPD-2026-0002",
+      "agent": "Agente de gaps",
+      "status": "Completado",
+      "message": "Detectados 2 gaps",
+      "timestamp": "2026-05-09T08:47:00+02:00"
+    },
+    {
+      "_id": "run-0003",
+      "caseId": "PKPD-2026-0002",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Patrón sugerido: baja exposición sin inmunogenicidad documentada",
+      "timestamp": "2026-05-16T13:10:00+02:00"
+    },
+    {
+      "_id": "run-0004",
+      "caseId": "PKPD-2026-0003",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Patrón sugerido: baja exposición con anticuerpos positivos",
+      "timestamp": "2026-05-16T09:30:00+02:00"
+    },
+    {
+      "_id": "run-0005",
+      "caseId": "PKPD-2026-0005",
+      "agent": "Agente de informe HCE",
+      "status": "Completado",
+      "message": "Borrador de informe generado",
+      "timestamp": "2026-05-16T15:00:00+02:00"
+    }
+  ],
+  "reportingSeed": {
+    "kpis": [
+      {
+        "label": "Casos activos",
+        "value": 5
+      },
+      {
+        "label": "Nuevos hoy",
+        "value": 1
+      },
+      {
+        "label": "Pendientes de determinantes",
+        "value": 1
+      },
+      {
+        "label": "Listos para revisión",
+        "value": 2
+      },
+      {
+        "label": "Con gaps críticos",
+        "value": 1
+      },
+      {
+        "label": "Seguimiento vencido",
+        "value": 0
+      }
+    ],
+    "charts": [
+      {
+        "label": "Casos por tipo",
+        "data": [
+          {
+            "label": "Debutante",
+            "value": 1
+          },
+          {
+            "label": "Pérdida de respuesta",
+            "value": 1
+          },
+          {
+            "label": "Cambio de medicación",
+            "value": 2
+          },
+          {
+            "label": "Desintensificación",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "label": "Casos por estado",
+        "data": [
+          {
+            "label": "Datos incompletos",
+            "value": 1
+          },
+          {
+            "label": "Análisis PK/PD generado",
+            "value": 1
+          },
+          {
+            "label": "Revisión farmacéutica",
+            "value": 1
+          },
+          {
+            "label": "Discusión en red",
+            "value": 1
+          },
+          {
+            "label": "Informe generado",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "label": "Gaps más frecuentes",
+        "data": [
+          {
+            "label": "Datos de seguridad",
+            "value": 1
+          },
+          {
+            "label": "Adherencia",
+            "value": 1
+          },
+          {
+            "label": "Historial terapéutico",
+            "value": 1
+          },
+          {
+            "label": "Endoscopia reciente",
+            "value": 1
+          },
+          {
+            "label": "Preferencia del paciente",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "taskId": "tsk-0001",
+      "title": "Completar cribado infeccioso",
+      "ownerRole": "Digestólogo",
+      "ownerId": "pro-dig-001",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-05-18",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0001",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "taskId": "tsk-0002",
+      "title": "Registrar peso actualizado",
+      "ownerRole": "Enfermería EII",
+      "ownerId": "pro-enf-001",
+      "priority": "Media",
+      "status": "Pendiente",
+      "dueDate": "2026-05-18",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0002",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "taskId": "tsk-0003",
+      "title": "Confirmar adherencia reciente",
+      "ownerRole": "Enfermería EII",
+      "ownerId": "pro-enf-001",
+      "priority": "Media",
+      "status": "Pendiente",
+      "dueDate": "2026-05-17",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0003",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "taskId": "tsk-0004",
+      "title": "Revisar propuesta de optimización",
+      "ownerRole": "Farmacéutico experto",
+      "ownerId": "pro-farm-001",
+      "priority": "Alta",
+      "status": "En curso",
+      "dueDate": "2026-05-17",
+      "createdBy": "Agente PK/PD",
+      "_id": "tsk-0004",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "taskId": "tsk-0005",
+      "title": "Revisar historial de biológicos previos",
+      "ownerRole": "Farmacéutico experto",
+      "ownerId": "pro-farm-002",
+      "priority": "Alta",
+      "status": "En curso",
+      "dueDate": "2026-05-17",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0005",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "taskId": "tsk-0006",
+      "title": "Confirmar estrategia de cambio con digestivo",
+      "ownerRole": "Digestólogo",
+      "ownerId": "pro-dig-002",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-05-18",
+      "createdBy": "Agente de recomendación",
+      "_id": "tsk-0006",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "taskId": "tsk-0007",
+      "title": "Añadir resultado endoscópico reciente",
+      "ownerRole": "Digestólogo",
+      "ownerId": "pro-dig-003",
+      "priority": "Media",
+      "status": "Pendiente",
+      "dueDate": "2026-05-20",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0007",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "taskId": "tsk-0008",
+      "title": "Preparar resumen para sesión",
+      "ownerRole": "Farmacéutico experto",
+      "ownerId": "pro-farm-001",
+      "priority": "Media",
+      "status": "En curso",
+      "dueDate": "2026-05-19",
+      "createdBy": "Agente de sesión",
+      "_id": "tsk-0008",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "taskId": "tsk-0009",
+      "title": "Confirmar preferencia del paciente",
+      "ownerRole": "Enfermería EII",
+      "ownerId": "pro-enf-001",
+      "priority": "Baja",
+      "status": "Pendiente",
+      "dueDate": "2026-05-20",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0009",
+      "caseId": "PKPD-2026-0005"
+    },
+    {
+      "taskId": "tsk-0010",
+      "title": "Validar informe de desintensificación",
+      "ownerRole": "Farmacéutico experto",
+      "ownerId": "pro-farm-001",
+      "priority": "Media",
+      "status": "En curso",
+      "dueDate": "2026-05-17",
+      "createdBy": "Agente de informe HCE",
+      "_id": "tsk-0010",
+      "caseId": "PKPD-2026-0005"
+    }
+  ],
+  "caseEvents": [
+    {
+      "date": "2026-04-20",
+      "lane": "Clínica",
+      "type": "Diagnóstico",
+      "label": "Diagnóstico de Crohn ileocolónico",
+      "_id": "evt-0001-01",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "date": "2026-05-02",
+      "lane": "Laboratorio",
+      "type": "Biomarcador",
+      "label": "Calprotectina fecal elevada",
+      "_id": "evt-0001-02",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "date": "2026-05-06",
+      "lane": "Decisiones",
+      "type": "Solicitud",
+      "label": "Solicitud inicial PK/PD",
+      "_id": "evt-0001-03",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "date": "2025-11-04",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de adalimumab",
+      "_id": "evt-0002-01",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "date": "2026-03-15",
+      "lane": "Clínica",
+      "type": "Seguimiento",
+      "label": "Mejoría clínica inicial",
+      "_id": "evt-0002-02",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "date": "2026-05-03",
+      "lane": "Administración",
+      "type": "Administración",
+      "label": "Última administración registrada",
+      "_id": "evt-0002-03",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "date": "2026-05-10",
+      "lane": "Laboratorio",
+      "type": "Extracción",
+      "label": "Muestra valle confirmada",
+      "_id": "evt-0002-04",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "date": "2026-05-12",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Nivel bajo y anticuerpos negativos",
+      "_id": "evt-0002-05",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "date": "2026-05-16",
+      "lane": "Decisiones",
+      "type": "Análisis",
+      "label": "Análisis PK/PD generado",
+      "_id": "evt-0002-06",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "date": "2025-08-14",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de infliximab",
+      "_id": "evt-0003-01",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "date": "2026-02-03",
+      "lane": "Clínica",
+      "type": "Seguimiento",
+      "label": "Respuesta parcial",
+      "_id": "evt-0003-02",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "date": "2026-04-28",
+      "lane": "Administración",
+      "type": "Administración",
+      "label": "Última infusión registrada",
+      "_id": "evt-0003-03",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "date": "2026-05-10",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Nivel muy bajo y anticuerpos positivos",
+      "_id": "evt-0003-04",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "date": "2026-05-16",
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "Propuesta de cambio pendiente de validación",
+      "_id": "evt-0003-05",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "date": "2025-09-01",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de ustekinumab",
+      "_id": "evt-0004-01",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "date": "2026-04-23",
+      "lane": "Administración",
+      "type": "Administración",
+      "label": "Última administración registrada",
+      "_id": "evt-0004-02",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "date": "2026-05-07",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Nivel valle adecuado",
+      "_id": "evt-0004-03",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "date": "2026-05-12",
+      "lane": "Decisiones",
+      "type": "Análisis",
+      "label": "Posible fallo farmacodinámico",
+      "_id": "evt-0004-04",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "date": "2026-05-15",
+      "lane": "Decisiones",
+      "type": "Sesión",
+      "label": "Caso marcado para sesión de red",
+      "_id": "evt-0004-05",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "date": "2024-10-10",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de infliximab",
+      "_id": "evt-0005-01",
+      "caseId": "PKPD-2026-0005"
+    },
+    {
+      "date": "2025-10-01",
+      "lane": "Clínica",
+      "type": "Seguimiento",
+      "label": "Remisión mantenida",
+      "_id": "evt-0005-02",
+      "caseId": "PKPD-2026-0005"
+    },
+    {
+      "date": "2026-05-01",
+      "lane": "Administración",
+      "type": "Administración",
+      "label": "Última infusión registrada",
+      "_id": "evt-0005-03",
+      "caseId": "PKPD-2026-0005"
+    },
+    {
+      "date": "2026-05-08",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Nivel alto con biomarcadores normales",
+      "_id": "evt-0005-04",
+      "caseId": "PKPD-2026-0005"
+    },
+    {
+      "date": "2026-05-16",
+      "lane": "Decisiones",
+      "type": "Informe",
+      "label": "Informe generado",
+      "_id": "evt-0005-05",
+      "caseId": "PKPD-2026-0005"
+    }
+  ],
+  "recommendations": [
+    {
+      "status": "Borrador IA",
+      "text": "Completar datos críticos antes de validar la estrategia inicial. Definir objetivo terapéutico y plan de seguimiento con determinantes según protocolo local.",
+      "_id": "rec-0001",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "status": "Borrador IA",
+      "text": "Valorar optimización de exposición antes de cambio de mecanismo. Confirmar adherencia reciente y revisar respuesta clínica tras ajuste con seguimiento a 4 y 8 semanas.",
+      "_id": "rec-0002",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "status": "Editado por farmacia",
+      "text": "Valorar cambio de estrategia terapéutica por inmunogenicidad probable. Revisar biológicos previos y consensuar alternativa con digestivo.",
+      "_id": "rec-0003",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "status": "Pendiente de revisión médica",
+      "text": "Llevar a sesión de red. Valorar cambio de mecanismo si se confirma actividad inflamatoria objetiva y se descartan causas alternativas.",
+      "_id": "rec-0004",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "status": "Borrador IA",
+      "text": "Valorar espaciar intervalo si se confirma remisión sostenida y preferencia del paciente. Programar seguimiento clínico y bioquímico tras el cambio.",
+      "_id": "rec-0005",
+      "caseId": "PKPD-2026-0005"
+    }
+  ],
+  "clinicalNotes": [
+    {
+      "status": "Borrador",
+      "text": "Pendiente de completar cribado infeccioso, peso actualizado y objetivo terapéutico antes de emitir recomendación farmacoterapéutica final.",
+      "_id": "note-0001",
+      "caseId": "PKPD-2026-0001"
+    },
+    {
+      "status": "Borrador",
+      "text": "Paciente con Crohn en adalimumab y pérdida de respuesta secundaria. Nivel valle bajo, anticuerpos anti-fármaco negativos y biomarcadores elevados. Patrón compatible con baja exposición sin inmunogenicidad documentada. Se propone valorar optimización de exposición, confirmar adherencia y programar seguimiento a 4 y 8 semanas.",
+      "_id": "note-0002",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "status": "Borrador",
+      "text": "Determinantes compatibles con inmunogenicidad: infliximab muy bajo y anticuerpos anti-fármaco positivos altos, con actividad inflamatoria. Se recomienda revisar historial terapéutico y valorar cambio de estrategia con digestivo.",
+      "_id": "note-0003",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "status": "Borrador",
+      "text": "Exposición adecuada a ustekinumab con actividad inflamatoria persistente. Se propone discusión multidisciplinar para valorar cambio de mecanismo, pendiente de completar información endoscópica.",
+      "_id": "note-0004",
+      "caseId": "PKPD-2026-0004"
+    },
+    {
+      "status": "Informe generado",
+      "text": "Paciente en remisión clínica y bioquímica con exposición alta a infliximab y anticuerpos negativos. Se propone valorar desintensificación mediante espaciamiento de intervalo, con seguimiento a 4 y 8 semanas y confirmación de preferencia del paciente.",
+      "_id": "note-0005",
+      "caseId": "PKPD-2026-0005"
+    }
+  ],
+  "followUps": [
+    {
+      "label": "Seguimiento 4 semanas",
+      "status": "Programado",
+      "dueDate": "2026-06-14",
+      "_id": "fu-0002-01",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "label": "Seguimiento 8 semanas",
+      "status": "Programado",
+      "dueDate": "2026-07-12",
+      "_id": "fu-0002-02",
+      "caseId": "PKPD-2026-0002"
+    },
+    {
+      "label": "Seguimiento 4 semanas",
+      "status": "Pendiente de programar",
+      "_id": "fu-0003-01",
+      "caseId": "PKPD-2026-0003"
+    },
+    {
+      "label": "Seguimiento 4 semanas",
+      "status": "Programado",
+      "dueDate": "2026-06-13",
+      "_id": "fu-0005-01",
+      "caseId": "PKPD-2026-0005"
+    },
+    {
+      "label": "Seguimiento 8 semanas",
+      "status": "Programado",
+      "dueDate": "2026-07-11",
+      "_id": "fu-0005-02",
+      "caseId": "PKPD-2026-0005"
+    }
+  ]
+}

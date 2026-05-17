@@ -1,0 +1,74 @@
+[
+  {
+    "_id": "USR-REF-001",
+    "name": "Reference PK/PD Pharmacist A",
+    "role": "reference_pharmacist",
+    "hospitalId": "HOSP-REF-01"
+  },
+  {
+    "_id": "USR-REF-002",
+    "name": "Reference PK/PD Pharmacist B",
+    "role": "reference_pharmacist",
+    "hospitalId": "HOSP-REF-01"
+  },
+  {
+    "_id": "USR-REF-003",
+    "name": "Reference Clinical Pharmacologist",
+    "role": "clinical_pharmacologist",
+    "hospitalId": "HOSP-REF-01"
+  },
+  {
+    "_id": "USR-HOSP-002-LOCAL",
+    "name": "Local Pharmacist 002",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-002"
+  },
+  {
+    "_id": "USR-HOSP-003-LOCAL",
+    "name": "Local Pharmacist 003",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-003"
+  },
+  {
+    "_id": "USR-HOSP-004-LOCAL",
+    "name": "Local Pharmacist 004",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-004"
+  },
+  {
+    "_id": "USR-HOSP-005-LOCAL",
+    "name": "Local Pharmacist 005",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-005"
+  },
+  {
+    "_id": "USR-HOSP-006-LOCAL",
+    "name": "Local Pharmacist 006",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-006"
+  },
+  {
+    "_id": "USR-HOSP-007-LOCAL",
+    "name": "Local Pharmacist 007",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-007"
+  },
+  {
+    "_id": "USR-HOSP-008-LOCAL",
+    "name": "Local Pharmacist 008",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-008"
+  },
+  {
+    "_id": "USR-HOSP-009-LOCAL",
+    "name": "Local Pharmacist 009",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-009"
+  },
+  {
+    "_id": "USR-HOSP-010-LOCAL",
+    "name": "Local Pharmacist 010",
+    "role": "local_pharmacist",
+    "hospitalId": "HOSP-010"
+  }
+]

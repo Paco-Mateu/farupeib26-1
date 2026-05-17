@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "UNIT-UG-ML",
+    "ucum": "ug/mL",
+    "display": "microgram per milliliter",
+    "category": "concentration"
+  },
+  {
+    "_id": "UNIT-MG-L",
+    "ucum": "mg/L",
+    "display": "milligram per liter",
+    "category": "concentration"
+  },
+  {
+    "_id": "UNIT-NG-ML",
+    "ucum": "ng/mL",
+    "display": "nanogram per milliliter",
+    "category": "concentration"
+  },
+  {
+    "_id": "UNIT-MG-DL",
+    "ucum": "mg/dL",
+    "display": "milligram per deciliter",
+    "category": "concentration"
+  },
+  {
+    "_id": "UNIT-ML-MIN-173",
+    "ucum": "mL/min/1.73m2",
+    "display": "milliliter per minute per 1.73 square meters",
+    "category": "renal function"
+  },
+  {
+    "_id": "UNIT-MG",
+    "ucum": "mg",
+    "display": "milligram",
+    "category": "mass"
+  },
+  {
+    "_id": "UNIT-MG-KG",
+    "ucum": "mg/kg",
+    "display": "milligram per kilogram",
+    "category": "dose"
+  },
+  {
+    "_id": "UNIT-U-L",
+    "ucum": "U/L",
+    "display": "enzyme unit per liter",
+    "category": "enzyme activity"
+  },
+  {
+    "_id": "UNIT-G-L",
+    "ucum": "g/L",
+    "display": "gram per liter",
+    "category": "concentration"
+  },
+  {
+    "_id": "UNIT-10E9-L",
+    "ucum": "10*9/L",
+    "display": "10^9 per liter",
+    "category": "count"
+  }
+]

@@ -1,0 +1,1082 @@
+[
+  {
+    "_id": "PSEUDO-10001",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 77,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10002",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 59,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-007",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10003",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 75,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10004",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 49,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10005",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 71,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10006",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 39,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-009",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10007",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 72,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10008",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 50,
+      "sex": "male"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10009",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 82,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10010",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 44,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10011",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 40,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10012",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 43,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10013",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 72,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-002",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10014",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 49,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-006",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10015",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 38,
+      "sex": "male"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-009",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10016",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 69,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-009",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10017",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 68,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10018",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 76,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10019",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 49,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-003",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10020",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 48,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10021",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 38,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10022",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 51,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10023",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 49,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-009",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10024",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 76,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-003",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10025",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 77,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-002",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10026",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 40,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-007",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10027",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 61,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10028",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 69,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-009",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10029",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 44,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10030",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 44,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-002",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10031",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 61,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-006",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10032",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 46,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10033",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 81,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-002",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10034",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 67,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10035",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 72,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-003",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10036",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 71,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10037",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 54,
+      "sex": "male"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10038",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 50,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10039",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 34,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-003",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10040",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 47,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10041",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 57,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10042",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 34,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10043",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 50,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10044",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 51,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10045",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 77,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10046",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 37,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-006",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10047",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 55,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-002",
+    "oncologyContext": "immunosuppressed",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10048",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 79,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-010",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10049",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 68,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "surveillance"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10050",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 61,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-004",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10051",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 47,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-007",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10052",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 73,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10053",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 35,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "surveillance",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10054",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 44,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer history",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-006",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10055",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 48,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer in remission",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-009",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10056",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 48,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Metastatic breast cancer",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-005",
+    "oncologyContext": "post-surgery follow-up",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10057",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 38,
+      "sex": "male"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-006",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10058",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 77,
+      "sex": "male"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer receiving chemotherapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10059",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 50,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "active"
+      }
+    ],
+    "homeHospitalId": "HOSP-003",
+    "oncologyContext": "active treatment",
+    "createdForDemo": true
+  },
+  {
+    "_id": "PSEUDO-10060",
+    "source": "synthetic_enrichment_over_fhir_synthea_breast_cancer",
+    "demographics": {
+      "age": 56,
+      "sex": "female"
+    },
+    "conditions": [
+      {
+        "code": "breast_cancer_context",
+        "display": "Breast cancer under endocrine therapy",
+        "status": "history"
+      }
+    ],
+    "homeHospitalId": "HOSP-008",
+    "oncologyContext": "febrile neutropenia context",
+    "createdForDemo": true
+  }
+]

@@ -1,0 +1,1444 @@
+'use client'
+
+import {
+  Activity,
+  BarChart3,
+  Bell,
+  Bot,
+  Building2,
+  CalendarRange,
+  ChevronDown,
+  Cog,
+  FilePlus2,
+  FolderCog,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Search,
+  ShieldCheck,
+  TriangleAlert,
+  UserRound,
+  Users2,
+  Video,
+  X,
+} from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
+  type ElementType,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+
+import type {
+  Agent,
+  CasoCompleto,
+  CasoResumen,
+  Center,
+  ClinicalForm,
+  InboxItem,
+  Professional,
+  ProfessionalApproval,
+  Program,
+  Vista,
+} from '@/components/pkpd/pro/xarxa-types'
+import {
+  WorkspaceErrorState,
+  WorkspaceLoadingState,
+} from '@/components/pkpd/pro/workspace-state'
+import { AdminClinico } from '@/components/pkpd/pro/views/admin-clinico'
+import { AgentesIa } from '@/components/pkpd/pro/views/agentes-ia'
+import { BandejaIa } from '@/components/pkpd/pro/views/bandeja-ia'
+import { CaseCockpit } from '@/components/pkpd/pro/views/case-cockpit'
+import { CasosPkpd } from '@/components/pkpd/pro/views/casos-pkpd'
+import { Configuracion } from '@/components/pkpd/pro/views/configuracion'
+import { NuevoCasoWizard } from '@/components/pkpd/pro/views/nuevo-caso-wizard'
+import { Profesionales } from '@/components/pkpd/pro/views/profesionales'
+import { Reporting } from '@/components/pkpd/pro/views/reporting'
+import { Sesiones } from '@/components/pkpd/pro/views/sesiones'
+import { fetchJson } from '@/lib/fetch-json'
+
+type NavItem = {
+  vista: Vista
+  label: string
+  icon: ElementType
+}
+
+type SessionItem = {
+  sessionId: string
+  title: string
+  status: 'scheduled' | 'live' | 'done'
+  date: string
+  casesCount: number
+  participants: string[]
+}
+
+type HeaderMetric = {
+  label: string
+  value: string | number
+  tone?: 'default' | 'accent' | 'warning' | 'danger'
+}
+
+type ShellNotification = {
+  id: string
+  title: string
+  detail: string
+  vista: Vista
+  icon: ElementType
+}
+
+type PaletteItem = {
+  id: string
+  label: string
+  description: string
+  meta?: string
+  icon: ElementType
+  onSelect: () => void
+}
+
+type PaletteSection = {
+  label: string
+  items: PaletteItem[]
+}
+
+const MAIN_NAV: NavItem[] = [
+  { vista: 'casos', label: 'Casos PK/PD', icon: LayoutDashboard },
+  { vista: 'nuevo', label: 'Nuevo caso', icon: FilePlus2 },
+  { vista: 'bandeja', label: 'Bandeja IA', icon: Inbox },
+  { vista: 'sesiones', label: 'Sesiones de red', icon: Video },
+  { vista: 'reporting', label: 'Informes y actividad', icon: BarChart3 },
+  { vista: 'profesionales', label: 'Red de centros', icon: Users2 },
+]
+
+const ADMIN_NAV: NavItem[] = [
+  { vista: 'agentes', label: 'Agentes IA', icon: Bot },
+  { vista: 'admin', label: 'Admin clínico', icon: ShieldCheck },
+  { vista: 'config', label: 'Configuración', icon: Cog },
+]
+
+const NAV: NavItem[] = [...MAIN_NAV, ...ADMIN_NAV]
+const ADMIN_VISTAS: Vista[] = ['agentes', 'admin', 'config']
+const VALID_VISTAS: Vista[] = [
+  'casos',
+  'nuevo',
+  'bandeja',
+  'sesiones',
+  'reporting',
+  'profesionales',
+  'agentes',
+  'admin',
+  'config',
+]
+
+const DATE_RANGES = [
+  { value: 7, label: 'Últimos 7 días' },
+  { value: 30, label: 'Últimos 30 días' },
+  { value: 90, label: 'Últimos 90 días' },
+  { value: 0, label: 'Todo el período' },
+]
+
+function formatDateRangeLabel(days: number) {
+  return DATE_RANGES.find((item) => item.value === days)?.label ?? 'Últimos 30 días'
+}
+
+function metricToneClass(tone: HeaderMetric['tone']) {
+  switch (tone) {
+    case 'accent':
+      return 'border-[#8dc63f]/20 bg-[#8dc63f]/8 text-[#5a7820]'
+    case 'warning':
+      return 'border-amber-200 bg-amber-50 text-amber-700'
+    case 'danger':
+      return 'border-red-200 bg-red-50 text-red-700'
+    default:
+      return 'border-slate-200 bg-white text-[#152520]'
+  }
+}
+
+function Sidebar({
+  active,
+  onNavigate,
+  bandejaCount,
+}: {
+  active: Vista
+  onNavigate: (v: Vista) => void
+  bandejaCount: number
+}) {
+  const isAdminVista = ADMIN_VISTAS.includes(active)
+  const [adminOpen, setAdminOpen] = useState(isAdminVista)
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    if (isAdminVista) setAdminOpen(true)
+  }, [isAdminVista])
+
+  function renderNavItem({ vista, label, icon: Icon }: NavItem) {
+    const isActive = active === vista
+    return (
+      <li key={vista}>
+        <button
+          title={collapsed ? label : undefined}
+          onClick={() => onNavigate(vista)}
+          className={`relative flex w-full items-center rounded-xl px-2.5 py-2 text-sm transition ${
+            collapsed ? 'justify-center' : 'gap-2.5'
+          } ${
+            isActive
+              ? 'bg-[#f0f7e3] font-semibold text-[#152520]'
+              : 'text-[#4a7068] hover:bg-slate-50 hover:text-[#152520]'
+          }`}
+        >
+          <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#8dc63f]' : 'text-[#4a7068]'}`} />
+          {!collapsed && <span className="truncate">{label}</span>}
+          {!collapsed && vista === 'bandeja' && bandejaCount > 0 ? (
+            <span className="ml-auto rounded-full bg-[#e8501e] px-1.5 py-0.5 text-[10px] font-bold text-white">
+              {bandejaCount}
+            </span>
+          ) : null}
+          {collapsed && vista === 'bandeja' && bandejaCount > 0 ? (
+            <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#e8501e]" />
+          ) : null}
+        </button>
+      </li>
+    )
+  }
+
+  return (
+    <aside
+      className={`relative flex h-full shrink-0 flex-col border-r border-slate-100 bg-white transition-all duration-200 ${
+        collapsed ? 'w-14' : 'w-56'
+      }`}
+    >
+      <div
+        className={`flex items-center border-b border-slate-100 ${
+          collapsed ? 'justify-center px-3 py-4' : 'px-4 py-3'
+        }`}
+      >
+        {collapsed ? (
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+            style={{ background: 'linear-gradient(135deg, #8dc63f 50%, #7b3fa0 50%)' }}
+          >
+            <Activity className="h-4 w-4 text-white" />
+          </div>
+        ) : (
+          <div className="min-w-0 flex-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/xarxapkpd.png" alt="Xarxa PK/PD" className="h-8 w-auto" />
+            <p className="mt-0.5 text-[10px] text-[#4a7068]">Crohn PK/PD</p>
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={() => setCollapsed((value) => !value)}
+        className="absolute -right-3 top-[52px] z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-[#4a7068] shadow-sm transition hover:text-[#152520]"
+        title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+      >
+        <ChevronDown className={`h-3 w-3 transition-transform ${collapsed ? '-rotate-90' : 'rotate-90'}`} />
+      </button>
+
+      <nav className="flex-1 overflow-y-auto px-1.5 py-3">
+        <ul className="space-y-0.5">{MAIN_NAV.map((item) => renderNavItem(item))}</ul>
+
+        <div className="mt-4">
+          {collapsed ? (
+            <div className="mb-1 h-px bg-slate-100" />
+          ) : (
+            <button
+              onClick={() => setAdminOpen((value) => !value)}
+              className="flex w-full items-center gap-1 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7b3fa0] transition hover:text-[#6b30a0]"
+            >
+              <span className="flex-1 text-left">Admin</span>
+              <ChevronDown className={`h-3 w-3 transition-transform ${adminOpen ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+          {(adminOpen || collapsed) ? <ul className="space-y-0.5">{ADMIN_NAV.map((item) => renderNavItem(item))}</ul> : null}
+        </div>
+      </nav>
+
+      <div className={`border-t border-slate-100 px-2 py-3 ${collapsed ? 'flex justify-center' : 'px-3'}`}>
+        {collapsed ? (
+          <div
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]"
+            title="Farmacéutico referente · H.U. Bellvitge"
+          >
+            FM
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]">
+              FM
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] font-medium text-[#152520]">Farmacéutico referente</p>
+              <p className="truncate text-[10px] text-[#4a7068]">H.U. Bellvitge</p>
+            </div>
+            <button className="text-[#4a7068]/40 hover:text-[#4a7068]">
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+    </aside>
+  )
+}
+
+function MetricPill({ metric }: { metric: HeaderMetric }) {
+  return (
+    <div
+      className={`rounded-2xl border px-3 py-2 shadow-sm transition ${metricToneClass(metric.tone)}`}
+    >
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">
+        {metric.label}
+      </p>
+      <p className="mt-1 text-sm font-semibold">{metric.value}</p>
+    </div>
+  )
+}
+
+function TopHeader({
+  vistaLabel,
+  metrics,
+  programs,
+  centers,
+  selectedProgramId,
+  selectedCenterId,
+  dateRangeDays,
+  onProgramChange,
+  onCenterChange,
+  onDateRangeChange,
+  onOpenPalette,
+  notifications,
+  notificationsOpen,
+  onToggleNotifications,
+  onNavigateNotification,
+  notificationContainerRef,
+  shellLoading,
+}: {
+  vistaLabel: string
+  metrics: HeaderMetric[]
+  programs: Program[]
+  centers: Center[]
+  selectedProgramId: string
+  selectedCenterId: string
+  dateRangeDays: number
+  onProgramChange: (programId: string) => void
+  onCenterChange: (centerId: string) => void
+  onDateRangeChange: (days: number) => void
+  onOpenPalette: () => void
+  notifications: ShellNotification[]
+  notificationsOpen: boolean
+  onToggleNotifications: () => void
+  onNavigateNotification: (vista: Vista) => void
+  notificationContainerRef: RefObject<HTMLDivElement>
+  shellLoading: boolean
+}) {
+  return (
+    <header className="shrink-0 border-b border-slate-100 bg-white">
+      <div className="flex items-center justify-between gap-4 px-5 py-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
+            Xarxa PK/PD
+          </p>
+          <h1 className="truncate text-base font-semibold text-[#152520]">{vistaLabel}</h1>
+        </div>
+
+        <div className="flex flex-1 items-center justify-end gap-2">
+          <div className="hidden min-w-[240px] max-w-md flex-1 lg:block">
+            <button
+              onClick={onOpenPalette}
+              className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-[#4a7068] transition hover:border-slate-300 hover:bg-white"
+            >
+              <Search className="h-4 w-4 text-[#4a7068]" />
+              <span className="flex-1 truncate">Buscar caso, paciente, profesional o centro…</span>
+              <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                ⌘K
+              </span>
+            </button>
+          </div>
+
+          <select
+            value={selectedProgramId}
+            onChange={(event) => onProgramChange(event.target.value)}
+            disabled={shellLoading && programs.length === 0}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none"
+          >
+            {programs.length === 0 ? <option value="">Programa: Crohn PK/PD</option> : null}
+            {programs.map((program) => (
+              <option key={program._id} value={program._id}>
+                Programa: {program.label}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedCenterId}
+            onChange={(event) => onCenterChange(event.target.value)}
+            disabled={shellLoading && centers.length === 0}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none"
+          >
+            <option value="">Centro: Todos los centros</option>
+            {centers.map((center) => (
+              <option key={center._id} value={center._id}>
+                Centro: {center.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={dateRangeDays}
+            onChange={(event) => onDateRangeChange(Number(event.target.value))}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none"
+          >
+            {DATE_RANGES.map((range) => (
+              <option key={range.value} value={range.value}>
+                {range.label}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={onOpenPalette}
+            className="rounded-xl border border-slate-200 p-2 text-[#4a7068] transition hover:bg-slate-50 lg:hidden"
+            title="Buscar"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+
+          <div className="relative" ref={notificationContainerRef}>
+            <button
+              onClick={onToggleNotifications}
+              className="relative rounded-xl border border-slate-200 p-2 text-[#4a7068] transition hover:bg-slate-50"
+              title="Notificaciones"
+            >
+              <Bell className="h-4 w-4" />
+              {notifications.length > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#e8501e] px-1 text-[10px] font-bold text-white">
+                  {notifications.length}
+                </span>
+              ) : null}
+            </button>
+
+            {notificationsOpen ? (
+              <div className="absolute right-0 z-30 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                <div className="border-b border-slate-100 px-2 pb-2">
+                  <p className="text-sm font-semibold text-[#152520]">Notificaciones operativas</p>
+                  <p className="text-xs text-[#4a7068]">Pendientes que requieren atención humana o coordinación de red.</p>
+                </div>
+                <div className="max-h-[26rem] space-y-1 overflow-y-auto px-1 py-2">
+                  {notifications.length > 0 ? (
+                    notifications.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => onNavigateNotification(item.vista)}
+                          className="w-full rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2 text-left transition hover:border-slate-200 hover:bg-white"
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-[#8dc63f]">
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-semibold text-[#152520]">{item.title}</p>
+                              <p className="mt-0.5 text-[11px] text-[#4a7068]">{item.detail}</p>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })
+                  ) : (
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-4 text-xs text-[#4a7068]">
+                      No hay alertas críticas en este momento.
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-2.5 py-1.5 text-left transition hover:bg-slate-50">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]">
+              FM
+            </div>
+            <div className="hidden text-left md:block">
+              <p className="text-xs font-semibold text-[#152520]">Farmacia referente</p>
+              <p className="text-[10px] text-[#4a7068]">Bellvitge</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-5 py-3">
+        {metrics.map((metric) => (
+          <MetricPill key={metric.label} metric={metric} />
+        ))}
+        <div className="ml-auto hidden items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-[#4a7068] xl:flex">
+          <CalendarRange className="h-3.5 w-3.5" />
+          {formatDateRangeLabel(dateRangeDays)}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function CommandPalette({
+  open,
+  query,
+  sections,
+  onQueryChange,
+  onClose,
+}: {
+  open: boolean
+  query: string
+  sections: PaletteSection[]
+  onQueryChange: (value: string) => void
+  onClose: () => void
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const flatItems = sections.flatMap((section) => section.items)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    if (!open) return
+    setActiveIndex(0)
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus())
+    return () => window.cancelAnimationFrame(frame)
+  }, [open])
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [query, sections])
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      if (flatItems.length === 0) return
+      setActiveIndex((current) => (current + 1) % flatItems.length)
+      return
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (flatItems.length === 0) return
+      setActiveIndex((current) => (current - 1 + flatItems.length) % flatItems.length)
+      return
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      flatItems[activeIndex]?.onSelect()
+      onClose()
+      return
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      onClose()
+    }
+  }
+
+  if (!open) return null
+
+  let renderedIndex = -1
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-20">
+      <button
+        type="button"
+        aria-label="Cerrar buscador"
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px]"
+      />
+
+      <div className="relative z-10 w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+          <Search className="h-4 w-4 text-[#4a7068]" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Buscar acciones, casos, centros o profesionales…"
+            className="flex-1 bg-transparent text-sm text-[#152520] outline-none placeholder:text-slate-400"
+          />
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-[#4a7068] transition hover:bg-slate-100"
+            title="Cerrar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="max-h-[65vh] overflow-y-auto p-3">
+          {sections.length > 0 ? (
+            <div className="space-y-4">
+              {sections.map((section) => (
+                <div key={section.label}>
+                  <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">
+                    {section.label}
+                  </p>
+                  <div className="space-y-1">
+                    {section.items.map((item) => {
+                      renderedIndex += 1
+                      const isActive = renderedIndex === activeIndex
+                      const Icon = item.icon
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            item.onSelect()
+                            onClose()
+                          }}
+                          className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition ${
+                            isActive ? 'bg-[#f0f7e3]' : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#8dc63f] shadow-sm">
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-semibold text-[#152520]">{item.label}</p>
+                              {item.meta ? (
+                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+                                  {item.meta}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-0.5 text-xs text-[#4a7068]">{item.description}</p>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center">
+              <p className="text-sm font-semibold text-[#152520]">Sin resultados</p>
+              <p className="mt-1 text-xs text-[#4a7068]">
+                Prueba con un caso, un profesional, un centro o una acción del circuito.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function XarraPro() {
+  const router = useRouter()
+  const params = useSearchParams()
+
+  const rawVista = params.get('vista') as Vista | null
+  const activeVista: Vista = VALID_VISTAS.includes(rawVista as Vista) ? (rawVista as Vista) : 'casos'
+
+  const [casos, setCasos] = useState<CasoResumen[]>([])
+  const [kpis, setKpis] = useState<Array<{ label: string; value: number }>>([])
+  const [programs, setPrograms] = useState<Program[]>([])
+  const [forms, setForms] = useState<ClinicalForm[]>([])
+  const [centers, setCenters] = useState<Center[]>([])
+  const [professionals, setProfessionals] = useState<Professional[]>([])
+  const [pendingApprovals, setPendingApprovals] = useState<ProfessionalApproval[]>([])
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [sessions, setSessions] = useState<SessionItem[]>([])
+  const [inboxItems, setInboxItems] = useState<InboxItem[]>([])
+  const [selectedProgramId, setSelectedProgramId] = useState('prog-crohn')
+  const [selectedCenterId, setSelectedCenterId] = useState('')
+  const [dateRangeDays, setDateRangeDays] = useState(30)
+  const [openCaseId, setOpenCaseId] = useState<string | null>(null)
+  const [openCase, setOpenCase] = useState<CasoCompleto | null>(null)
+  const [seedStatus, setSeedStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [seedError, setSeedError] = useState<string | null>(null)
+  const [shellStatus, setShellStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [queueStatus, setQueueStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [queueError, setQueueError] = useState<string | null>(null)
+  const [caseStatus, setCaseStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [caseError, setCaseError] = useState<string | null>(null)
+  const [caseReloadKey, setCaseReloadKey] = useState(0)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [paletteQuery, setPaletteQuery] = useState('')
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+
+  const seededRef = useRef(false)
+  const notificationContainerRef = useRef<HTMLDivElement>(null)
+
+  async function seedDemo() {
+    setSeedStatus('loading')
+    setSeedError(null)
+
+    try {
+      await fetchJson<{ status: string }>('/api/xarxa/seed', { method: 'POST' })
+      setSeedStatus('ready')
+      return true
+    } catch (error) {
+      setSeedStatus('error')
+      setSeedError(
+        error instanceof Error ? error.message : 'No se ha podido preparar el entorno demo.'
+      )
+      return false
+    }
+  }
+
+  async function loadShellContext() {
+    setShellStatus('loading')
+
+    const [professionalsResult, programsResult, agentsResult, sessionsResult, inboxResult] =
+      await Promise.allSettled([
+        fetchJson<{
+          professionals?: Professional[]
+          centers?: Center[]
+          pendingApprovals?: ProfessionalApproval[]
+        }>('/api/xarxa/professionals'),
+        fetchJson<{ items?: Program[]; forms?: ClinicalForm[] }>('/api/xarxa/programs'),
+        fetchJson<{ items?: Agent[] }>('/api/xarxa/agents'),
+        fetchJson<{ items?: SessionItem[] }>('/api/xarxa/sessions'),
+        fetchJson<{ items?: InboxItem[] }>('/api/xarxa/inbox'),
+      ])
+
+    let successCount = 0
+
+    if (professionalsResult.status === 'fulfilled') {
+      setProfessionals(professionalsResult.value.professionals ?? [])
+      setCenters(professionalsResult.value.centers ?? [])
+      setPendingApprovals(professionalsResult.value.pendingApprovals ?? [])
+      successCount += 1
+    }
+
+    if (programsResult.status === 'fulfilled') {
+      setPrograms(programsResult.value.items ?? [])
+      setForms(programsResult.value.forms ?? [])
+      successCount += 1
+    }
+
+    if (agentsResult.status === 'fulfilled') {
+      setAgents(agentsResult.value.items ?? [])
+      successCount += 1
+    }
+
+    if (sessionsResult.status === 'fulfilled') {
+      setSessions(sessionsResult.value.items ?? [])
+      successCount += 1
+    }
+
+    if (inboxResult.status === 'fulfilled') {
+      setInboxItems(inboxResult.value.items ?? [])
+      successCount += 1
+    }
+
+    setShellStatus(successCount > 0 ? 'ready' : 'error')
+  }
+
+  const loadQueue = useCallback(async () => {
+    setQueueStatus('loading')
+    setQueueError(null)
+
+    try {
+      const query = new URLSearchParams()
+      if (selectedCenterId) query.set('center', selectedCenterId)
+      if (selectedProgramId) query.set('program', selectedProgramId)
+      if (dateRangeDays > 0) query.set('days', String(dateRangeDays))
+
+      const suffix = query.toString() ? `?${query.toString()}` : ''
+      const [kpisData, casesData] = await Promise.all([
+        fetchJson<{ kpis?: Array<{ label: string; value: number }> }>(`/api/xarxa/kpis${suffix}`),
+        fetchJson<{ items?: CasoResumen[] }>(`/api/xarxa/cases${suffix}`),
+      ])
+
+      setKpis(kpisData.kpis ?? [])
+      setCasos(casesData.items ?? [])
+      setQueueStatus('ready')
+    } catch (error) {
+      setQueueStatus('error')
+      setQueueError(
+        error instanceof Error ? error.message : 'No se ha podido cargar la cola de casos.'
+      )
+    }
+  }, [dateRangeDays, selectedCenterId, selectedProgramId])
+
+  useEffect(() => {
+    if (seededRef.current) return
+    seededRef.current = true
+    void seedDemo()
+  }, [])
+
+  useEffect(() => {
+    if (seedStatus !== 'ready') return
+    void loadShellContext()
+  }, [seedStatus])
+
+  useEffect(() => {
+    if (programs.length === 0) return
+    if (programs.some((program) => program._id === selectedProgramId)) return
+    const preferred =
+      programs.find((program) => program._id === 'prog-crohn') ??
+      programs.find((program) => program.label.toLowerCase().includes('crohn')) ??
+      programs[0]
+    if (preferred) setSelectedProgramId(preferred._id)
+  }, [programs, selectedProgramId])
+
+  useEffect(() => {
+    if (seedStatus !== 'ready') return
+    void loadQueue()
+  }, [seedStatus, loadQueue])
+
+  useEffect(() => {
+    if (!openCaseId) {
+      setOpenCase(null)
+      setCaseStatus('idle')
+      setCaseError(null)
+      return
+    }
+
+    let cancelled = false
+
+    async function loadCase(caseId: string) {
+      setCaseStatus('loading')
+      setCaseError(null)
+
+      try {
+        const data = await fetchJson<CasoCompleto>(`/api/xarxa/cases/${caseId}`)
+        if (cancelled) return
+        setOpenCase(data)
+        setCaseStatus('ready')
+      } catch (error) {
+        if (cancelled) return
+        setOpenCase(null)
+        setCaseStatus('error')
+        setCaseError(error instanceof Error ? error.message : 'No se ha podido cargar el caso.')
+      }
+    }
+
+    void loadCase(openCaseId)
+
+    return () => {
+      cancelled = true
+    }
+  }, [openCaseId, caseReloadKey])
+
+  useEffect(() => {
+    function handleGlobalKeydown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setNotificationsOpen(false)
+        setPaletteOpen(true)
+      }
+      if (event.key === 'Escape') {
+        setNotificationsOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeydown)
+    return () => window.removeEventListener('keydown', handleGlobalKeydown)
+  }, [])
+
+  useEffect(() => {
+    if (!notificationsOpen) return
+
+    function handleOutsideClick(event: MouseEvent) {
+      if (
+        notificationContainerRef.current &&
+        !notificationContainerRef.current.contains(event.target as Node)
+      ) {
+        setNotificationsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [notificationsOpen])
+
+  const navigate = useCallback((vista: Vista) => {
+    router.push(`/?vista=${vista}`)
+    setOpenCaseId(null)
+    setOpenCase(null)
+    setCaseStatus('idle')
+    setCaseError(null)
+    setNotificationsOpen(false)
+  }, [router])
+
+  function openPalette(initialQuery = '') {
+    setNotificationsOpen(false)
+    setPaletteQuery(initialQuery)
+    setPaletteOpen(true)
+  }
+
+  function closePalette() {
+    setPaletteOpen(false)
+    setPaletteQuery('')
+  }
+
+  const vistaLabel = NAV.find((item) => item.vista === activeVista)?.label ?? 'Casos PK/PD'
+  const readyInboxCount = inboxItems.filter((item) => item.agentStatus === 'ready').length
+  const processingInboxCount = inboxItems.filter((item) => item.agentStatus === 'processing').length
+  const createdInboxCount = inboxItems.filter((item) => item.agentStatus === 'created').length
+  const criticalCasesCount = casos.filter(
+    (caso) =>
+      caso.priority === 'Urgente' ||
+      caso.gaps.some((gap) => gap.severity === 'Crítico' && gap.status !== 'Resuelta')
+  ).length
+  const readyForReviewCount = casos.filter((caso) =>
+    ['Análisis PK/PD generado', 'Revisión farmacéutica', 'Revisión médica'].includes(
+      caso.pipelineStage
+    )
+  ).length
+  const liveSessionsCount = sessions.filter((session) => session.status === 'live').length
+  const scheduledSessionsCount = sessions.filter((session) => session.status === 'scheduled').length
+  const activeProfessionalsCount = professionals.filter(
+    (professional) => professional.status === 'Activo'
+  ).length
+  const activeAgentsCount = agents.filter((agent) => agent.status === 'Activo').length
+  const agentsWithHumanValidation = agents.filter((agent) => agent.requiresHumanValidation).length
+  const recentAgentRunsCount = agents.reduce(
+    (total, agent) => total + (agent.recentRuns?.length ?? 0),
+    0
+  )
+  const activeProgramsCount = programs.filter((program) => program.status === 'Activo').length
+  const draftProgramsCount = programs.filter((program) =>
+    program.status.toLowerCase().includes('borrador')
+  ).length
+  const bandejaCount = inboxItems.filter(
+    (item) => item.agentStatus !== 'created' && item.agentStatus !== 'error'
+  ).length
+
+  const headerMetrics = useMemo<HeaderMetric[]>(() => {
+    if (activeVista === 'casos') {
+      return kpis.length > 0
+        ? kpis.slice(0, 4).map((item, index) => ({
+            label: item.label,
+            value: item.value,
+            tone: index === 2 ? 'warning' : 'default',
+          }))
+        : [
+            { label: 'Casos activos', value: casos.length, tone: 'accent' },
+            { label: 'Listos para revisión', value: readyForReviewCount, tone: 'accent' },
+            { label: 'Gaps críticos', value: criticalCasesCount, tone: criticalCasesCount > 0 ? 'danger' : 'default' },
+            { label: 'Seguimiento pendiente', value: casos.filter((item) => item.pipelineStage.includes('Seguimiento')).length, tone: 'warning' },
+          ]
+    }
+
+    if (activeVista === 'bandeja') {
+      return [
+        { label: 'Solicitudes listas', value: readyInboxCount, tone: 'accent' },
+        { label: 'En procesamiento', value: processingInboxCount, tone: 'warning' },
+        { label: 'Casos creados', value: createdInboxCount, tone: 'default' },
+        {
+          label: 'Gaps detectados',
+          value: inboxItems.reduce((sum, item) => sum + (item.detectedGaps?.length ?? 0), 0),
+          tone: 'danger',
+        },
+      ]
+    }
+
+    if (activeVista === 'sesiones') {
+      return [
+        { label: 'Sesiones activas', value: liveSessionsCount, tone: liveSessionsCount > 0 ? 'accent' : 'default' },
+        { label: 'Programadas', value: scheduledSessionsCount, tone: 'default' },
+        { label: 'Casos en agenda', value: sessions.reduce((sum, session) => sum + session.casesCount, 0), tone: 'warning' },
+        { label: 'Centros participantes', value: new Set(sessions.flatMap((session) => session.participants)).size, tone: 'default' },
+      ]
+    }
+
+    if (activeVista === 'reporting') {
+      return (kpis.length > 0
+        ? kpis.slice(0, 4).map((item, index) => ({
+            label: item.label,
+            value: item.value,
+            tone: index === 0 ? 'accent' : 'default',
+          }))
+        : [{ label: 'Casos activos', value: casos.length, tone: 'accent' }]) as HeaderMetric[]
+    }
+
+    if (activeVista === 'profesionales') {
+      return [
+        { label: 'Profesionales activos', value: activeProfessionalsCount, tone: 'accent' },
+        { label: 'Centros operativos', value: centers.filter((center) => center.status === 'Activo').length, tone: 'default' },
+        { label: 'Pendientes de acceso', value: pendingApprovals.length, tone: pendingApprovals.length > 0 ? 'warning' : 'default' },
+        { label: 'Farmacia experta', value: professionals.filter((professional) => professional.roleLabel === 'Farmacéutico experto').length, tone: 'default' },
+      ]
+    }
+
+    if (activeVista === 'agentes') {
+      return [
+        { label: 'Agentes activos', value: activeAgentsCount, tone: 'accent' },
+        { label: 'Validación humana', value: agentsWithHumanValidation, tone: 'warning' },
+        { label: 'Ejecuciones recientes', value: recentAgentRunsCount, tone: 'default' },
+        { label: 'Incidencias', value: agents.reduce((sum, agent) => sum + (agent.recentRuns?.filter((run) => run.status === 'Error').length ?? 0), 0), tone: 'danger' },
+      ]
+    }
+
+    if (activeVista === 'admin') {
+      return [
+        { label: 'Programas activos', value: activeProgramsCount, tone: 'accent' },
+        { label: 'Borradores', value: draftProgramsCount, tone: 'warning' },
+        { label: 'Formularios', value: forms.length, tone: 'default' },
+        { label: 'Especialidades', value: new Set(programs.map((program) => program.specialty)).size, tone: 'default' },
+      ]
+    }
+
+    if (activeVista === 'config') {
+      return [
+        { label: 'Centros conectados', value: centers.length, tone: 'default' },
+        { label: 'Agentes configurados', value: agents.length, tone: 'accent' },
+        { label: 'Programas disponibles', value: programs.length, tone: 'default' },
+        { label: 'Sesiones trazables', value: sessions.length, tone: 'warning' },
+      ]
+    }
+
+    return [
+      { label: 'Programa activo', value: programs.find((program) => program._id === selectedProgramId)?.label ?? 'Crohn PK/PD', tone: 'accent' },
+      { label: 'Centro', value: centers.find((center) => center._id === selectedCenterId)?.name ?? 'Todos los centros', tone: 'default' },
+      { label: 'Solicitudes en cola', value: bandejaCount, tone: 'warning' },
+      { label: 'Casos activos', value: casos.length, tone: 'default' },
+    ]
+  }, [
+    activeAgentsCount,
+    activeProfessionalsCount,
+    activeProgramsCount,
+    activeVista,
+    agents,
+    agentsWithHumanValidation,
+    bandejaCount,
+    casos,
+    centers,
+    createdInboxCount,
+    criticalCasesCount,
+    draftProgramsCount,
+    forms.length,
+    inboxItems,
+    kpis,
+    liveSessionsCount,
+    pendingApprovals.length,
+    processingInboxCount,
+    programs,
+    readyForReviewCount,
+    readyInboxCount,
+    recentAgentRunsCount,
+    scheduledSessionsCount,
+    selectedCenterId,
+    selectedProgramId,
+    sessions,
+    professionals,
+  ])
+
+  const notifications = useMemo<ShellNotification[]>(() => {
+    const items: ShellNotification[] = []
+
+    if (pendingApprovals.length > 0) {
+      items.push({
+        id: 'pending-approvals',
+        title: `${pendingApprovals.length} acceso${pendingApprovals.length === 1 ? '' : 's'} pendiente${pendingApprovals.length === 1 ? '' : 's'}`,
+        detail: 'Requieren validación de rol y centro antes de incorporarse a la red.',
+        vista: 'profesionales',
+        icon: Users2,
+      })
+    }
+
+    if (readyInboxCount > 0 || processingInboxCount > 0) {
+      items.push({
+        id: 'inbox-ready',
+        title: `${readyInboxCount} solicitudes listas y ${processingInboxCount} en procesamiento`,
+        detail: 'La bandeja IA tiene nuevas solicitudes para revisar o convertir en caso.',
+        vista: 'bandeja',
+        icon: Inbox,
+      })
+    }
+
+    if (criticalCasesCount > 0) {
+      items.push({
+        id: 'critical-cases',
+        title: `${criticalCasesCount} casos con riesgo o gaps críticos`,
+        detail: 'Conviene revisar la cola operativa y reasignar prioridades si hace falta.',
+        vista: 'casos',
+        icon: TriangleAlert,
+      })
+    }
+
+    if (liveSessionsCount > 0) {
+      items.push({
+        id: 'live-sessions',
+        title: `${liveSessionsCount} sesión${liveSessionsCount === 1 ? '' : 'es'} de red en marcha`,
+        detail: 'Hay discusión colaborativa activa con casos pendientes de resolución.',
+        vista: 'sesiones',
+        icon: Video,
+      })
+    }
+
+    if (agents.some((agent) => agent.recentRuns?.some((run) => run.status === 'Error'))) {
+      items.push({
+        id: 'agent-incidents',
+        title: 'Se han detectado incidencias recientes en agentes',
+        detail: 'Revisa trazas, límites y resultados antes de confiar en el borrador automatizado.',
+        vista: 'agentes',
+        icon: Bot,
+      })
+    }
+
+    return items.slice(0, 5)
+  }, [agents, criticalCasesCount, liveSessionsCount, pendingApprovals.length, processingInboxCount, readyInboxCount])
+
+  const paletteSections = useMemo<PaletteSection[]>(() => {
+    const query = paletteQuery.trim().toLowerCase()
+
+    const actionItems: PaletteItem[] = [
+      {
+        id: 'action-new-case',
+        label: 'Crear caso PK/PD',
+        description: 'Abrir el asistente completo para registrar un nuevo caso clínico.',
+        icon: FilePlus2,
+        onSelect: () => navigate('nuevo'),
+      },
+      {
+        id: 'action-open-inbox',
+        label: 'Abrir Bandeja IA',
+        description: 'Revisar solicitudes recibidas por email y casos preparados por agentes.',
+        icon: Inbox,
+        onSelect: () => navigate('bandeja'),
+      },
+      {
+        id: 'action-open-sessions',
+        label: 'Preparar sesión de red',
+        description: 'Consultar agenda, casos en discusión y sesiones próximas.',
+        icon: Video,
+        onSelect: () => navigate('sesiones'),
+      },
+      {
+        id: 'action-open-reporting',
+        label: 'Generar informe de actividad',
+        description: 'Abrir reporting operativo y aprendizaje de red.',
+        icon: BarChart3,
+        onSelect: () => navigate('reporting'),
+      },
+      {
+        id: 'action-open-admin',
+        label: 'Configurar programa clínico',
+        description: 'Entrar en Admin clínico para revisar programas, formularios y workflow.',
+        icon: FolderCog,
+        onSelect: () => navigate('admin'),
+      },
+    ].filter((item) =>
+      query
+        ? `${item.label} ${item.description}`.toLowerCase().includes(query)
+        : true
+    )
+
+    const caseItems = [...casos]
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .filter((caso) => {
+        if (!query) return true
+        const haystack = [
+          caso.caseId,
+          caso.patientCode,
+          caso.title,
+          caso.centerName,
+          caso.requesterName,
+          caso.assignedName,
+          caso.pipelineStage,
+          caso.priority,
+        ]
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(query)
+      })
+      .slice(0, query ? 8 : 5)
+      .map<PaletteItem>((caso) => ({
+        id: `case:${caso.caseId}`,
+        label: caso.caseId,
+        description: `${caso.title} · ${caso.patientCode} · ${caso.centerName}`,
+        meta: caso.priority,
+        icon: LayoutDashboard,
+        onSelect: () => {
+          router.push('/?vista=casos')
+          setOpenCaseId(caso.caseId)
+        },
+      }))
+
+    const professionalItems = professionals
+      .filter((professional) => {
+        if (!query) return false
+        const haystack = [
+          professional.name,
+          professional.roleLabel,
+          professional.centerName,
+          professional.specialties?.join(' '),
+        ]
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(query)
+      })
+      .slice(0, 6)
+      .map<PaletteItem>((professional) => ({
+        id: `professional:${professional._id}`,
+        label: professional.name,
+        description: `${professional.roleLabel} · ${professional.centerName ?? 'Centro no indicado'}`,
+        meta: professional.status,
+        icon: UserRound,
+        onSelect: () => navigate('profesionales'),
+      }))
+
+    const centerAndProgramItems = [
+      ...centers
+        .filter((center) => {
+          if (!query) return false
+          return `${center.name} ${center.city} ${center.territory}`.toLowerCase().includes(query)
+        })
+        .map<PaletteItem>((center) => ({
+          id: `center:${center._id}`,
+          label: center.name,
+          description: `${center.city} · ${center.type}`,
+          meta: 'Centro',
+          icon: Building2,
+          onSelect: () => {
+            setSelectedCenterId(center._id)
+            navigate('casos')
+          },
+        })),
+      ...programs
+        .filter((program) => {
+          if (!query) return false
+          return `${program.label} ${program.specialty} ${program.status}`.toLowerCase().includes(query)
+        })
+        .map<PaletteItem>((program) => ({
+          id: `program:${program._id}`,
+          label: program.label,
+          description: `${program.specialty} · ${program.status}`,
+          meta: 'Programa',
+          icon: FolderCog,
+          onSelect: () => {
+            setSelectedProgramId(program._id)
+            navigate('casos')
+          },
+        })),
+    ].slice(0, 6)
+
+    const sections: PaletteSection[] = []
+
+    if (actionItems.length > 0) sections.push({ label: 'Acciones', items: actionItems })
+    if (caseItems.length > 0) sections.push({ label: 'Casos', items: caseItems })
+    if (professionalItems.length > 0) {
+      sections.push({ label: 'Profesionales', items: professionalItems })
+    }
+    if (centerAndProgramItems.length > 0) {
+      sections.push({ label: 'Centros y programas', items: centerAndProgramItems })
+    }
+
+    return sections
+  }, [casos, centers, navigate, paletteQuery, professionals, programs, router])
+
+  function renderView() {
+    if (openCaseId) {
+      if (caseStatus === 'loading' || caseStatus === 'idle') {
+        return (
+          <WorkspaceLoadingState
+            title="Cargando caso…"
+            detail="Estamos preparando el cockpit clínico y la trazabilidad del caso."
+          />
+        )
+      }
+      if (caseStatus === 'error') {
+        return (
+          <WorkspaceErrorState
+            title="No se ha podido abrir el caso."
+            detail={caseError ?? undefined}
+            onRetry={() => setCaseReloadKey((value) => value + 1)}
+          />
+        )
+      }
+      if (!openCase) {
+        return (
+          <WorkspaceLoadingState
+            title="Preparando caso…"
+            detail="Estamos recuperando los datos clínicos y la trazabilidad."
+          />
+        )
+      }
+      return (
+        <CaseCockpit
+          caso={openCase}
+          onCaseUpdated={handleCaseUpdated}
+          onBack={() => {
+            setOpenCaseId(null)
+            setOpenCase(null)
+            setCaseStatus('idle')
+            setCaseError(null)
+          }}
+        />
+      )
+    }
+
+    switch (activeVista) {
+      case 'casos':
+        if (seedStatus === 'loading' && queueStatus === 'idle') {
+          return (
+            <WorkspaceLoadingState
+              title="Preparando el entorno Xarxa PK/PD…"
+              detail="Cargando el programa Crohn PK/PD y la cola de casos."
+            />
+          )
+        }
+        if (seedStatus === 'error' && queueStatus === 'idle') {
+          return (
+            <WorkspaceErrorState
+              title="No se ha podido preparar el entorno demo."
+              detail={seedError ?? undefined}
+              onRetry={async () => {
+                seededRef.current = false
+                setSeedStatus('idle')
+                setShellStatus('idle')
+                setQueueStatus('idle')
+                void seedDemo()
+              }}
+            />
+          )
+        }
+        if (queueStatus === 'loading' && casos.length === 0) {
+          return (
+            <WorkspaceLoadingState
+              title="Cargando cola de casos…"
+              detail="Recuperando KPIs y casos activos del programa."
+            />
+          )
+        }
+        if (queueStatus === 'error' && casos.length === 0) {
+          return (
+            <WorkspaceErrorState
+              title="No se ha podido cargar la cola de casos."
+              detail={queueError ?? undefined}
+              onRetry={() => void loadQueue()}
+            />
+          )
+        }
+        return (
+          <CasosPkpd
+            casos={casos}
+            kpis={kpis}
+            onOpenCaso={(id) => setOpenCaseId(id)}
+            onNuevoCaso={() => navigate('nuevo')}
+            onCasesChanged={loadQueue}
+          />
+        )
+      case 'nuevo':
+        return (
+          <NuevoCasoWizard
+            onCancel={() => navigate('casos')}
+            onCreated={handleCaseCreated}
+          />
+        )
+      case 'bandeja':
+        return <BandejaIa onCaseCreated={handleCaseCreated} />
+      case 'sesiones':
+        return <Sesiones onOpenCaso={(id) => setOpenCaseId(id)} />
+      case 'reporting':
+        return (
+          <Reporting
+            centerId={selectedCenterId}
+            programId={selectedProgramId}
+            dateRangeDays={dateRangeDays}
+          />
+        )
+      case 'profesionales':
+        return <Profesionales />
+      case 'agentes':
+        return <AgentesIa />
+      case 'admin':
+        return <AdminClinico />
+      case 'config':
+        return <Configuracion />
+      default:
+        return null
+    }
+  }
+
+  async function handleCaseCreated(caseId: string) {
+    try {
+      await Promise.all([loadQueue(), loadShellContext()])
+    } catch {
+      // Keep the current snapshots if the background refresh fails.
+    }
+    router.push('/?vista=casos')
+    if (caseId) setOpenCaseId(caseId)
+  }
+
+  async function handleCaseUpdated(updatedCase: CasoCompleto) {
+    setOpenCase(updatedCase)
+    setCasos((current) =>
+      current.map((item) =>
+        item.caseId === updatedCase.caseId
+          ? {
+              ...item,
+              title: updatedCase.title,
+              patientCode: updatedCase.patientCode,
+              centerName: updatedCase.centerName,
+              requesterName: updatedCase.requesterName,
+              assignedTo: updatedCase.assignedTo,
+              assignedName: updatedCase.assignedName,
+              caseType: updatedCase.caseType,
+              entrySource: updatedCase.entrySource,
+              priority: updatedCase.priority,
+              pipelineStage: updatedCase.pipelineStage,
+              nextAction: updatedCase.nextAction,
+              updatedAt: updatedCase.updatedAt,
+              gaps: updatedCase.gaps,
+              tasks: updatedCase.tasks,
+            }
+          : item
+      )
+    )
+    try {
+      await Promise.all([loadQueue(), loadShellContext()])
+    } catch {
+      // Keep the optimistic snapshots if the background refresh fails.
+    }
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#f4f7f6]">
+      <Sidebar
+        active={activeVista}
+        onNavigate={navigate}
+        bandejaCount={bandejaCount}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {!openCaseId ? (
+          <TopHeader
+            vistaLabel={vistaLabel}
+            metrics={headerMetrics}
+            programs={programs}
+            centers={centers}
+            selectedProgramId={selectedProgramId}
+            selectedCenterId={selectedCenterId}
+            dateRangeDays={dateRangeDays}
+            onProgramChange={setSelectedProgramId}
+            onCenterChange={setSelectedCenterId}
+            onDateRangeChange={setDateRangeDays}
+            onOpenPalette={() => openPalette()}
+            notifications={notifications}
+            notificationsOpen={notificationsOpen}
+            onToggleNotifications={() => setNotificationsOpen((value) => !value)}
+            onNavigateNotification={(vista) => {
+              setNotificationsOpen(false)
+              navigate(vista)
+            }}
+            notificationContainerRef={notificationContainerRef}
+            shellLoading={shellStatus === 'loading' && programs.length === 0 && centers.length === 0}
+          />
+        ) : null}
+
+        <main className="flex-1 overflow-hidden">{renderView()}</main>
+      </div>
+
+      <CommandPalette
+        open={paletteOpen}
+        query={paletteQuery}
+        sections={paletteSections}
+        onQueryChange={setPaletteQuery}
+        onClose={closePalette}
+      />
+    </div>
+  )
+}

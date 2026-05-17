@@ -9,7 +9,6 @@ from backend.providers import (
     VoyageConfigurationError,
     VoyagePlatformClient,
 )
-from backend.services.pkpd_seed import PKPD_COLLECTIONS
 from backend.services.runtime_config import (
     get_openai_runtime_status,
     get_parallel_runtime_manifest,
@@ -19,14 +18,14 @@ from backend.services.runtime_config import (
 router = APIRouter(prefix="/api", tags=["health"])
 
 
-def _pkpd_dataset_status() -> dict[str, object]:
+XARXA_COLLECTIONS = ["xarxa_cases", "xarxa_centers", "xarxa_professionals", "xarxa_agents"]
+
+
+def _xarxa_dataset_status() -> dict[str, object]:
     try:
         db = get_database()
-        collection_counts = {
-            name: db[collection_name].estimated_document_count()
-            for name, collection_name in PKPD_COLLECTIONS.items()
-        }
-        ready = collection_counts.get("cases", 0) > 0 and collection_counts.get("protocols", 0) > 0
+        collection_counts = {col: db[col].estimated_document_count() for col in XARXA_COLLECTIONS}
+        ready = collection_counts.get("xarxa_cases", 0) > 0
         return {
             "configured": settings.has_mongo,
             "ready": ready,
@@ -47,11 +46,11 @@ async def health():
     openai = get_openai_runtime_status()
     voyage = get_voyage_runtime_status()
     runtime = get_parallel_runtime_manifest()
-    pkpd_dataset = _pkpd_dataset_status()
+    xarxa_dataset = _xarxa_dataset_status()
 
     return {
-        "service": "Prototype Sprint Kit API",
-        "version": "0.2.0",
+        "service": "Xarxa PK/PD API",
+        "version": "1.0.0",
         "environment": settings.app_env,
         "runtime": runtime,
         "providers": {
@@ -92,7 +91,7 @@ async def health():
             },
         },
         "datasets": {
-            "pkpdDemo": pkpd_dataset,
+            "xarxa": xarxa_dataset,
         },
     }
 
@@ -119,6 +118,6 @@ async def voyage_health():
         raise HTTPException(status_code=502, detail=f"Voyage runtime validation failed: {exc}") from exc
 
 
-@router.get("/health/pkpd")
-async def pkpd_health():
-    return _pkpd_dataset_status()
+@router.get("/health/xarxa")
+async def xarxa_health():
+    return _xarxa_dataset_status()

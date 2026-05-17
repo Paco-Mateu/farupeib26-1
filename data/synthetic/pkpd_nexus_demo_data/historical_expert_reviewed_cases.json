@@ -1,0 +1,5436 @@
+[
+  {
+    "_id": "HIST-2026-00001",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-006",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10046",
+    "therapeuticArea": "immunosuppressants",
+    "drugName": "Tacrolimus",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, renal function decline, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-27T12:00:00Z",
+        "drug": "Tacrolimus",
+        "dose": 2,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-11-29T12:00:00Z",
+        "drug": "Tacrolimus",
+        "value": 2.23,
+        "unit": "ng/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-15T12:00:00Z",
+        "name": "CRP",
+        "value": 33.2,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-28T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.23,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-30T12:00:00Z",
+        "name": "Creatinine",
+        "value": 2.52,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ng/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "renal_function_decline",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Tacrolimus: subtherapeutic level, renal function decline, missing critical context.",
+      "missingData": [
+        "last_clinical_score",
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-27T12:00:00Z",
+    "updatedAt": "2025-12-06T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0968,
+      0.2144,
+      0.1435,
+      -0.1384,
+      0.0445,
+      -0.1623,
+      -0.0966,
+      0.0942,
+      -0.1863,
+      0.1144,
+      0.2244,
+      0.2243,
+      -0.0542,
+      0.2471,
+      0.2326,
+      -0.2338
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00002",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10041",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-22T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-03T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 0.47,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-06T12:00:00Z",
+        "name": "CRP",
+        "value": 16.3,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-08T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-22T12:00:00Z",
+    "updatedAt": "2025-12-28T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0267,
+      -0.1174,
+      -0.1252,
+      -0.2161,
+      -0.1217,
+      -0.196,
+      -0.2494,
+      -0.057,
+      0.1163,
+      0.2346,
+      0.1923,
+      -0.0035,
+      -0.0606,
+      0.023,
+      -0.1993,
+      -0.0103
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00003",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10005",
+    "therapeuticArea": "immunosuppressants",
+    "drugName": "Tacrolimus",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-05-07T12:00:00Z",
+        "drug": "Tacrolimus",
+        "dose": 1,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-05-10T12:00:00Z",
+        "drug": "Tacrolimus",
+        "value": 4.34,
+        "unit": "ng/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-05-24T12:00:00Z",
+        "name": "CRP",
+        "value": 8.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-05-08T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.73,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-05-10T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.72,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ng/mL"
+    },
+    "riskSignals": [
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Tacrolimus: subtherapeutic level.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-05-07T12:00:00Z",
+    "updatedAt": "2026-05-13T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.047,
+      0.0568,
+      -0.0086,
+      -0.2345,
+      0.2212,
+      -0.1675,
+      0.1949,
+      -0.1714,
+      -0.1994,
+      -0.1472,
+      -0.155,
+      0.0986,
+      0.111,
+      0.115,
+      -0.1174,
+      -0.1092
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00004",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10037",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-26T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 80,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-02T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 15.85,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-15T12:00:00Z",
+        "name": "CRP",
+        "value": 14.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-03T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "supratherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: supratherapeutic level, elevated inflammatory marker, positive antidrug antibodies, suspected loss of response.",
+      "missingData": [
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-26T12:00:00Z",
+    "updatedAt": "2025-12-31T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.2385,
+      -0.0132,
+      -0.1922,
+      0.1424,
+      -0.0145,
+      0.1974,
+      -0.1175,
+      0.0709,
+      -0.0562,
+      -0.0645,
+      -0.0593,
+      -0.1567,
+      -0.2277,
+      -0.0301,
+      -0.1183,
+      0.1685
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00005",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-009",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10006",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-25T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 160,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-07T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 4.4,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-12T12:00:00Z",
+        "name": "CRP",
+        "value": 25.4,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-08T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: subtherapeutic level, elevated inflammatory marker, missing critical context.",
+      "missingData": [
+        "comedication_review",
+        "last_clinical_score",
+        "current_weight"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-25T12:00:00Z",
+    "updatedAt": "2025-11-30T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.2105,
+      0.2014,
+      0.1072,
+      0.0011,
+      0.2002,
+      0.1502,
+      0.0888,
+      0.0601,
+      -0.1899,
+      0.1286,
+      -0.1636,
+      0.2422,
+      0.2361,
+      0.1542,
+      -0.1869,
+      -0.0383
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00006",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-006",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10054",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, liver enzyme elevation, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-14T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 200,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-15T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 0.84,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-31T12:00:00Z",
+        "name": "CRP",
+        "value": 18.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-12-16T12:00:00Z",
+        "name": "ALT",
+        "value": 97.3,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "missing_critical_context",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: subtherapeutic level, liver enzyme elevation, missing critical context.",
+      "missingData": [
+        "comedication_review",
+        "current_weight"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-14T12:00:00Z",
+    "updatedAt": "2025-12-15T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1433,
+      0.0615,
+      0.0113,
+      -0.0402,
+      -0.0428,
+      -0.1759,
+      0.044,
+      0.1292,
+      0.2198,
+      0.2125,
+      0.0313,
+      -0.1995,
+      -0.107,
+      0.0178,
+      -0.0781,
+      -0.0446
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00007",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-006",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10031",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, liver enzyme elevation",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-05-06T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 400,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-05-10T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 0.65,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-05-21T12:00:00Z",
+        "name": "CRP",
+        "value": 2.7,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-05-08T12:00:00Z",
+        "name": "ALT",
+        "value": 116.7,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: subtherapeutic level, liver enzyme elevation.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-05-06T12:00:00Z",
+    "updatedAt": "2026-05-14T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.2104,
+      0.1985,
+      -0.2399,
+      0.1587,
+      -0.0985,
+      -0.1098,
+      -0.0042,
+      0.0981,
+      -0.2009,
+      0.1845,
+      -0.1828,
+      0.2371,
+      -0.0284,
+      0.1629,
+      -0.1153,
+      -0.0416
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00008",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-003",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10059",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-31T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-10T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 6.47,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-17T12:00:00Z",
+        "name": "CRP",
+        "value": 3.9,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-19T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "positive_antidrug_antibodies",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, positive antidrug antibodies.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-31T12:00:00Z",
+    "updatedAt": "2026-02-03T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1536,
+      0.1665,
+      0.1685,
+      -0.1253,
+      -0.0218,
+      0.209,
+      0.1023,
+      -0.113,
+      0.1618,
+      0.0026,
+      0.0677,
+      -0.1881,
+      -0.2347,
+      -0.0638,
+      0.047,
+      -0.1612
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00009",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-006",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10054",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, positive antidrug antibodies, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-03-10T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-03-16T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 4.14,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-21T12:00:00Z",
+        "name": "CRP",
+        "value": 8.2,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-03-27T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "positive_antidrug_antibodies",
+      "suspected_loss_of_response",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, positive antidrug antibodies, suspected loss of response.",
+      "missingData": [
+        "albumin"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-03-10T12:00:00Z",
+    "updatedAt": "2026-03-17T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0066,
+      0.1823,
+      0.2336,
+      0.0911,
+      -0.013,
+      -0.1838,
+      -0.1634,
+      0.1504,
+      -0.1381,
+      0.0542,
+      0.2215,
+      0.1064,
+      0.1047,
+      -0.1123,
+      0.1977,
+      0.1758
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00010",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10020",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, renal function decline, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-23T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 750,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-11-28T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 15.84,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-09T12:00:00Z",
+        "name": "CRP",
+        "value": 45.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-24T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.05,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-26T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.69,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "renal_function_decline",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: within target level, renal function decline, missing critical context.",
+      "missingData": [
+        "albumin",
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-23T12:00:00Z",
+    "updatedAt": "2025-11-25T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0091,
+      -0.0819,
+      -0.1118,
+      -0.0874,
+      -0.1116,
+      0.0781,
+      0.2261,
+      0.0757,
+      -0.1558,
+      0.0086,
+      -0.1298,
+      -0.2216,
+      0.1787,
+      0.155,
+      -0.048,
+      -0.0902
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00011",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-003",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10019",
+    "therapeuticArea": "immunosuppressants",
+    "drugName": "Tacrolimus",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-03-10T12:00:00Z",
+        "drug": "Tacrolimus",
+        "dose": 5,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-03-15T12:00:00Z",
+        "drug": "Tacrolimus",
+        "value": 10.16,
+        "unit": "ng/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-25T12:00:00Z",
+        "name": "CRP",
+        "value": 36.9,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-03-11T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.18,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-03-13T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.38,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ng/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Tacrolimus: within target level, missing critical context.",
+      "missingData": [
+        "renal_replacement_status",
+        "albumin",
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-03-10T12:00:00Z",
+    "updatedAt": "2026-03-15T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1727,
+      0.1703,
+      0.1882,
+      -0.1594,
+      -0.2012,
+      -0.186,
+      -0.1207,
+      0.1542,
+      0.1315,
+      -0.1585,
+      0.0899,
+      -0.0822,
+      -0.2054,
+      -0.0724,
+      0.1221,
+      -0.0965
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00012",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-003",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10019",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, elevated inflammatory marker, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-17T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-06T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 4.03,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-25T12:00:00Z",
+        "name": "CRP",
+        "value": 40.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-30T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: within target level, elevated inflammatory marker, missing critical context.",
+      "missingData": [
+        "sample_timing_confirmation",
+        "last_clinical_score",
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-17T12:00:00Z",
+    "updatedAt": "2026-01-21T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0787,
+      0.2436,
+      0.1964,
+      0.2433,
+      -0.1784,
+      0.1812,
+      -0.1598,
+      -0.2096,
+      -0.0837,
+      0.2433,
+      -0.0933,
+      -0.221,
+      -0.024,
+      -0.1453,
+      0.1368,
+      0.0381
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00013",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10040",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-24T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-29T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 4.38,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-04T12:00:00Z",
+        "name": "CRP",
+        "value": 2.7,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-05T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: within target level, missing critical context.",
+      "missingData": [
+        "infection_indication",
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-24T12:00:00Z",
+    "updatedAt": "2026-01-28T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.241,
+      -0.2479,
+      0.1168,
+      -0.1369,
+      0.1885,
+      -0.094,
+      -0.1986,
+      0.0017,
+      -0.0969,
+      -0.2174,
+      -0.2271,
+      0.2242,
+      -0.022,
+      0.0101,
+      0.0121,
+      -0.0332
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00014",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-004",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10049",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-03-28T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-09T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 0.78,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-06T12:00:00Z",
+        "name": "CRP",
+        "value": 10.9,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-04-15T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies, suspected loss of response.",
+      "missingData": [
+        "sample_timing_confirmation"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-03-28T12:00:00Z",
+    "updatedAt": "2026-04-03T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1056,
+      0.1461,
+      -0.0624,
+      0.0702,
+      0.1356,
+      0.0616,
+      0.047,
+      -0.226,
+      -0.1959,
+      0.1681,
+      -0.2259,
+      -0.1921,
+      -0.0278,
+      -0.1882,
+      -0.1236,
+      0.1009
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00015",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-004",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10043",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "low",
+    "caseReason": "within target level, liver enzyme elevation",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-20T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 200,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-24T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 3.73,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-28T12:00:00Z",
+        "name": "CRP",
+        "value": 37.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-22T12:00:00Z",
+        "name": "ALT",
+        "value": 91.6,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: within target level, liver enzyme elevation.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-20T12:00:00Z",
+    "updatedAt": "2026-04-25T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.193,
+      -0.1969,
+      -0.1507,
+      -0.1501,
+      -0.1185,
+      0.0116,
+      -0.1492,
+      0.1017,
+      -0.1023,
+      -0.2303,
+      -0.0018,
+      -0.1462,
+      0.2166,
+      -0.0847,
+      -0.2486,
+      0.0858
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00016",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-004",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10050",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-05T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 160,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-17T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 4.19,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-19T12:00:00Z",
+        "name": "CRP",
+        "value": 21.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-19T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: subtherapeutic level, elevated inflammatory marker, suspected loss of response.",
+      "missingData": [
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-05T12:00:00Z",
+    "updatedAt": "2026-01-06T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1761,
+      -0.0699,
+      0.0884,
+      -0.037,
+      -0.192,
+      0.1756,
+      0.1951,
+      -0.2452,
+      -0.1808,
+      0.0736,
+      -0.0857,
+      0.1973,
+      0.2275,
+      -0.1158,
+      0.1165,
+      -0.0637
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00017",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-007",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10026",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, positive antidrug antibodies, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-19T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-29T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 2.41,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-25T12:00:00Z",
+        "name": "CRP",
+        "value": 6.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-27T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, positive antidrug antibodies, suspected loss of response, missing critical context.",
+      "missingData": [
+        "infection_indication",
+        "comedication_review",
+        "current_weight"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-19T12:00:00Z",
+    "updatedAt": "2026-01-22T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0557,
+      0.1396,
+      0.0557,
+      0.1813,
+      0.19,
+      0.1136,
+      0.1959,
+      -0.0085,
+      -0.0059,
+      0.1938,
+      -0.0297,
+      -0.2183,
+      0.0775,
+      -0.2438,
+      0.1842,
+      0.0124
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00018",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10034",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "low",
+    "caseReason": "within target level",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-02T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 400,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-04T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 2.95,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-19T12:00:00Z",
+        "name": "CRP",
+        "value": 22.2,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-04T12:00:00Z",
+        "name": "ALT",
+        "value": 40.8,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: within target level.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-02T12:00:00Z",
+    "updatedAt": "2026-01-03T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0717,
+      -0.1715,
+      0.1744,
+      0.1759,
+      0.1847,
+      -0.2126,
+      -0.0042,
+      -0.1296,
+      0.2351,
+      -0.2248,
+      -0.1386,
+      0.0717,
+      -0.0484,
+      -0.1325,
+      -0.0205,
+      0.1506
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00019",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10021",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, liver enzyme elevation, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-15T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 300,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-19T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 1.08,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-20T12:00:00Z",
+        "name": "CRP",
+        "value": 2.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-17T12:00:00Z",
+        "name": "ALT",
+        "value": 135.6,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: within target level, liver enzyme elevation, missing critical context.",
+      "missingData": [
+        "comedication_review",
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-15T12:00:00Z",
+    "updatedAt": "2026-04-19T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0773,
+      -0.0219,
+      -0.0796,
+      0.1627,
+      0.1583,
+      0.1722,
+      -0.084,
+      0.1337,
+      0.05,
+      0.1083,
+      -0.0684,
+      -0.0237,
+      -0.2013,
+      0.0795,
+      -0.2489,
+      -0.0724
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00020",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10003",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, renal function decline, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-03T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1500,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-04T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 17.43,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-14T12:00:00Z",
+        "name": "CRP",
+        "value": 12.2,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-04T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.75,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-06T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.51,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "renal_function_decline",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: within target level, renal function decline, missing critical context.",
+      "missingData": [
+        "last_clinical_score",
+        "current_weight",
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-03T12:00:00Z",
+    "updatedAt": "2026-04-09T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1961,
+      -0.0428,
+      0.2133,
+      0.1687,
+      0.0444,
+      0.1361,
+      -0.0247,
+      0.0792,
+      0.2281,
+      -0.1827,
+      -0.0006,
+      0.0152,
+      -0.2257,
+      0.2177,
+      0.1694,
+      -0.0085
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00021",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10012",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-13T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 500,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-30T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 0.64,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-25T12:00:00Z",
+        "name": "CRP",
+        "value": 19.4,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-04-26T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: subtherapeutic level, elevated inflammatory marker, missing critical context.",
+      "missingData": [
+        "current_weight",
+        "last_clinical_score"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-13T12:00:00Z",
+    "updatedAt": "2026-04-16T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0436,
+      0.1,
+      0.1242,
+      -0.1005,
+      0.1007,
+      0.1804,
+      0.1059,
+      0.2178,
+      0.0663,
+      -0.1496,
+      0.0621,
+      -0.1047,
+      -0.0774,
+      0.0862,
+      0.2407,
+      0.075
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00022",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-004",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10049",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-02-14T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-28T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 6.77,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-04T12:00:00Z",
+        "name": "CRP",
+        "value": 39.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-03-01T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "positive_antidrug_antibodies",
+      "suspected_loss_of_response",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, elevated inflammatory marker, positive antidrug antibodies, suspected loss of response, missing critical context.",
+      "missingData": [
+        "last_clinical_score",
+        "sample_timing_confirmation",
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-02-14T12:00:00Z",
+    "updatedAt": "2026-02-18T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1165,
+      0.1428,
+      0.2418,
+      0.0917,
+      -0.1768,
+      -0.219,
+      0.1422,
+      -0.148,
+      0.0206,
+      -0.0707,
+      -0.0237,
+      0.0581,
+      0.0878,
+      0.0309,
+      -0.1378,
+      0.0736
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00023",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10045",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, positive antidrug antibodies, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-26T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 500,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-02T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.56,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-09T12:00:00Z",
+        "name": "CRP",
+        "value": 1.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-12T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, positive antidrug antibodies, missing critical context.",
+      "missingData": [
+        "infection_indication",
+        "last_clinical_score",
+        "albumin"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-26T12:00:00Z",
+    "updatedAt": "2025-12-06T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0233,
+      0.0517,
+      0.1381,
+      0.2321,
+      -0.1029,
+      -0.1613,
+      0.0913,
+      -0.1565,
+      -0.1631,
+      0.0069,
+      -0.0614,
+      -0.0357,
+      0.0283,
+      -0.185,
+      0.042,
+      -0.1225
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00024",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10003",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-06T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 160,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-20T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 10.42,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-22T12:00:00Z",
+        "name": "CRP",
+        "value": 22.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-04-25T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: within target level, elevated inflammatory marker, positive antidrug antibodies.",
+      "missingData": [
+        "last_clinical_score"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-06T12:00:00Z",
+    "updatedAt": "2026-04-15T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.2159,
+      0.0026,
+      -0.042,
+      0.0185,
+      -0.204,
+      -0.1394,
+      -0.1433,
+      -0.0841,
+      -0.0696,
+      -0.1408,
+      0.1263,
+      0.0152,
+      0.2483,
+      0.1618,
+      0.2406,
+      -0.2456
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00025",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-003",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10059",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-07T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-15T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 0.83,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-21T12:00:00Z",
+        "name": "CRP",
+        "value": 18.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-22T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies, missing critical context.",
+      "missingData": [
+        "comedication_review",
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-07T12:00:00Z",
+    "updatedAt": "2025-12-15T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0066,
+      -0.1018,
+      0.0758,
+      -0.0898,
+      -0.2088,
+      -0.202,
+      0.2358,
+      0.1367,
+      0.0166,
+      0.0635,
+      -0.1446,
+      0.0648,
+      -0.1434,
+      0.0927,
+      0.1678,
+      -0.1472
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00026",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-007",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10002",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level, elevated inflammatory marker, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-18T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 350,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-31T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 7.73,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-30T12:00:00Z",
+        "name": "CRP",
+        "value": 25.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-31T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "supratherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: supratherapeutic level, elevated inflammatory marker, suspected loss of response, missing critical context.",
+      "missingData": [
+        "current_weight",
+        "albumin",
+        "sample_timing_confirmation"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-18T12:00:00Z",
+    "updatedAt": "2026-01-25T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0866,
+      0.0174,
+      0.0707,
+      0.0592,
+      0.128,
+      0.0428,
+      0.1004,
+      -0.2137,
+      0.214,
+      -0.1969,
+      0.1434,
+      -0.0993,
+      -0.2067,
+      0.1326,
+      -0.0312,
+      -0.0524
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00027",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-009",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10015",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-11T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 500,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-20T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 3.97,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-27T12:00:00Z",
+        "name": "CRP",
+        "value": 14.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-04-26T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: within target level, elevated inflammatory marker, positive antidrug antibodies.",
+      "missingData": [
+        "sample_timing_confirmation"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-11T12:00:00Z",
+    "updatedAt": "2026-04-12T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.2475,
+      0.0483,
+      0.0186,
+      0.2235,
+      -0.0977,
+      0.1241,
+      0.2018,
+      -0.0781,
+      -0.0437,
+      0.073,
+      0.0063,
+      -0.1695,
+      -0.1396,
+      0.1674,
+      -0.1528,
+      -0.1593
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00028",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10042",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-26T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 350,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-15T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.24,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-11T12:00:00Z",
+        "name": "CRP",
+        "value": 42.9,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-12T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-26T12:00:00Z",
+    "updatedAt": "2025-12-31T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0598,
+      0.2001,
+      -0.0911,
+      -0.0247,
+      0.0582,
+      -0.0972,
+      0.0421,
+      0.0328,
+      -0.0678,
+      -0.0918,
+      -0.0358,
+      -0.2476,
+      -0.1269,
+      -0.1392,
+      0.1199,
+      -0.0319
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00029",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-006",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10057",
+    "therapeuticArea": "immunosuppressants",
+    "drugName": "Tacrolimus",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, renal function decline",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-13T12:00:00Z",
+        "drug": "Tacrolimus",
+        "dose": 5,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-14T12:00:00Z",
+        "drug": "Tacrolimus",
+        "value": 7.14,
+        "unit": "ng/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-20T12:00:00Z",
+        "name": "CRP",
+        "value": 8.7,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-14T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.27,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-16T12:00:00Z",
+        "name": "Creatinine",
+        "value": 2.45,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ng/mL"
+    },
+    "riskSignals": [
+      "renal_function_decline",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Tacrolimus: within target level, renal function decline.",
+      "missingData": [
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-13T12:00:00Z",
+    "updatedAt": "2026-01-17T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1184,
+      0.1932,
+      -0.2118,
+      -0.2123,
+      -0.2407,
+      0.0036,
+      -0.2344,
+      0.0409,
+      -0.0474,
+      0.045,
+      0.2032,
+      0.0258,
+      0.0217,
+      0.2494,
+      -0.0139,
+      0.1376
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00030",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-002",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10047",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, renal function decline",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-03-02T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-03-07T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 3.09,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-14T12:00:00Z",
+        "name": "CRP",
+        "value": 1.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-03-03T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.28,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-03-05T12:00:00Z",
+        "name": "Creatinine",
+        "value": 2.39,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "renal_function_decline",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: subtherapeutic level, renal function decline.",
+      "missingData": [
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-03-02T12:00:00Z",
+    "updatedAt": "2026-03-11T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1798,
+      -0.1704,
+      0.0332,
+      0.0329,
+      0.1861,
+      -0.1769,
+      0.116,
+      0.2196,
+      -0.2298,
+      0.1307,
+      -0.1341,
+      -0.1178,
+      -0.133,
+      0.0843,
+      0.0089,
+      0.1457
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00031",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10003",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-30T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 500,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-13T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.77,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-10T12:00:00Z",
+        "name": "CRP",
+        "value": 26.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-17T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker, suspected loss of response.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-30T12:00:00Z",
+    "updatedAt": "2025-12-09T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1242,
+      0.2363,
+      -0.1386,
+      -0.0471,
+      0.1586,
+      -0.0775,
+      0.1463,
+      0.1936,
+      -0.2467,
+      0.191,
+      -0.0301,
+      -0.135,
+      0.0073,
+      -0.1096,
+      -0.1749,
+      -0.1713
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00032",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-004",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10027",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-02-20T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 40,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-03-02T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 8.35,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-10T12:00:00Z",
+        "name": "CRP",
+        "value": 29.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-03-02T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "positive_antidrug_antibodies",
+      "suspected_loss_of_response",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: within target level, elevated inflammatory marker, positive antidrug antibodies, suspected loss of response.",
+      "missingData": [
+        "last_clinical_score"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-02-20T12:00:00Z",
+    "updatedAt": "2026-03-01T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.2304,
+      0.0361,
+      -0.222,
+      -0.1209,
+      -0.16,
+      0.2291,
+      0.0497,
+      0.0318,
+      -0.2407,
+      0.1098,
+      0.0809,
+      -0.1083,
+      -0.2071,
+      -0.0254,
+      0.2464,
+      0.1837
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00033",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10010",
+    "therapeuticArea": "biologics",
+    "drugName": "Ustekinumab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level, elevated inflammatory marker",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-17T12:00:00Z",
+        "drug": "Ustekinumab",
+        "dose": 500,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-27T12:00:00Z",
+        "drug": "Ustekinumab",
+        "value": 6.95,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 1,
+          "max": 4.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-01T12:00:00Z",
+        "name": "CRP",
+        "value": 32.9,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-01-02T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 4.5,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "supratherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Ustekinumab: supratherapeutic level, elevated inflammatory marker.",
+      "missingData": [
+        "current_weight"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-17T12:00:00Z",
+    "updatedAt": "2025-12-24T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1839,
+      -0.2417,
+      0.0114,
+      0.2047,
+      0.0922,
+      0.1633,
+      0.0528,
+      -0.1613,
+      0.2008,
+      0.0499,
+      0.1889,
+      0.0157,
+      0.1262,
+      -0.2034,
+      0.0797,
+      0.201
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00034",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10034",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-28T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 350,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-17T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.78,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-14T12:00:00Z",
+        "name": "CRP",
+        "value": 35.7,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-13T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-28T12:00:00Z",
+    "updatedAt": "2026-02-04T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1831,
+      -0.0114,
+      -0.1337,
+      0.1795,
+      -0.1084,
+      0.1884,
+      -0.0457,
+      -0.1555,
+      0.1046,
+      0.1447,
+      0.039,
+      -0.1911,
+      -0.2464,
+      0.0773,
+      0.0939,
+      -0.092
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00035",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10042",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-17T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 500,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-30T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.58,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-03T12:00:00Z",
+        "name": "CRP",
+        "value": 44.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-30T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "positive",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "positive_antidrug_antibodies",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker, positive antidrug antibodies, missing critical context.",
+      "missingData": [
+        "last_clinical_score",
+        "albumin",
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-17T12:00:00Z",
+    "updatedAt": "2025-12-26T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0081,
+      0.2443,
+      0.0388,
+      0.1371,
+      -0.0509,
+      -0.181,
+      0.1819,
+      -0.1905,
+      -0.1351,
+      0.1416,
+      0.2246,
+      -0.1999,
+      0.0042,
+      0.143,
+      0.1504,
+      0.057
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00036",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10052",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-22T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 750,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-23T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 16.0,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-05-08T12:00:00Z",
+        "name": "CRP",
+        "value": 12.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-23T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.66,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-25T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.62,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: within target level, missing critical context.",
+      "missingData": [
+        "current_weight",
+        "comedication_review",
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-22T12:00:00Z",
+    "updatedAt": "2026-04-27T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1058,
+      0.0487,
+      0.2229,
+      0.1601,
+      0.0701,
+      -0.0305,
+      -0.1491,
+      0.0784,
+      0.152,
+      -0.107,
+      -0.2332,
+      0.0498,
+      0.0079,
+      -0.1342,
+      -0.1653,
+      -0.232
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00037",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10018",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-02-02T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-09T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.89,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-16T12:00:00Z",
+        "name": "CRP",
+        "value": 41.4,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-22T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker, missing critical context.",
+      "missingData": [
+        "albumin",
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-02-02T12:00:00Z",
+    "updatedAt": "2026-02-06T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0532,
+      -0.1527,
+      0.2149,
+      0.0375,
+      -0.1194,
+      -0.0464,
+      -0.1968,
+      -0.2138,
+      -0.1029,
+      0.2235,
+      0.1515,
+      0.2284,
+      0.1881,
+      0.1566,
+      0.0374,
+      0.0971
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00038",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-004",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10050",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, renal function decline",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-18T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1500,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-19T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 18.62,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-04T12:00:00Z",
+        "name": "CRP",
+        "value": 12.3,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-19T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.11,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-21T12:00:00Z",
+        "name": "Creatinine",
+        "value": 2.32,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "renal_function_decline",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: within target level, renal function decline.",
+      "missingData": [
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-18T12:00:00Z",
+    "updatedAt": "2026-01-24T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0438,
+      -0.0735,
+      0.0178,
+      0.1004,
+      -0.1183,
+      -0.1064,
+      -0.0505,
+      0.1244,
+      -0.079,
+      0.0273,
+      -0.1608,
+      -0.0931,
+      -0.1407,
+      0.0369,
+      -0.1586,
+      0.1231
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00039",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-009",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10016",
+    "therapeuticArea": "immunosuppressants",
+    "drugName": "Tacrolimus",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-03-15T12:00:00Z",
+        "drug": "Tacrolimus",
+        "dose": 2,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-03-20T12:00:00Z",
+        "drug": "Tacrolimus",
+        "value": 14.42,
+        "unit": "ng/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-23T12:00:00Z",
+        "name": "CRP",
+        "value": 16.7,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-03-16T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.7,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-03-18T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.7,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ng/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "supratherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Tacrolimus: supratherapeutic level, missing critical context.",
+      "missingData": [
+        "comedication_review",
+        "sample_timing_confirmation",
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-03-15T12:00:00Z",
+    "updatedAt": "2026-03-16T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.174,
+      -0.0644,
+      -0.0923,
+      0.1991,
+      0.1905,
+      0.0373,
+      -0.1126,
+      -0.1586,
+      0.1321,
+      0.0056,
+      -0.0511,
+      0.1251,
+      -0.1859,
+      0.0129,
+      -0.0384,
+      0.2198
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00040",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-002",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10030",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, elevated inflammatory marker, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-15T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 40,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-26T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 9.82,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-23T12:00:00Z",
+        "name": "CRP",
+        "value": 17.7,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-04-27T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: within target level, elevated inflammatory marker, missing critical context.",
+      "missingData": [
+        "last_clinical_score",
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-15T12:00:00Z",
+    "updatedAt": "2026-04-20T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1314,
+      -0.0143,
+      0.0565,
+      -0.067,
+      -0.0006,
+      -0.1447,
+      0.1004,
+      -0.0638,
+      0.1772,
+      -0.1102,
+      -0.1601,
+      -0.1844,
+      0.0379,
+      -0.1357,
+      -0.2001,
+      -0.115
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00041",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10010",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-07T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1000,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-12T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 27.32,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-22T12:00:00Z",
+        "name": "CRP",
+        "value": 24.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-08T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.23,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-10T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.55,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "supratherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: supratherapeutic level.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-07T12:00:00Z",
+    "updatedAt": "2026-04-14T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.2005,
+      -0.1683,
+      -0.1423,
+      -0.1229,
+      0.1695,
+      -0.2018,
+      0.1223,
+      -0.1201,
+      -0.0698,
+      0.0287,
+      0.155,
+      -0.0779,
+      -0.0441,
+      -0.0745,
+      0.0898,
+      0.0528
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00042",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10021",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "low",
+    "caseReason": "within target level, liver enzyme elevation",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-24T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 200,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-11-28T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 3.01,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-13T12:00:00Z",
+        "name": "CRP",
+        "value": 28.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-26T12:00:00Z",
+        "name": "ALT",
+        "value": 108.4,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: within target level, liver enzyme elevation.",
+      "missingData": [
+        "infection_indication"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-24T12:00:00Z",
+    "updatedAt": "2025-11-27T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0703,
+      0.2143,
+      -0.0391,
+      0.0562,
+      -0.0476,
+      0.2035,
+      -0.2104,
+      -0.0782,
+      -0.0933,
+      0.0765,
+      0.1052,
+      0.0527,
+      -0.0523,
+      0.1938,
+      0.1405,
+      0.2194
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00043",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10012",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, renal function decline, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-05-10T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 750,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-05-12T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 4.14,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-05-18T12:00:00Z",
+        "name": "CRP",
+        "value": 8.3,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-05-11T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.68,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-05-13T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.38,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "renal_function_decline",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: subtherapeutic level, renal function decline, missing critical context.",
+      "missingData": [
+        "comedication_review",
+        "sample_timing_confirmation",
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-05-10T12:00:00Z",
+    "updatedAt": "2026-05-17T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.012,
+      0.248,
+      -0.198,
+      0.0591,
+      -0.2078,
+      0.2158,
+      -0.0551,
+      -0.1353,
+      0.1188,
+      -0.0284,
+      -0.1868,
+      0.0134,
+      -0.1647,
+      -0.2324,
+      -0.0716,
+      0.2076
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00044",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10036",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-22T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-09T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.8,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-05T12:00:00Z",
+        "name": "CRP",
+        "value": 24.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-05T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-22T12:00:00Z",
+    "updatedAt": "2026-01-30T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0961,
+      -0.0439,
+      -0.1721,
+      -0.2447,
+      0.0117,
+      0.1291,
+      -0.1818,
+      -0.1066,
+      0.0175,
+      0.0939,
+      -0.004,
+      0.1277,
+      -0.1002,
+      0.1329,
+      0.149,
+      0.0485
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00045",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-006",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10057",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-23T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 160,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-09T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 3.57,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-04T12:00:00Z",
+        "name": "CRP",
+        "value": 37.5,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-31T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: subtherapeutic level, elevated inflammatory marker, suspected loss of response.",
+      "missingData": [
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-23T12:00:00Z",
+    "updatedAt": "2026-01-02T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1538,
+      0.0923,
+      -0.1077,
+      0.1215,
+      0.1544,
+      -0.0435,
+      0.1767,
+      -0.1588,
+      -0.1052,
+      0.0684,
+      0.0589,
+      -0.1139,
+      0.0614,
+      -0.1561,
+      -0.2403,
+      -0.2252
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00046",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-003",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10019",
+    "therapeuticArea": "biologics",
+    "drugName": "Adalimumab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, suspected loss of response, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-03-08T12:00:00Z",
+        "drug": "Adalimumab",
+        "dose": 40,
+        "unit": "mg",
+        "route": "subcutaneous"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-03-17T12:00:00Z",
+        "drug": "Adalimumab",
+        "value": 1.28,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-19T12:00:00Z",
+        "name": "CRP",
+        "value": 1.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-03-21T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "missing_critical_context",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Adalimumab: subtherapeutic level, suspected loss of response, missing critical context.",
+      "missingData": [
+        "albumin",
+        "current_weight",
+        "sample_timing_confirmation"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-03-08T12:00:00Z",
+    "updatedAt": "2026-03-14T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.2099,
+      0.1253,
+      -0.177,
+      -0.1167,
+      -0.0538,
+      0.0216,
+      -0.1592,
+      0.1978,
+      -0.125,
+      -0.0592,
+      -0.2437,
+      0.2373,
+      0.1073,
+      -0.0576,
+      0.2375,
+      -0.1264
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00047",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10034",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, renal function decline",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-11-26T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-11-29T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 16.81,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-02T12:00:00Z",
+        "name": "CRP",
+        "value": 8.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-27T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.2,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-11-29T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.87,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "renal_function_decline",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: within target level, renal function decline.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-11-26T12:00:00Z",
+    "updatedAt": "2025-12-01T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0094,
+      -0.1006,
+      -0.0698,
+      -0.224,
+      0.0833,
+      0.2366,
+      -0.132,
+      -0.0329,
+      -0.2425,
+      0.1472,
+      0.0423,
+      -0.0521,
+      -0.1285,
+      0.2344,
+      0.0405,
+      0.0954
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00048",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-009",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10016",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, elevated inflammatory marker",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-05T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-11T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 4.35,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-14T12:00:00Z",
+        "name": "CRP",
+        "value": 16.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-04-20T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, elevated inflammatory marker.",
+      "missingData": [
+        "current_weight"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-05T12:00:00Z",
+    "updatedAt": "2026-04-09T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0916,
+      0.0292,
+      0.0723,
+      -0.0763,
+      0.1959,
+      0.1166,
+      -0.2393,
+      -0.0611,
+      0.1122,
+      -0.1247,
+      -0.2303,
+      0.1033,
+      0.0295,
+      0.0214,
+      -0.005,
+      0.0334
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00049",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10018",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "within target level, elevated inflammatory marker, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-13T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 350,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-01T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 3.28,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2025-12-26T12:00:00Z",
+        "name": "CRP",
+        "value": 14.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-25T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "suspected_loss_of_response",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, elevated inflammatory marker, suspected loss of response, missing critical context.",
+      "missingData": [
+        "renal_replacement_status",
+        "last_clinical_score",
+        "sample_timing_confirmation"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-13T12:00:00Z",
+    "updatedAt": "2025-12-23T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.1784,
+      0.138,
+      -0.1306,
+      0.1105,
+      0.0791,
+      0.0195,
+      -0.0563,
+      0.012,
+      -0.0012,
+      0.0257,
+      0.0565,
+      -0.0887,
+      0.0705,
+      -0.1948,
+      0.0116,
+      -0.2167
+    ],
+    "expertDecisionSummary": "Expert reviewed protocol match and validated local pharmacist documentation.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00050",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10007",
+    "therapeuticArea": "immunosuppressants",
+    "drugName": "Tacrolimus",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-11T12:00:00Z",
+        "drug": "Tacrolimus",
+        "dose": 4,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-15T12:00:00Z",
+        "drug": "Tacrolimus",
+        "value": 3.34,
+        "unit": "ng/mL",
+        "targetRange": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-24T12:00:00Z",
+        "name": "CRP",
+        "value": 24.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-12T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.64,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-14T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.75,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 5,
+      "levelMax": 12,
+      "unit": "ng/mL"
+    },
+    "riskSignals": [
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Tacrolimus: subtherapeutic level.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-11T12:00:00Z",
+    "updatedAt": "2026-01-12T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.2151,
+      -0.1456,
+      -0.0043,
+      0.1949,
+      -0.21,
+      0.1505,
+      -0.2196,
+      0.029,
+      0.2191,
+      -0.042,
+      -0.0655,
+      0.1042,
+      0.1618,
+      -0.1171,
+      -0.2297,
+      -0.2148
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00051",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10007",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, liver enzyme elevation, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-20T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 400,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-22T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 1.85,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-04-30T12:00:00Z",
+        "name": "CRP",
+        "value": 26.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-04-22T12:00:00Z",
+        "name": "ALT",
+        "value": 98.2,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "missing_critical_context",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: within target level, liver enzyme elevation, missing critical context.",
+      "missingData": [
+        "renal_replacement_status",
+        "sample_timing_confirmation",
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-20T12:00:00Z",
+    "updatedAt": "2026-04-26T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0872,
+      0.1013,
+      -0.0365,
+      -0.1979,
+      0.1462,
+      0.025,
+      0.0023,
+      0.0788,
+      0.017,
+      0.05,
+      0.2168,
+      0.2012,
+      0.025,
+      0.2484,
+      0.1724,
+      -0.0438
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "monitoring_plan_defined"
+  },
+  {
+    "_id": "HIST-2026-00052",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10037",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-27T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-30T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 8.52,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-15T12:00:00Z",
+        "name": "CRP",
+        "value": 43.3,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-12-28T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.37,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2025-12-30T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.23,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: subtherapeutic level.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-27T12:00:00Z",
+    "updatedAt": "2026-01-01T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0479,
+      0.0088,
+      0.2467,
+      -0.0991,
+      -0.0998,
+      -0.1391,
+      0.1779,
+      -0.2391,
+      0.161,
+      0.0949,
+      -0.112,
+      0.0268,
+      0.0282,
+      0.213,
+      -0.1726,
+      -0.2311
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00053",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-003",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10024",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "subtherapeutic level, elevated inflammatory marker, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2025-12-17T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 600,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2025-12-28T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 1.34,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-01-01T12:00:00Z",
+        "name": "CRP",
+        "value": 33.3,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2025-12-26T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "subtherapeutic_level",
+      "suspected_loss_of_response"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: subtherapeutic level, elevated inflammatory marker, suspected loss of response.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2025-12-17T12:00:00Z",
+    "updatedAt": "2025-12-27T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      0.0711,
+      -0.2313,
+      0.1542,
+      -0.0592,
+      0.1401,
+      0.2109,
+      -0.0828,
+      0.1899,
+      -0.0328,
+      0.2151,
+      -0.1897,
+      0.1352,
+      0.1238,
+      0.1747,
+      0.2143,
+      0.0669
+    ],
+    "expertDecisionSummary": "Expert identified sampling timing issue and requested repeat level before action.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00054",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-005",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10003",
+    "therapeuticArea": "antifungals",
+    "drugName": "Voriconazole",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level, liver enzyme elevation",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-02-23T12:00:00Z",
+        "drug": "Voriconazole",
+        "dose": 200,
+        "unit": "mg",
+        "route": "oral"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-25T12:00:00Z",
+        "drug": "Voriconazole",
+        "value": 7.85,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 1,
+          "max": 5.5
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-03-12T12:00:00Z",
+        "name": "CRP",
+        "value": 3.2,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-02-25T12:00:00Z",
+        "name": "ALT",
+        "value": 155.9,
+        "unit": "U/L"
+      }
+    ],
+    "targets": {
+      "levelMin": 1,
+      "levelMax": 5.5,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "liver_enzyme_elevation",
+      "supratherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Voriconazole: supratherapeutic level, liver enzyme elevation.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-02-23T12:00:00Z",
+    "updatedAt": "2026-02-27T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.034,
+      0.1432,
+      -0.176,
+      -0.0819,
+      -0.0121,
+      0.1227,
+      0.0241,
+      -0.1187,
+      -0.0507,
+      -0.0328,
+      0.0989,
+      0.131,
+      -0.0095,
+      -0.1509,
+      -0.0523,
+      0.0357
+    ],
+    "expertDecisionSummary": "Expert confirmed that the case should be discussed in the bi-weekly PK/PD review meeting.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00055",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10018",
+    "therapeuticArea": "antibiotics",
+    "drugName": "Vancomycin",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "subtherapeutic level, renal function decline",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-25T12:00:00Z",
+        "drug": "Vancomycin",
+        "dose": 1500,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-29T12:00:00Z",
+        "drug": "Vancomycin",
+        "value": 3.08,
+        "unit": "mg/L",
+        "targetRange": {
+          "min": 10,
+          "max": 20
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-05T12:00:00Z",
+        "name": "CRP",
+        "value": 17.1,
+        "unit": "mg/L"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-26T12:00:00Z",
+        "name": "Creatinine",
+        "value": 0.86,
+        "unit": "mg/dL"
+      },
+      {
+        "type": "lab",
+        "datetime": "2026-01-28T12:00:00Z",
+        "name": "Creatinine",
+        "value": 1.39,
+        "unit": "mg/dL"
+      }
+    ],
+    "targets": {
+      "levelMin": 10,
+      "levelMax": 20,
+      "unit": "mg/L"
+    },
+    "riskSignals": [
+      "renal_function_decline",
+      "subtherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Vancomycin: subtherapeutic level, renal function decline.",
+      "missingData": [],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-25T12:00:00Z",
+    "updatedAt": "2026-01-30T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1654,
+      -0.0751,
+      0.1608,
+      0.1514,
+      0.0616,
+      -0.0298,
+      0.2121,
+      -0.1333,
+      0.0927,
+      -0.172,
+      0.1142,
+      -0.2071,
+      0.1198,
+      -0.1285,
+      0.0605,
+      -0.1762
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "resolved"
+  },
+  {
+    "_id": "HIST-2026-00056",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-010",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10020",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "medium",
+    "caseReason": "within target level, elevated inflammatory marker",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-01-20T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 350,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-01-31T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 5.96,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-02T12:00:00Z",
+        "name": "CRP",
+        "value": 25.0,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-03T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, elevated inflammatory marker.",
+      "missingData": [
+        "renal_replacement_status"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-01-20T12:00:00Z",
+    "updatedAt": "2026-01-21T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0617,
+      0.203,
+      0.0134,
+      -0.1223,
+      -0.2199,
+      -0.1497,
+      0.0983,
+      -0.1144,
+      -0.0175,
+      0.2226,
+      -0.2167,
+      0.0802,
+      0.0815,
+      0.2064,
+      -0.0699,
+      -0.1961
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "additional_information_requested"
+  },
+  {
+    "_id": "HIST-2026-00057",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-002",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10033",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "low",
+    "caseReason": "within target level, suspected loss of response",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-04-20T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 250,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-04-30T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 5.39,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-05-09T12:00:00Z",
+        "name": "CRP",
+        "value": 9.8,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-05-08T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "not_available",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "suspected_loss_of_response",
+      "within_target_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: within target level, suspected loss of response.",
+      "missingData": [
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "local_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-04-20T12:00:00Z",
+    "updatedAt": "2026-04-25T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.0832,
+      -0.0533,
+      -0.1715,
+      -0.0766,
+      -0.074,
+      0.0626,
+      -0.1319,
+      0.2391,
+      0.0006,
+      0.1559,
+      0.0629,
+      0.1893,
+      0.1952,
+      0.1574,
+      -0.2353,
+      0.0275
+    ],
+    "expertDecisionSummary": "Expert recommended follow-up monitoring plan and documentation in the clinical record.",
+    "outcome": "follow_up_required"
+  },
+  {
+    "_id": "HIST-2026-00058",
+    "networkId": "CAT-PKPD-NET",
+    "originHospitalId": "HOSP-008",
+    "referenceHospitalId": "HOSP-REF-01",
+    "patientId": "PSEUDO-10058",
+    "therapeuticArea": "biologics",
+    "drugName": "Infliximab",
+    "status": "closed_validated",
+    "priority": "high",
+    "caseReason": "supratherapeutic level, elevated inflammatory marker, missing critical context",
+    "timeline": [
+      {
+        "type": "dose",
+        "datetime": "2026-02-04T12:00:00Z",
+        "drug": "Infliximab",
+        "dose": 350,
+        "unit": "mg",
+        "route": "IV"
+      },
+      {
+        "type": "level",
+        "datetime": "2026-02-22T12:00:00Z",
+        "drug": "Infliximab",
+        "value": 9.36,
+        "unit": "ug/mL",
+        "targetRange": {
+          "min": 3,
+          "max": 7
+        }
+      },
+      {
+        "type": "biomarker",
+        "datetime": "2026-02-13T12:00:00Z",
+        "name": "CRP",
+        "value": 11.6,
+        "unit": "mg/L"
+      },
+      {
+        "type": "immunogenicity",
+        "datetime": "2026-02-15T12:00:00Z",
+        "name": "Anti-drug antibodies",
+        "value": "negative",
+        "unit": "qualitative"
+      }
+    ],
+    "targets": {
+      "levelMin": 3,
+      "levelMax": 7,
+      "unit": "ug/mL"
+    },
+    "riskSignals": [
+      "elevated_inflammatory_marker",
+      "missing_critical_context",
+      "supratherapeutic_level"
+    ],
+    "ai": {
+      "caseSummary": "Synthetic demo case for Infliximab: supratherapeutic level, elevated inflammatory marker, missing critical context.",
+      "missingData": [
+        "current_weight",
+        "comedication_review"
+      ],
+      "explanation": "Priority is calculated deterministically from level status, safety markers, missing data and protocol escalation criteria."
+    },
+    "collaboration": {
+      "assignedTeam": "reference_pkpd_team",
+      "decisionStatus": "validated",
+      "comments": []
+    },
+    "createdAt": "2026-02-04T12:00:00Z",
+    "updatedAt": "2026-02-07T12:00:00Z",
+    "synthetic": true,
+    "embedding": [
+      -0.1466,
+      -0.1807,
+      0.0207,
+      0.1501,
+      0.1813,
+      -0.0955,
+      0.1026,
+      0.0119,
+      -0.1824,
+      0.2478,
+      0.2379,
+      -0.1774,
+      0.2165,
+      0.2086,
+      -0.0913,
+      0.0287
+    ],
+    "expertDecisionSummary": "Reference team requested missing context before final validation.",
+    "outcome": "follow_up_required"
+  }
+]

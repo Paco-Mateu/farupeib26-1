@@ -6,12 +6,12 @@ from backend.db.mongo import MongoConnectionError
 from backend.routes.ai import router as ai_router
 from backend.routes.health import router as health_router
 from backend.routes.kit import router as kit_router
-from backend.routes.pkpd import router as pkpd_router
+from backend.routes.xarxa import router as xarxa_router
 
 app = FastAPI(
-    title="Prototype Sprint Kit API",
-    description="Reusable FastAPI backend for rapid event prototypes powered by MongoDB and OpenAI.",
-    version="0.2.0",
+    title="Xarxa PK/PD API",
+    description="Clinical PK/PD collaboration network — Crohn PK/PD prototype.",
+    version="1.0.0",
 )
 
 app.add_middleware(
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for router in (health_router, kit_router, ai_router, pkpd_router):
+for router in (health_router, kit_router, ai_router, xarxa_router):
     app.include_router(router)
 
 

@@ -1,0 +1,152 @@
+[
+  {
+    "_id": "OBS-DRUG-LEVEL",
+    "name": "Drug level / concentration",
+    "category": "pkpd",
+    "allowedUnits": [
+      "ug/mL",
+      "mg/L",
+      "ng/mL"
+    ],
+    "usedFor": [
+      "therapeutic_drug_monitoring"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-ANTI-DRUG-AB",
+    "name": "Anti-drug antibodies",
+    "category": "immunogenicity",
+    "allowedUnits": [
+      "positive/negative",
+      "AU/mL"
+    ],
+    "usedFor": [
+      "biologic_loss_of_response"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-CRP",
+    "name": "C-reactive protein",
+    "category": "biomarker",
+    "allowedUnits": [
+      "mg/L"
+    ],
+    "usedFor": [
+      "inflammation",
+      "loss_of_response"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-ALBUMIN",
+    "name": "Albumin",
+    "category": "biomarker",
+    "allowedUnits": [
+      "g/L",
+      "g/dL"
+    ],
+    "usedFor": [
+      "drug_distribution",
+      "inflammation_context"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-CREATININE",
+    "name": "Creatinine",
+    "category": "renal_function",
+    "allowedUnits": [
+      "mg/dL",
+      "umol/L"
+    ],
+    "usedFor": [
+      "renal_clearance",
+      "toxicity_risk"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-EGFR",
+    "name": "Estimated glomerular filtration rate",
+    "category": "renal_function",
+    "allowedUnits": [
+      "mL/min/1.73m2"
+    ],
+    "usedFor": [
+      "renal_dosing",
+      "toxicity_risk"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-ALT",
+    "name": "Alanine aminotransferase",
+    "category": "liver_function",
+    "allowedUnits": [
+      "U/L"
+    ],
+    "usedFor": [
+      "antifungal_safety"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-AST",
+    "name": "Aspartate aminotransferase",
+    "category": "liver_function",
+    "allowedUnits": [
+      "U/L"
+    ],
+    "usedFor": [
+      "antifungal_safety"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-BILIRUBIN",
+    "name": "Bilirubin total",
+    "category": "liver_function",
+    "allowedUnits": [
+      "mg/dL",
+      "umol/L"
+    ],
+    "usedFor": [
+      "antifungal_safety"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  },
+  {
+    "_id": "OBS-NEUTROPHILS",
+    "name": "Neutrophil count",
+    "category": "hematology",
+    "allowedUnits": [
+      "10*9/L"
+    ],
+    "usedFor": [
+      "oncology_infection_risk"
+    ],
+    "terminology": {
+      "loinc": null
+    }
+  }
+]

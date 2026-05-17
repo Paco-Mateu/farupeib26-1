@@ -1,0 +1,422 @@
+[
+  {
+    "_id": "REGDOC-INFLIXIMAB-DEMO",
+    "drugName": "Infliximab",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Infliximab."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      0.2244,
+      -0.0761,
+      -0.1697,
+      0.0003,
+      0.1143,
+      -0.1291,
+      0.0351,
+      -0.2004,
+      0.0391,
+      -0.243,
+      -0.1415,
+      -0.1542,
+      -0.1091,
+      0.2008,
+      0.0186,
+      0.2368
+    ],
+    "synthetic": true
+  },
+  {
+    "_id": "REGDOC-ADALIMUMAB-DEMO",
+    "drugName": "Adalimumab",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Adalimumab."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      -0.2007,
+      -0.143,
+      0.0021,
+      0.1039,
+      -0.0668,
+      0.0447,
+      -0.0302,
+      0.2289,
+      -0.1596,
+      -0.0726,
+      -0.0602,
+      -0.1429,
+      -0.1362,
+      -0.1936,
+      0.2423,
+      -0.1882
+    ],
+    "synthetic": true
+  },
+  {
+    "_id": "REGDOC-USTEKINUMAB-DEMO",
+    "drugName": "Ustekinumab",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Ustekinumab."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      -0.1948,
+      -0.182,
+      0.1311,
+      0.1024,
+      0.0286,
+      -0.2297,
+      -0.0859,
+      -0.1921,
+      -0.1082,
+      0.0502,
+      -0.094,
+      0.2381,
+      -0.028,
+      0.027,
+      -0.1047,
+      0.1777
+    ],
+    "synthetic": true
+  },
+  {
+    "_id": "REGDOC-VANCOMYCIN-DEMO",
+    "drugName": "Vancomycin",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Vancomycin."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      -0.1556,
+      -0.2152,
+      0.1705,
+      -0.0122,
+      0.0896,
+      -0.1604,
+      0.2494,
+      -0.0042,
+      -0.1974,
+      -0.031,
+      0.0793,
+      -0.2075,
+      -0.1783,
+      -0.0497,
+      0.0453,
+      -0.1991
+    ],
+    "synthetic": true
+  },
+  {
+    "_id": "REGDOC-TACROLIMUS-DEMO",
+    "drugName": "Tacrolimus",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Tacrolimus."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      0.2126,
+      0.2389,
+      -0.2176,
+      0.2376,
+      -0.0807,
+      0.0475,
+      0.2453,
+      -0.1886,
+      0.1691,
+      0.1126,
+      -0.1107,
+      0.1067,
+      0.041,
+      -0.1135,
+      0.1447,
+      0.0719
+    ],
+    "synthetic": true
+  },
+  {
+    "_id": "REGDOC-VORICONAZOLE-DEMO",
+    "drugName": "Voriconazole",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Voriconazole."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      -0.0499,
+      -0.0121,
+      0.0516,
+      -0.0478,
+      -0.0077,
+      -0.1106,
+      0.134,
+      -0.196,
+      -0.1247,
+      -0.0014,
+      0.0642,
+      -0.1827,
+      -0.2002,
+      -0.2236,
+      -0.2159,
+      0.0891
+    ],
+    "synthetic": true
+  },
+  {
+    "_id": "REGDOC-POSACONAZOLE-DEMO",
+    "drugName": "Posaconazole",
+    "documentType": "official_drug_information_manifest",
+    "status": "download_required",
+    "preferredSources": [
+      {
+        "source": "EMA",
+        "sourceType": "download_medicine_data",
+        "url": "https://www.ema.europa.eu/en/medicines/download-medicine-data"
+      },
+      {
+        "source": "AEMPS CIMA",
+        "sourceType": "cima_rest_api",
+        "url": "https://cima.aemps.es/cima/resources/docs/CIMA_REST_API.pdf"
+      },
+      {
+        "source": "DailyMed",
+        "sourceType": "spl_all_drug_labels",
+        "url": "https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm"
+      },
+      {
+        "source": "openFDA",
+        "sourceType": "drug_label_api",
+        "url": "https://open.fda.gov/apis/drug/label/"
+      }
+    ],
+    "demoExtract": {
+      "notice": "This is synthetic placeholder text for app development. Replace with official product information from EMA, AEMPS CIMA, DailyMed or openFDA.",
+      "sections": [
+        {
+          "heading": "Indications and usage",
+          "text": "Synthetic demo section for Posaconazole."
+        },
+        {
+          "heading": "Monitoring considerations",
+          "text": "Synthetic demo section to be replaced with official label and local protocol content."
+        }
+      ]
+    },
+    "embedding": [
+      0.236,
+      -0.0587,
+      0.0896,
+      -0.1736,
+      0.061,
+      -0.2018,
+      -0.2117,
+      0.1258,
+      0.1338,
+      0.1464,
+      -0.149,
+      0.081,
+      -0.0049,
+      -0.1192,
+      -0.0782,
+      0.1798
+    ],
+    "synthetic": true
+  }
+]

@@ -1,6 +1,7 @@
 import './globals.css'
 import { Merriweather } from 'next/font/google'
 import { GeistSans } from 'geist/font/sans'
+import { LanguageProvider } from '@/components/i18n/language-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { Viewport } from 'next'
@@ -28,9 +29,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn('font-sans', GeistSans.variable)}>
+    <html lang="es" suppressHydrationWarning className={cn('font-sans', GeistSans.variable)}>
       <body className={`${GeistSans.variable} ${merriweather.variable}`}>
-        <TooltipProvider>{children}</TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </LanguageProvider>
       </body>
     </html>
   )

@@ -1,5 +1,5 @@
-import { MissionControl } from '@/components/pkpd/pro/mission-control'
+import { redirect } from 'next/navigation'
 
-export default function ProDashboard() {
-  return <MissionControl />
+export default function ProRedirect() {
+  redirect('/?vista=casos')
 }
