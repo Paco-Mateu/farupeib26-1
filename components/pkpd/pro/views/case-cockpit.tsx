@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  Activity, ArrowLeft, Bot, CheckCircle2, Clock, ClipboardEdit,
-  FileText, FlaskConical, MessageSquare, PencilLine, Plus, Save, Shield, Sparkles, TrendingUp, Users, X,
+  Activity, ArrowLeft, Bot, CheckCircle2, ChevronDown, Clock, ClipboardEdit,
+  FileText, FlaskConical, PencilLine, Plus, Save, Shield, Sparkles, TrendingUp, Users, X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -73,6 +73,7 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
   const [actionBusy, setActionBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionNotice, setActionNotice] = useState<string | null>(null)
+  const [automationExpanded, setAutomationExpanded] = useState(false)
 
   useEffect(() => {
     setCurrentCase(caso)
@@ -326,85 +327,45 @@ export function CaseCockpit({ caso, onBack, onCaseUpdated }: Props) {
               )}
             </p>
           </div>
-		          <div className="flex shrink-0 flex-wrap gap-2">
-              <Button
-                size="sm"
-                className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]"
-                onClick={() => void orchestrateCase()}
-                disabled={actionBusy === 'orchestrate'}
-              >
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar caso con IA'}
-              </Button>
-              <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={openEditor}>
-                <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
-              </Button>
-		            <Button
-                size="sm"
-                className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
-                onClick={() => void generateNoteDraft()}
-                disabled={actionBusy === 'note:generate'}
-              >
-		              <FileText className="mr-1.5 h-3.5 w-3.5" /> Generar informe
-		            </Button>
-	            <Button
-                size="sm"
-                variant="outline"
-                className="rounded-xl text-xs"
-                onClick={() =>
-                  void transitionCase(
-                    {
-                      pipelineStage: 'Datos incompletos',
-                      nextAction: 'Completar determinantes pendientes',
-                      eventLabel: 'Se solicita completar datos clínicos y determinantes',
-                    },
-                    'El caso se ha devuelto para completar datos.',
-                  )
-                }
-              >
-                Solicitar datos
-              </Button>
-	            <Button
-                size="sm"
-                variant="outline"
-                className="rounded-xl text-xs"
-                onClick={() =>
-                  void transitionCase(
-                    {
-                      pipelineStage: 'Discusión en red',
-                      nextAction: 'Preparar resumen para sesión de red',
-                      eventLabel: 'Caso marcado para sesión de red',
-                    },
-                    'El caso se ha marcado para sesión de red.',
-                  )
-                }
-              >
-                Marcar para sesión
-              </Button>
-	            <Button
-                size="sm"
-                variant="outline"
-                className="rounded-xl text-xs"
-                onClick={() =>
-                  void transitionCase(
-                    {
-                      pipelineStage: 'Cerrado con resultado',
-                      nextAction: 'Caso cerrado',
-                      eventLabel: 'Caso cerrado manualmente',
-                    },
-                    'El caso se ha cerrado en el flujo demo.',
-                  )
-                }
-              >
-                Cerrar caso
-              </Button>
-	          </div>
-	        </div>
-
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <StageActions
+              caso={currentCase}
+              actionBusy={actionBusy}
+              onOrchestrate={() => void orchestrateCase()}
+              onEdit={openEditor}
+              onGenerateNote={() => void generateNoteDraft()}
+              onRequestData={() =>
+                void transitionCase(
+                  { pipelineStage: 'Datos incompletos', nextAction: 'Completar determinantes pendientes', eventLabel: 'Se solicita completar datos clínicos y determinantes' },
+                  'El caso se ha devuelto para completar datos.',
+                )
+              }
+              onMarkSession={() =>
+                void transitionCase(
+                  { pipelineStage: 'Discusión en red', nextAction: 'Preparar resumen para sesión de red', eventLabel: 'Caso marcado para sesión de red' },
+                  'El caso se ha marcado para sesión de red.',
+                )
+              }
+              onClose={() =>
+                void transitionCase(
+                  { pipelineStage: 'Cerrado con resultado', nextAction: 'Caso cerrado', eventLabel: 'Caso cerrado manualmente' },
+                  'El caso se ha cerrado en el flujo demo.',
+                )
+              }
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="shrink-0 border-b border-slate-200 bg-[#f8faf9] px-6 py-4">
-        <AutomationBanner caso={currentCase} onRun={() => void orchestrateCase()} busy={actionBusy === 'orchestrate'} />
+      {/* Collapsible automation chip */}
+      <div className="shrink-0 border-b border-slate-200 bg-[#f8faf9] px-6 py-3">
+        <AutomationChip
+          caso={currentCase}
+          expanded={automationExpanded}
+          onToggle={() => setAutomationExpanded((v) => !v)}
+          onRun={() => void orchestrateCase()}
+          busy={actionBusy === 'orchestrate'}
+        />
       </div>
 
       {/* Tabs + content + pipeline panel */}
@@ -771,12 +732,116 @@ function StatusCard({ label, value, note, color }: { label: string; value: strin
   )
 }
 
-function AutomationBanner({
+// ── Stage-aware header actions ────────────────────────────────────────────────
+
+function StageActions({
   caso,
+  actionBusy,
+  onOrchestrate,
+  onEdit,
+  onGenerateNote,
+  onRequestData,
+  onMarkSession,
+  onClose,
+}: {
+  caso: CasoCompleto
+  actionBusy: string | null
+  onOrchestrate: () => void
+  onEdit: () => void
+  onGenerateNote: () => void
+  onRequestData: () => void
+  onMarkSession: () => void
+  onClose: () => void
+}) {
+  const stage = caso.pipelineStage
+
+  const earlyStages = ['Solicitud recibida', 'Caso creado por IA', 'Datos incompletos', 'Pendiente de determinantes', 'Determinantes recibidos']
+  const analysisStages = ['Análisis PK/PD generado', 'Revisión farmacéutica']
+  const reviewStages = ['Revisión médica', 'Discusión en red']
+  const reportStages = ['Informe generado', 'Informe validado']
+  const closedStages = ['Registrado en HCE', 'Seguimiento 4 semanas', 'Seguimiento 8 semanas', 'Cerrado con resultado']
+
+  if (closedStages.includes(stage)) {
+    return (
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
+          <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
+        </Button>
+      </div>
+    )
+  }
+
+  if (reportStages.includes(stage)) {
+    return (
+      <div className="flex gap-2">
+        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
+          <FileText className="mr-1.5 h-3.5 w-3.5" /> Generar informe
+        </Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
+          <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar
+        </Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs text-slate-500" onClick={onClose}>Cerrar caso</Button>
+      </div>
+    )
+  }
+
+  if (reviewStages.includes(stage)) {
+    return (
+      <div className="flex gap-2">
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
+          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar con IA'}
+        </Button>
+        <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onGenerateNote} disabled={actionBusy === 'note:generate'}>
+          <FileText className="mr-1.5 h-3.5 w-3.5" /> Informe
+        </Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs text-slate-500" onClick={onClose}>Cerrar</Button>
+      </div>
+    )
+  }
+
+  if (analysisStages.includes(stage)) {
+    return (
+      <div className="flex gap-2">
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
+          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+          {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar con IA'}
+        </Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
+          <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
+        </Button>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onMarkSession}>Sesión de red</Button>
+      </div>
+    )
+  }
+
+  // earlyStages + fallback
+  return (
+    <div className="flex gap-2">
+      <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6c348f]" onClick={onOrchestrate} disabled={actionBusy === 'orchestrate'}>
+        <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+        {actionBusy === 'orchestrate' ? 'Preparando…' : 'Preparar con IA'}
+      </Button>
+      <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onEdit}>
+        <PencilLine className="mr-1.5 h-3.5 w-3.5" /> Editar datos
+      </Button>
+      <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={onRequestData}>Solicitar datos</Button>
+    </div>
+  )
+}
+
+// ── Automation chip (collapsible) ─────────────────────────────────────────────
+
+function AutomationChip({
+  caso,
+  expanded,
+  onToggle,
   onRun,
   busy,
 }: {
   caso: CasoCompleto
+  expanded: boolean
+  onToggle: () => void
   onRun: () => void
   busy: boolean
 }) {
@@ -784,119 +849,187 @@ function AutomationBanner({
   const hasAutomation = (automation?.stepsCompleted ?? 0) > 0
 
   return (
-    <div className="rounded-2xl border border-[#8dc63f]/20 bg-[#edf7f6] p-4">
-      <div className="flex flex-wrap items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#8dc63f] shadow-sm">
-          <Bot className="h-5 w-5" />
+    <div className="rounded-xl border border-[#8dc63f]/20 bg-[#f0f7e3] overflow-hidden">
+      {/* Collapsed row */}
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 px-4 py-2.5 text-left"
+      >
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#8dc63f]">
+          {busy ? (
+            <Sparkles className="h-3.5 w-3.5 animate-pulse text-white" />
+          ) : (
+            <Bot className="h-3.5 w-3.5 text-white" />
+          )}
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-base font-semibold text-[#152520]">
-              {hasAutomation
-                ? automation?.headline
-                : 'Todavía no se ha preparado el paquete automático del caso.'}
-            </p>
-            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-[#1a6860]">
-              IA supervisada
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-[#4a7068]">
-            La plataforma puede leer el caso, detectar gaps, preparar interpretación PK/PD, dejar una propuesta clínica y redactar un borrador HCE antes de la validación humana.
-          </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-4">
-            <AutomationMetricCard label="Pasos completados" value={String(automation?.stepsCompleted ?? 0)} note="Acciones automatizadas visibles" />
-            <AutomationMetricCard label="Tareas creadas" value={String(automation?.tasksCreated ?? 0)} note="Convertidas desde gaps" />
-            <AutomationMetricCard label="Borradores listos" value={String(automation?.draftsReady ?? 0)} note="Recomendación y nota HCE" />
-            <AutomationMetricCard label="Tiempo evitado" value={`${automation?.estimatedMinutesSaved ?? 0} min`} note="Trabajo manual ahorrado" />
-          </div>
+        <div className="flex min-w-0 flex-1 items-center gap-3 text-xs">
+          {busy ? (
+            <span className="font-semibold text-[#7b3fa0]">Orquestando con IA…</span>
+          ) : hasAutomation ? (
+            <>
+              <span className="font-semibold text-[#152520]">{automation?.headline}</span>
+              <span className="text-[#5a7820]">·</span>
+              <span className="text-[#5a7820]">{automation?.stepsCompleted ?? 0} pasos</span>
+              <span className="text-[#5a7820]">·</span>
+              <span className="text-[#5a7820]">{automation?.draftsReady ?? 0} borradores</span>
+              <span className="text-[#5a7820]">·</span>
+              <span className="text-[#5a7820]">{automation?.estimatedMinutesSaved ?? 0} min evitados</span>
+            </>
+          ) : (
+            <span className="text-[#4a7068]">Paquete IA aún no ejecutado — pulsa para preparar el caso automáticamente</span>
+          )}
         </div>
-        <div className="flex shrink-0 flex-col gap-2">
-          <Button
-            size="sm"
-            className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
-            onClick={onRun}
-            disabled={busy}
-          >
-            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-            {busy ? 'Orquestando…' : hasAutomation ? 'Regenerar paquete IA' : 'Ejecutar orquestación IA'}
-          </Button>
-          <p className="text-[11px] text-[#4a7068]">
-            Revisión humana obligatoria en Farmacia y equipo clínico.
-          </p>
-        </div>
-      </div>
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-[#5a7820] transition-transform ${expanded ? 'rotate-180' : ''}`} />
+      </button>
 
-      {(automation?.highlights?.length ?? 0) > 0 ? (
-        <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-          {automation?.highlights.map((highlight) => (
-            <div key={highlight} className="rounded-xl border border-white/80 bg-white px-3 py-3 text-sm text-[#152520] shadow-sm">
-              {highlight}
+      {/* Expanded panel */}
+      {expanded && (
+        <div className="border-t border-[#8dc63f]/20 px-4 pb-4 pt-3">
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="mb-3 text-xs text-[#4a7068]">
+                La plataforma puede leer el caso, detectar gaps, preparar interpretación PK/PD, dejar una propuesta clínica y redactar un borrador HCE antes de la validación humana.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-4">
+                {[
+                  { label: 'Pasos IA', value: String(automation?.stepsCompleted ?? 0) },
+                  { label: 'Tareas creadas', value: String(automation?.tasksCreated ?? 0) },
+                  { label: 'Borradores', value: String(automation?.draftsReady ?? 0) },
+                  { label: 'Min. evitados', value: String(automation?.estimatedMinutesSaved ?? 0) },
+                ].map((m) => (
+                  <div key={m.label} className="rounded-xl border border-[#8dc63f]/20 bg-white px-3 py-2.5 shadow-sm">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">{m.label}</p>
+                    <p className="mt-0.5 text-lg font-bold text-[#152520]">{m.value}</p>
+                  </div>
+                ))}
+              </div>
+              {(automation?.highlights?.length ?? 0) > 0 && (
+                <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                  {automation!.highlights.map((h) => (
+                    <div key={h} className="rounded-lg border border-[#8dc63f]/10 bg-white px-3 py-2 text-xs text-[#152520]">{h}</div>
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
+            <div className="shrink-0">
+              <Button size="sm" className="rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]" onClick={onRun} disabled={busy}>
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                {busy ? 'Orquestando…' : hasAutomation ? 'Regenerar' : 'Ejecutar IA'}
+              </Button>
+              <p className="mt-1.5 text-[10px] text-[#4a7068]">Revisión humana obligatoria.</p>
+            </div>
+          </div>
         </div>
-      ) : null}
+      )}
     </div>
   )
 }
 
-function AutomationMetricCard({
-  label,
-  value,
-  note,
-}: {
-  label: string
-  value: string
-  note: string
-}) {
-  return (
-    <div className="rounded-xl border border-white/80 bg-white px-3 py-3 shadow-sm">
-      <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-[#152520]">{value}</p>
-      <p className="mt-1 text-[11px] text-[#4a7068]">{note}</p>
-    </div>
-  )
-}
+// ── Tab: Timeline (swim lanes) ────────────────────────────────────────────────
 
-// ── Tab: Timeline ─────────────────────────────────────────────────────────────
+const LANE_ORDER = ['Clínica', 'Tratamiento', 'Laboratorio', 'Decisiones', 'Tareas', 'Administración']
+
+const LANE_ICON: Record<string, string> = {
+  Clínica: '🩺',
+  Tratamiento: '💊',
+  Laboratorio: '🧪',
+  Decisiones: '⚡',
+  Tareas: '✅',
+  Administración: '📋',
+}
 
 function TabTimeline({ caso }: { caso: CasoCompleto }) {
+  const [activeLane, setActiveLane] = useState<string | null>(null)
   const sorted = [...(caso.timeline ?? [])].sort((a, b) => a.date.localeCompare(b.date))
-  const lanes = Array.from(new Set(sorted.map((e) => e.lane)))
+  const presentLanes = LANE_ORDER.filter((l) => sorted.some((e) => e.lane === l))
+  const filtered = activeLane ? sorted.filter((e) => e.lane === activeLane) : sorted
+
+  const agentLanes = new Set(['Decisiones', 'Tareas'])
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap gap-2">
-        {lanes.map((lane) => (
-          <span key={lane} className={`rounded-full px-3 py-1 text-xs font-medium ${LANE_COLORS[lane] ?? 'bg-slate-100 text-slate-600'}`}>
+    <div className="space-y-4">
+      {/* Lane filter chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setActiveLane(null)}
+          className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+            activeLane === null
+              ? 'bg-slate-800 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          Todas las pistas
+        </button>
+        {presentLanes.map((lane) => (
+          <button
+            key={lane}
+            onClick={() => setActiveLane(activeLane === lane ? null : lane)}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition ${
+              activeLane === lane
+                ? `${LANE_COLORS[lane] ?? 'bg-slate-100 text-slate-600'} ring-2 ring-offset-1`
+                : `${LANE_COLORS[lane] ?? 'bg-slate-100 text-slate-600'} opacity-60 hover:opacity-100`
+            }`}
+          >
+            <span>{LANE_ICON[lane] ?? '•'}</span>
             {lane}
-          </span>
+          </button>
         ))}
       </div>
 
+      {/* Timeline */}
       <div className="relative">
-        <div className="absolute left-[18px] top-0 h-full w-px bg-slate-200" />
-        <div className="space-y-4">
-          {sorted.map((event, i) => (
-            <div key={i} className="relative flex items-start gap-4 pl-10">
-              <div className={`absolute left-3 top-1.5 h-3 w-3 rounded-full border-2 border-white ${
-                LANE_COLORS[event.lane]?.split(' ')[0] ?? 'bg-slate-300'
-              }`} />
-              <div className="flex-1 rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'}`}>
-                      {event.lane}
+        <div className="absolute left-[19px] top-2 bottom-2 w-px bg-slate-200" />
+        <div className="space-y-3">
+          {filtered.map((event, i) => {
+            const isAgent = agentLanes.has(event.lane)
+            const dotBg = LANE_COLORS[event.lane]?.split(' ')[0] ?? 'bg-slate-300'
+            return (
+              <div key={i} className="relative flex items-start gap-4 pl-10">
+                <div
+                  className={`absolute left-3 top-3 h-3.5 w-3.5 rounded-full border-2 border-white shadow-sm ${dotBg}`}
+                />
+                <div
+                  className={`flex-1 rounded-xl border p-3.5 ${
+                    isAgent
+                      ? 'border-[#8dc63f]/20 bg-[#f0f7e3]'
+                      : 'border-slate-200 bg-white'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          LANE_COLORS[event.lane] ?? 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {LANE_ICON[event.lane] ?? ''} {event.lane}
+                      </span>
+                      {isAgent && (
+                        <span className="rounded-full bg-[#7b3fa0]/10 px-2 py-0.5 text-[9px] font-bold text-[#7b3fa0]">
+                          IA
+                        </span>
+                      )}
+                      <span className="text-[10px] text-slate-400">{event.type}</span>
+                    </div>
+                    <span className="shrink-0 text-[10px] text-[#4a7068]">
+                      {new Date(event.date).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
                     </span>
-                    <span className="ml-2 text-[10px] text-slate-400">{event.type}</span>
                   </div>
-                  <span className="shrink-0 text-xs text-[#4a7068]">{new Date(event.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  <p className="mt-1.5 text-sm font-medium text-[#152520]">{event.label}</p>
                 </div>
-                <p className="mt-2 text-sm font-medium text-[#152520]">{event.label}</p>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
+
+      {filtered.length === 0 && (
+        <p className="py-6 text-center text-sm text-slate-400">No hay eventos en esta pista.</p>
+      )}
     </div>
   )
 }
@@ -1515,7 +1648,7 @@ const STAGE_DESC: Record<string, string> = {
   'Cerrado con resultado':       'Caso cerrado con documentación del resultado clínico.',
 }
 
-// ── Pipeline Panel ────────────────────────────────────────────────────────────
+// ── Pipeline Panel (unified single scroll) ───────────────────────────────────
 
 function PipelinePanel({
   caso,
@@ -1531,190 +1664,180 @@ function PipelinePanel({
   const stageIndex = PIPELINE_STAGES.findIndex((s) => s === caso.pipelineStage)
   const [expandedStage, setExpandedStage] = useState<string | null>(caso.pipelineStage)
   const pendingTasks = (caso.tasks ?? []).filter((t) => t.status !== 'Resuelta')
-  const automation = caso.automationSummary
   const approvalItems = [
-    caso.recommendation?.status !== 'Validado' ? 'Validación de recomendación' : null,
-    caso.clinicalNote?.status !== 'Registrado en HCE' ? 'Validación de informe HCE' : null,
-    pendingTasks.length > 0 ? `${pendingTasks.length} tareas abiertas` : null,
-  ].filter(Boolean)
+    caso.recommendation?.status !== 'Validado' ? 'Recomendación pendiente de validar' : null,
+    caso.clinicalNote?.status !== 'Registrado en HCE' ? 'Informe HCE no registrado' : null,
+    pendingTasks.length > 0 ? `${pendingTasks.length} tarea${pendingTasks.length > 1 ? 's' : ''} abierta${pendingTasks.length > 1 ? 's' : ''}` : null,
+  ].filter(Boolean) as string[]
 
   useEffect(() => {
     setExpandedStage(caso.pipelineStage)
   }, [caso.pipelineStage])
 
   return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-l border-slate-200 bg-slate-50">
-      {/* Siguiente paso */}
-      <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-3">
-        <p className="text-[9px] font-bold uppercase tracking-widest text-[#7b3fa0]">Siguiente paso</p>
-        <p className="mt-1 text-sm font-bold text-slate-900">{caso.nextAction}</p>
-        {actionBusy ? (
-          <p className="mt-1 text-xs font-medium text-indigo-500">Actualizando workflow…</p>
-        ) : null}
-      </div>
+    <aside className="h-full w-72 shrink-0 overflow-y-auto border-l border-slate-200 bg-slate-50">
+      <div className="px-3 py-4 space-y-4">
 
-      {/* Pipeline stages */}
-      <div className="flex-1 overflow-y-auto px-3 py-3">
-        <p className="mb-2 px-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-          Flujo del caso
-        </p>
-        <div className="relative">
-          <div className="absolute bottom-2 left-[15px] top-2 w-0.5 bg-slate-200" />
-          <div className="space-y-0.5">
-            {PIPELINE_STAGES.map((stage, i) => {
-              const isDone = i < stageIndex
-              const isActive = i === stageIndex
-              const isPending = i > stageIndex
-              const isExpanded = expandedStage === stage
-              const dot = STAGE_DOT[stage] ?? '#64748b'
+        {/* Siguiente paso callout */}
+        <div className="rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-3 shadow-sm">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-[#7b3fa0]">Siguiente paso</p>
+          <p className="mt-1 text-sm font-bold text-slate-900">{caso.nextAction}</p>
+          {actionBusy && (
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-[#7b3fa0]">
+              <Sparkles className="h-3 w-3 animate-pulse" />
+              Actualizando workflow…
+            </div>
+          )}
+        </div>
 
-              const stageEvents = (caso.timeline ?? []).filter((e) =>
-                e.label.toLowerCase().includes(stage.toLowerCase().split(' ').slice(0, 2).join(' '))
-              )
+        {/* Pipeline stages */}
+        <div>
+          <p className="mb-2 px-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+            Flujo del caso
+          </p>
+          <div className="relative">
+            <div className="absolute bottom-2 left-[15px] top-2 w-0.5 bg-slate-200" />
+            <div className="space-y-0.5">
+              {PIPELINE_STAGES.map((stage, i) => {
+                const isDone = i < stageIndex
+                const isActive = i === stageIndex
+                const isPending = i > stageIndex
+                const isExpanded = expandedStage === stage
+                const dot = STAGE_DOT[stage] ?? '#64748b'
+                const stageEvents = (caso.timeline ?? []).filter((e) =>
+                  e.label.toLowerCase().includes(stage.toLowerCase().split(' ').slice(0, 2).join(' '))
+                )
 
-              return (
-                <div key={stage}>
-                  <button
-                    onClick={() => setExpandedStage(isExpanded ? null : stage)}
-                    disabled={isPending}
-                    className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${
-                      isActive
-                        ? 'bg-white shadow-sm ring-1 ring-slate-200'
-                        : isPending
-                          ? 'cursor-default'
-                          : 'hover:bg-white'
-                    }`}
-                  >
-                    <div
-                      className="relative z-10 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
-                      style={{
-                        backgroundColor: isPending ? '#e2e8f0' : dot,
-                      }}
-                    >
-                      {isDone ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-white" />
-                      ) : isActive ? (
-                        <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-white" />
-                      ) : (
-                        <div className="h-2 w-2 rounded-full bg-slate-300" />
-                      )}
-                    </div>
-                    <span
-                      className={`flex-1 truncate text-xs ${
+                return (
+                  <div key={stage}>
+                    <button
+                      onClick={() => setExpandedStage(isExpanded ? null : stage)}
+                      disabled={isPending}
+                      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${
                         isActive
-                          ? 'font-bold text-slate-900'
-                          : isDone
-                            ? 'font-medium text-slate-500'
-                            : 'text-slate-300'
+                          ? 'bg-white shadow-sm ring-1 ring-slate-200'
+                          : isPending
+                            ? 'cursor-default'
+                            : 'hover:bg-white'
                       }`}
                     >
-                      {stage}
-                    </span>
-                    {isActive && (
-                      <span
-                        className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold text-white"
-                        style={{ backgroundColor: dot }}
+                      <div
+                        className="relative z-10 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
+                        style={{ backgroundColor: isPending ? '#e2e8f0' : dot }}
                       >
-                        ▶ AHORA
+                        {isDone ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                        ) : isActive ? (
+                          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-white" />
+                        ) : (
+                          <div className="h-2 w-2 rounded-full bg-slate-300" />
+                        )}
+                      </div>
+                      <span
+                        className={`flex-1 truncate text-xs ${
+                          isActive ? 'font-bold text-slate-900' : isDone ? 'font-medium text-slate-500' : 'text-slate-300'
+                        }`}
+                      >
+                        {stage}
                       </span>
+                      {isActive && (
+                        <span
+                          className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold text-white"
+                          style={{ backgroundColor: dot }}
+                        >
+                          ▶ AHORA
+                        </span>
+                      )}
+                    </button>
+
+                    {isExpanded && !isPending && (
+                      <div
+                        className="mb-1 ml-9 overflow-hidden rounded-lg border-l-4 bg-white p-2.5"
+                        style={{ borderColor: dot }}
+                      >
+                        <p className="text-[11px] leading-relaxed text-slate-500">{STAGE_DESC[stage]}</p>
+                        {stageEvents.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {stageEvents.slice(0, 3).map((e, j) => (
+                              <div key={j} className="flex items-start gap-1.5">
+                                <span className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold ${LANE_COLORS[e.lane] ?? 'bg-slate-100 text-slate-600'}`}>
+                                  {e.lane}
+                                </span>
+                                <span className="text-[11px] font-medium text-slate-700">{e.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {isActive && pendingTasks.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {pendingTasks.slice(0, 2).map((t) => (
+                              <div key={t.taskId} className="rounded border border-slate-200 bg-slate-50 px-2 py-1.5">
+                                <p className="text-[11px] font-semibold text-slate-800">{t.title}</p>
+                                <p className="text-[10px] text-slate-500">{t.ownerRole}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
-                  </button>
-
-                  {isExpanded && !isPending && (
-                    <div
-                      className="mb-1 ml-9 overflow-hidden rounded-lg border-l-4 bg-white p-2.5"
-                      style={{ borderColor: dot }}
-                    >
-                      <p className="text-[11px] leading-relaxed text-slate-500">{STAGE_DESC[stage]}</p>
-                      {stageEvents.length > 0 && (
-                        <div className="mt-2 space-y-1.5">
-                          {stageEvents.slice(0, 3).map((e, j) => (
-                            <div key={j} className="flex items-start gap-1.5">
-                              <span
-                                className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold ${
-                                  LANE_COLORS[e.lane] ?? 'bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                {e.lane}
-                              </span>
-                              <span className="text-[11px] font-medium text-slate-700">{e.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {isActive && pendingTasks.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {pendingTasks.slice(0, 2).map((t) => (
-                            <div key={t.taskId} className="rounded border border-slate-200 bg-slate-50 px-2 py-1.5">
-                              <p className="text-[11px] font-semibold text-slate-800">{t.title}</p>
-                              <p className="text-[10px] text-slate-500">{t.ownerRole}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer: people + pending + quick links */}
-      <div className="shrink-0 space-y-3 border-t border-slate-200 bg-white px-4 py-3">
-        <div className="rounded-xl border border-[#8dc63f]/20 bg-[#edf7f6] px-3 py-3">
-          <div className="flex items-start gap-2">
-            <Bot className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8dc63f]" />
-            <div className="min-w-0 text-xs">
-              <p className="font-semibold text-slate-800">Automatización visible</p>
-              <p className="mt-1 text-[#4a7068]">
-                {automation?.stepsCompleted ?? 0} pasos IA · {automation?.draftsReady ?? 0} borradores · {automation?.estimatedMinutesSaved ?? 0} min evitados
-              </p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
 
+        {/* Divider */}
+        <div className="border-t border-slate-200" />
+
+        {/* People */}
         <div className="flex items-start gap-2">
-          <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-500" />
+          <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#7b3fa0]" />
           <div className="min-w-0 text-xs">
             <p className="font-semibold text-slate-800">{caso.requesterName}</p>
-            <p className="text-slate-500">Solicitante · {caso.centerName}</p>
-            <p className="mt-1 font-semibold text-slate-800">{caso.assignedName}</p>
-            <p className="text-slate-500">Farmacia responsable</p>
+            <p className="text-slate-400">Solicitante · {caso.centerName}</p>
+            <p className="mt-1.5 font-semibold text-slate-800">{caso.assignedName}</p>
+            <p className="text-slate-400">Farmacia responsable</p>
           </div>
         </div>
 
+        {/* Approvals needed */}
         {approvalItems.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-amber-600">Pendiente de validar</p>
             {approvalItems.map((item) => (
-              <div key={item} className="rounded border-l-4 border-amber-500 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800">
+              <div key={item} className="rounded-lg border-l-4 border-amber-400 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800">
                 {item}
               </div>
             ))}
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-1">
-          {([
-            { tab: 'gaps' as Tab, label: 'Gaps' },
-            { tab: 'recomendacion' as Tab, label: 'Recom.' },
-            { tab: 'informe' as Tab, label: 'Informe' },
-            { tab: 'aprendizaje' as Tab, label: 'Seguim.' },
-          ] as const).map((item) => (
-            <button
-              key={item.tab}
-              onClick={() => onJump(item.tab)}
-              className={`rounded px-2 py-1.5 text-[11px] font-medium transition ${
-                activeTab === item.tab
-                  ? 'bg-[#8dc63f] text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+        {/* Quick-jump tabs */}
+        <div>
+          <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Ir a sección</p>
+          <div className="grid grid-cols-2 gap-1">
+            {([
+              { tab: 'gaps' as Tab, label: 'Gaps' },
+              { tab: 'recomendacion' as Tab, label: 'Recom.' },
+              { tab: 'informe' as Tab, label: 'Informe' },
+              { tab: 'aprendizaje' as Tab, label: 'Seguim.' },
+            ] as const).map((item) => (
+              <button
+                key={item.tab}
+                onClick={() => onJump(item.tab)}
+                className={`rounded-lg px-2 py-1.5 text-[11px] font-medium transition ${
+                  activeTab === item.tab
+                    ? 'bg-[#8dc63f] text-white'
+                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
+
       </div>
     </aside>
   )

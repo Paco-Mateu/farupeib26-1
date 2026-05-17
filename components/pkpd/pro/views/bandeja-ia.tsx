@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  AlertTriangle,
   Bot,
   CheckCircle2,
   ChevronRight,
@@ -10,6 +11,7 @@ import {
   RefreshCw,
   Sparkles,
   WandSparkles,
+  Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -41,36 +43,335 @@ type FlowStepState = 'done' | 'current' | 'locked'
 function AgentStatusBadge({ status }: { status: InboxItem['agentStatus'] }) {
   const map: Record<InboxItem['agentStatus'], { label: string; className: string }> = {
     pending: { label: 'En cola', className: 'bg-slate-100 text-slate-500' },
-    processing: {
-      label: 'Procesando',
-      className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-    },
-    ready: {
-      label: 'Listo para crear caso',
-      className: 'bg-teal-50 text-teal-700 ring-1 ring-teal-200',
-    },
-    error: {
-      label: 'Error de extracción',
-      className: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-    },
-    created: {
-      label: 'Caso creado',
-      className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-    },
+    processing: { label: 'Procesando', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
+    ready: { label: 'Listo para crear caso', className: 'bg-[#f0f7e3] text-[#5a7820] ring-1 ring-[#8dc63f]/30' },
+    error: { label: 'Error de extracción', className: 'bg-red-50 text-red-700 ring-1 ring-red-200' },
+    created: { label: 'Caso creado', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
   }
-
   const variant = map[status]
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${variant.className}`}>
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${variant.className}`}>
       {variant.label}
     </span>
   )
 }
 
-function StepIcon({ status }: { status: InboxStepStatus }) {
-  if (status === 'done') return <CheckCircle2 className="h-3.5 w-3.5 text-[#8dc63f]" />
-  if (status === 'running') return <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
-  return <Clock3 className="h-3.5 w-3.5 text-slate-300" />
+function StepDot({ state }: { state: FlowStepState }) {
+  if (state === 'done') return <CheckCircle2 className="h-5 w-5 text-[#8dc63f]" />
+  if (state === 'current')
+    return (
+      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#7b3fa0]">
+        <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
+      </div>
+    )
+  return <div className="h-5 w-5 rounded-full border-2 border-slate-200 bg-white" />
+}
+
+function HorizontalStepper({
+  processState,
+  createState,
+  openState,
+}: {
+  processState: FlowStepState
+  createState: FlowStepState
+  openState: FlowStepState
+}) {
+  const steps = [
+    { label: 'Procesar email', state: processState },
+    { label: 'Crear caso', state: createState },
+    { label: 'Abrir cockpit', state: openState },
+  ]
+  return (
+    <div className="flex items-center">
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex items-center">
+          <div className="flex flex-col items-center gap-1">
+            <StepDot state={step.state} />
+            <span
+              className={`text-[9px] font-semibold ${
+                step.state === 'current'
+                  ? 'text-[#7b3fa0]'
+                  : step.state === 'done'
+                    ? 'text-[#5a7820]'
+                    : 'text-slate-300'
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
+          {i < steps.length - 1 && (
+            <div
+              className={`mx-2 mb-4 h-0.5 w-12 rounded-full ${
+                steps[i + 1].state !== 'locked' ? 'bg-[#8dc63f]' : 'bg-slate-200'
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AgentThinkingPanel({ steps }: { steps: Array<{ label: string; status: InboxStepStatus }> }) {
+  return (
+    <div className="overflow-hidden rounded-xl bg-slate-900">
+      {/* Terminal chrome */}
+      <div className="flex items-center gap-1.5 border-b border-slate-800 bg-slate-800 px-4 py-2.5">
+        <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+        <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
+        <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+        <span className="ml-2 font-mono text-[10px] text-slate-400">agente-pkpd · extracción clínica supervisada</span>
+      </div>
+
+      {/* Steps */}
+      <div className="space-y-2.5 p-4 font-mono">
+        {steps.map((step, i) => (
+          <div
+            key={i}
+            className={`flex items-start gap-3 text-xs transition-all duration-300 ${
+              step.status === 'pending' ? 'opacity-20' : 'opacity-100'
+            }`}
+          >
+            <span className="mt-0.5 shrink-0">
+              {step.status === 'done' ? (
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+              ) : step.status === 'running' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+              ) : (
+                <div className="h-3.5 w-3.5 rounded-full border border-slate-700" />
+              )}
+            </span>
+            <span
+              className={`leading-relaxed ${
+                step.status === 'done'
+                  ? 'text-green-300'
+                  : step.status === 'running'
+                    ? 'font-medium text-amber-200'
+                    : 'text-slate-600'
+              }`}
+            >
+              {step.label}
+              {step.status === 'running' && (
+                <span className="ml-1 text-amber-400">
+                  <span className="inline-block animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+                  <span className="inline-block animate-bounce" style={{ animationDelay: '120ms' }}>.</span>
+                  <span className="inline-block animate-bounce" style={{ animationDelay: '240ms' }}>.</span>
+                </span>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Thinking footer */}
+      <div className="flex items-center gap-2 border-t border-slate-800 px-4 py-2.5">
+        <div className="flex gap-1">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#8dc63f]"
+              style={{ animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </div>
+        <span className="font-mono text-[9px] text-slate-500">
+          IA supervisada · revisión humana obligatoria al finalizar
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function PendingPanel() {
+  const actions = [
+    'Identificar el programa clínico y tipo de consulta',
+    'Extraer datos del paciente, pauta y determinantes',
+    'Detectar gaps y datos faltantes antes del caso',
+    'Asignar prioridad y centro responsable',
+  ]
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
+          <Sparkles className="h-4 w-4 text-[#7b3fa0]" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#152520]">Qué hará la IA</p>
+          <p className="text-xs text-[#4a7068]">Al pulsar «Procesar email»</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {actions.map((action) => (
+          <div key={action} className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2.5">
+            <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8dc63f]" />
+            <p className="text-xs text-[#152520]">{action}</p>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-slate-400">
+        El resultado es visible antes de crear el caso. Puedes validar o corregir la extracción.
+      </p>
+    </div>
+  )
+}
+
+function ReadyPanel({
+  extraction,
+  gaps,
+}: {
+  extraction: InboxItem['extraction']
+  gaps: string[] | undefined
+}) {
+  const extractedFields = extraction
+    ? Object.entries({
+        Paciente: extraction.patientCode,
+        Fármaco: extraction.drug,
+        Indicación: extraction.indication,
+        'Dosis actual': extraction.currentDose,
+        Intervalo: extraction.interval,
+        'Nivel detectado': extraction.levelResult,
+        PCR: extraction.crp,
+        Calprotectina: extraction.calprotectin,
+        Anticuerpos: extraction.antibodies,
+      }).filter(([, v]) => v)
+    : []
+
+  return (
+    <div className="space-y-4">
+      {/* Extracted data */}
+      <div>
+        <div className="mb-2 flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 text-[#8dc63f]" />
+          <p className="text-xs font-semibold text-[#152520]">
+            Datos extraídos — {extractedFields.length} campos
+          </p>
+        </div>
+        <div className="overflow-hidden rounded-xl border border-[#8dc63f]/20 bg-[#f0f7e3]">
+          {extraction ? (
+            <dl className="divide-y divide-[#8dc63f]/10">
+              {extractedFields.map(([label, value]) => (
+                <div key={label} className="grid grid-cols-[96px_1fr] gap-2 px-3 py-2 text-xs">
+                  <dt className="text-[#5a7820]">{label}</dt>
+                  <dd className="font-semibold text-[#152520]">{String(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="px-3 py-3 text-xs text-[#4a7068]">Extracción no disponible aún.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Gaps */}
+      {(gaps ?? []).length > 0 && (
+        <div>
+          <div className="mb-2 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <p className="text-xs font-semibold text-[#152520]">
+              Gaps detectados — {gaps!.length}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            {gaps!.map((gap) => (
+              <div key={gap} className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {gap}
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[10px] text-slate-400">
+            Estos gaps se convertirán en tareas al crear el caso.
+          </p>
+        </div>
+      )}
+
+      {(gaps ?? []).length === 0 && (
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-700">
+          ✓ Sin gaps críticos detectados en esta solicitud.
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CreatedPanel({
+  item,
+  onOpen,
+}: {
+  item: InboxItem
+  onOpen?: (caseId: string) => void
+}) {
+  if (!item.createdCaseId) return null
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#152520]">Caso creado con éxito</p>
+          <p className="text-xs text-[#4a7068]">{item.createdCaseId}</p>
+        </div>
+      </div>
+      <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+        <p className="text-xs text-slate-500">Case ID</p>
+        <p className="mt-0.5 text-base font-bold text-[#152520]">{item.createdCaseId}</p>
+        <p className="mt-1 text-xs text-[#4a7068]">
+          El caso ya tiene tareas, prioridades y trazas generadas automáticamente.
+        </p>
+        {onOpen && (
+          <Button
+            size="sm"
+            className="mt-3 w-full gap-1.5 rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
+            onClick={() => onOpen(item.createdCaseId!)}
+          >
+            Abrir Case Cockpit
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+      <p className="text-[10px] text-slate-400">
+        Revisión humana obligatoria antes de emitir recomendación clínica.
+      </p>
+    </div>
+  )
+}
+
+function ContextPanel({
+  item,
+  onOpen,
+}: {
+  item: InboxItem
+  onOpen?: (caseId: string) => void
+}) {
+  if (item.agentStatus === 'processing') {
+    return <AgentThinkingPanel steps={item.agentSteps} />
+  }
+  if (item.agentStatus === 'ready') {
+    return <ReadyPanel extraction={item.extraction} gaps={item.detectedGaps} />
+  }
+  if (item.agentStatus === 'created') {
+    return <CreatedPanel item={item} onOpen={onOpen} />
+  }
+  if (item.agentStatus === 'error') {
+    return (
+      <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+          <p className="text-sm font-semibold text-red-800">Error en la extracción</p>
+        </div>
+        <div className="space-y-1.5">
+          {item.agentSteps.map((step) => (
+            <div key={step.label} className="flex items-center gap-2 text-xs text-red-700">
+              <div className={`h-2 w-2 rounded-full shrink-0 ${step.status === 'done' ? 'bg-green-400' : 'bg-red-400'}`} />
+              {step.label}
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-red-600">Puedes reintentar el procesamiento desde el panel principal.</p>
+      </div>
+    )
+  }
+  return <PendingPanel />
 }
 
 function formatReceivedAt(value: string) {
@@ -80,28 +381,6 @@ function formatReceivedAt(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-function buildInboxAutomationSummary(item: InboxItem) {
-  const completedSteps = item.agentSteps.filter((step) => step.status === 'done').length
-  const extractedFields = Object.values(item.extraction ?? {}).filter(Boolean).length
-  const gapsDetected = item.detectedGaps?.length ?? 0
-  const estimatedMinutesSaved = Math.max(5, completedSteps * 3 + extractedFields + gapsDetected * 2)
-  const highlights = [
-    extractedFields > 0 ? `${extractedFields} datos clínicos ya estructurados` : null,
-    gapsDetected > 0 ? `${gapsDetected} gaps detectados antes de crear el caso` : 'Sin gaps críticos detectados',
-    item.agentStatus === 'ready' || item.agentStatus === 'created'
-      ? 'Caso listo para pasar a revisión humana'
-      : 'La IA sigue preparando el caso para revisión',
-  ].filter(Boolean) as string[]
-
-  return {
-    completedSteps,
-    extractedFields,
-    gapsDetected,
-    estimatedMinutesSaved,
-    highlights,
-  }
 }
 
 export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
@@ -114,7 +393,6 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
   async function loadInbox() {
     setStatus('loading')
     setError(null)
-
     try {
       const response = await fetchJson<InboxResponse>('/api/xarxa/inbox')
       setItems(response.items ?? [])
@@ -136,9 +414,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
   )
 
   useEffect(() => {
-    if (!selected && items[0]) {
-      setSelectedId(items[0]._id)
-    }
+    if (!selected && items[0]) setSelectedId(items[0]._id)
   }, [items, selected])
 
   async function generateInboxItem() {
@@ -149,7 +425,6 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
       setItems((current) => [item, ...current])
       setSelectedId(item._id)
       setStatus('ready')
-      setError(null)
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : 'No se ha podido generar la solicitud.')
     } finally {
@@ -161,9 +436,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
     setError(null)
     setBusyAction('generate-case')
     try {
-      const response = await fetchJson<CreateCaseResponse>('/api/xarxa/inbox/generate-case', {
-        method: 'POST',
-      })
+      const response = await fetchJson<CreateCaseResponse>('/api/xarxa/inbox/generate-case', { method: 'POST' })
       setItems((current) => [response.item, ...current.filter((item) => item._id !== response.item._id)])
       setSelectedId(response.item._id)
       await onCaseCreated?.(response.case.caseId)
@@ -179,9 +452,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
     setError(null)
     setBusyAction('process')
     try {
-      const item = await fetchJson<InboxItem>(`/api/xarxa/inbox/${selected._id}/process`, {
-        method: 'POST',
-      })
+      const item = await fetchJson<InboxItem>(`/api/xarxa/inbox/${selected._id}/process`, { method: 'POST' })
       setItems((current) => current.map((entry) => (entry._id === item._id ? item : entry)))
       setSelectedId(item._id)
     } catch (actionError) {
@@ -196,9 +467,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
     setError(null)
     setBusyAction('create')
     try {
-      const response = await fetchJson<CreateCaseResponse>(`/api/xarxa/inbox/${selected._id}/create-case`, {
-        method: 'POST',
-      })
+      const response = await fetchJson<CreateCaseResponse>(`/api/xarxa/inbox/${selected._id}/create-case`, { method: 'POST' })
       setItems((current) =>
         current.map((entry) => (entry._id === response.item._id ? response.item : entry))
       )
@@ -244,47 +513,69 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
   const canProcess = selected.agentStatus === 'pending' || selected.agentStatus === 'processing' || selected.agentStatus === 'error'
   const canCreate = selected.agentStatus === 'ready'
   const canOpenCase = selected.agentStatus === 'created' && selected.createdCaseId
-  const automation = buildInboxAutomationSummary(selected)
   const processState: FlowStepState = canProcess ? 'current' : 'done'
   const createState: FlowStepState = canOpenCase ? 'done' : canCreate ? 'current' : 'locked'
   const openState: FlowStepState = canOpenCase ? 'current' : 'locked'
+
   const nextAction = canProcess
     ? {
-        title: 'Paso 1. Procesar solicitud',
-        detail: 'La IA debe terminar de estructurar el correo, sugerir el programa y detectar gaps antes de crear el caso.',
-        label: 'Procesar email y extraer datos',
+        step: '1 / 3',
+        who: 'Agente IA',
+        title: 'Procesar email y extraer datos clínicos',
+        detail:
+          'La IA leerá la solicitud, identificará el programa, extraerá datos del paciente y detectará gaps antes de crear el caso.',
+        label: 'Procesar con IA',
+        icon: Bot,
         action: () => void processSelectedItem(),
         busy: busyAction === 'process',
+        color: 'bg-[#7b3fa0] hover:bg-[#6c348f]',
       }
     : canCreate
       ? {
-          title: 'Paso 2. Crear caso clínico',
-          detail: 'La extracción ya está preparada. Ahora conviértela en un caso PK/PD con tareas, prioridades y trazas auditables.',
+          step: '2 / 3',
+          who: 'Tú',
+          title: 'Revisar extracción y crear caso PK/PD',
+          detail:
+            'La extracción está lista. Revisa los datos y gaps, luego crea el caso con tareas, prioridades y trazas auditables.',
           label: 'Crear caso PK/PD',
+          icon: ChevronRight,
           action: () => void createCaseFromSelectedItem(),
           busy: busyAction === 'create',
+          color: 'bg-[#8dc63f] hover:bg-[#9fd44e]',
         }
       : canOpenCase
         ? {
-            title: 'Paso 3. Abrir el Case Cockpit',
-            detail: 'El caso ya existe. Ábrelo para completar determinantes, validar el paquete IA y continuar el circuito clínico.',
+            step: '3 / 3',
+            who: 'Tú',
+            title: 'El caso está listo — ábrelo en el Case Cockpit',
+            detail:
+              'Tareas generadas, prioridades asignadas, trazas de auditoría activas. Continúa el circuito clínico desde el cockpit.',
             label: 'Abrir caso',
+            icon: ChevronRight,
             action: () => {
               if (selected.createdCaseId) void onCaseCreated?.(selected.createdCaseId)
             },
             busy: false,
+            color: 'bg-[#8dc63f] hover:bg-[#9fd44e]',
           }
         : {
-            title: 'Solicitud en preparación',
-            detail: 'Selecciona una solicitud o genera una nueva entrada para comenzar la demo.',
+            step: '—',
+            who: 'Sistema',
+            title: 'Selecciona o genera una solicitud',
+            detail: 'Genera una solicitud de email simulada o selecciona una de la lista para comenzar el flujo.',
             label: 'Generar solicitud',
+            icon: Sparkles,
             action: () => void generateInboxItem(),
             busy: busyAction === 'generate',
+            color: 'bg-slate-700 hover:bg-slate-600',
           }
+
+  const NextIcon = nextAction.icon
 
   return (
     <div className="flex h-full overflow-hidden">
-      <div className="flex w-80 shrink-0 flex-col border-r border-slate-100 bg-white">
+      {/* ── Left: email list ────────────────────────────────── */}
+      <div className="flex w-72 shrink-0 flex-col border-r border-slate-100 bg-white">
         <div className="border-b border-slate-100 px-4 py-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -309,21 +600,29 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
             <Button
               size="sm"
               variant="outline"
-              className="h-11 w-full justify-start rounded-2xl text-sm"
+              className="h-9 w-full justify-start gap-1.5 rounded-xl text-xs"
               onClick={() => void generateInboxItem()}
               disabled={busyAction !== null}
             >
-              {busyAction === 'generate' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+              {busyAction === 'generate' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
               Generar solicitud
             </Button>
             <Button
               size="sm"
-              className="h-11 w-full justify-start rounded-2xl bg-[#8dc63f] text-sm text-white hover:bg-[#9fd44e]"
+              className="h-9 w-full justify-start gap-1.5 rounded-xl bg-[#8dc63f] text-xs text-white hover:bg-[#9fd44e]"
               onClick={() => void generateRandomCase()}
               disabled={busyAction !== null}
             >
-              {busyAction === 'generate-case' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <WandSparkles className="mr-1.5 h-3.5 w-3.5" />}
-              Generar caso aleatorio
+              {busyAction === 'generate-case' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <WandSparkles className="h-3.5 w-3.5" />
+              )}
+              Generar caso completo
             </Button>
           </div>
         </div>
@@ -334,7 +633,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
               <button
                 onClick={() => setSelectedId(item._id)}
                 className={`w-full px-4 py-3 text-left transition hover:bg-slate-50 ${
-                  selected._id === item._id ? 'bg-teal-50/40' : ''
+                  selected._id === item._id ? 'bg-[#f0f7e3]' : ''
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -342,7 +641,7 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
                   <span className="shrink-0 text-[10px] text-[#4a7068]">{formatReceivedAt(item.receivedAt)}</span>
                 </div>
                 <p className="mt-0.5 truncate text-xs text-[#152520]">{item.subject}</p>
-                <p className="mt-1 truncate text-[11px] text-[#4a7068]">{item.requesterName}</p>
+                <p className="mt-0.5 truncate text-[11px] text-[#4a7068]">{item.requesterName}</p>
                 <div className="mt-1.5 flex items-center gap-2">
                   <AgentStatusBadge status={item.agentStatus} />
                   {item.createdCaseId ? (
@@ -355,337 +654,126 @@ export function BandejaIa({ onCaseCreated }: BandejaIaProps) {
         </ul>
       </div>
 
+      {/* ── Right: main panel ───────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="border-b border-slate-100 bg-white px-6 py-4">
+        {/* Compact email header + stepper + next action */}
+        <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-4 space-y-4">
+          {/* Email meta */}
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[#152520]">{selected.subject}</p>
               <p className="mt-0.5 text-xs text-[#4a7068]">
-                De: {selected.from} · {formatReceivedAt(selected.receivedAt)} · {selected.centerName}
+                {selected.from} · {formatReceivedAt(selected.receivedAt)} · {selected.centerName}
               </p>
-              <p className="mt-1 text-xs text-[#4a7068]">
-                Programa sugerido: {selected.programSuggestion ?? 'Crohn PK/PD'} · Tipo sugerido: {selected.caseTypeSuggestion ?? 'Consulta PK/PD'} · Confianza IA: {selected.confidence ?? '—'}%
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-full bg-[#edf7f6] px-2.5 py-1 text-[11px] font-medium text-[#1a6860]">
-                  {automation.completedSteps} pasos automáticos completados
-                </span>
-                <span className="rounded-full bg-[#f1f8e6] px-2.5 py-1 text-[11px] font-medium text-[#5a7820]">
-                  {automation.estimatedMinutesSaved} min manuales evitados
-                </span>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                  {automation.extractedFields} campos estructurados
-                </span>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <AgentStatusBadge status={selected.agentStatus} />
-            </div>
-          </div>
-          <div className="mt-4 rounded-3xl border border-[#8dc63f]/20 bg-[#f0f7e3] p-4">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5a7820]">
-                  Siguiente acción recomendada
+              {selected.programSuggestion && (
+                <p className="mt-0.5 text-xs text-[#4a7068]">
+                  Programa: <span className="font-medium text-[#152520]">{selected.programSuggestion}</span>
+                  {selected.confidence ? ` · Confianza IA: ${selected.confidence}%` : ''}
                 </p>
-                <p className="mt-2 text-lg font-semibold text-[#152520]">{nextAction.title}</p>
-                <p className="mt-1 max-w-3xl text-sm leading-7 text-[#4a7068]">{nextAction.detail}</p>
+              )}
+            </div>
+            <AgentStatusBadge status={selected.agentStatus} />
+          </div>
+
+          {/* Horizontal stepper */}
+          <HorizontalStepper
+            processState={processState}
+            createState={createState}
+            openState={openState}
+          />
+
+          {/* Next action callout */}
+          <div className="rounded-2xl border border-[#8dc63f]/20 bg-[#f0f7e3] p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="rounded-full bg-[#8dc63f]/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#5a7820]">
+                    Paso {nextAction.step}
+                  </span>
+                  <span className="text-[10px] text-[#4a7068]">
+                    {nextAction.who === 'Agente IA' ? '🤖 Acción del agente' : '👤 Tu turno'}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-[#152520]">{nextAction.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-[#4a7068]">{nextAction.detail}</p>
               </div>
               <Button
                 size="lg"
-                className="h-12 rounded-2xl bg-[#8dc63f] px-5 text-sm font-semibold text-white hover:bg-[#9fd44e]"
+                className={`h-11 shrink-0 gap-1.5 rounded-2xl px-5 text-sm font-semibold text-white ${nextAction.color}`}
                 onClick={nextAction.action}
                 disabled={busyAction !== null}
               >
-                {nextAction.busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ChevronRight className="mr-2 h-4 w-4" />}
+                {nextAction.busy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <NextIcon className="h-4 w-4" />
+                )}
                 {nextAction.label}
               </Button>
             </div>
-            <div className="mt-4 grid gap-3 xl:grid-cols-3">
-              <FlowStepCard
-                step="1"
-                title="Procesar email"
-                description="Leer la solicitud, identificar programa, extraer datos y detectar gaps."
-                state={processState}
-                actionLabel="Procesar"
-                onAction={canProcess ? () => void processSelectedItem() : undefined}
-                busy={busyAction === 'process'}
-              />
-              <FlowStepCard
-                step="2"
-                title="Crear caso"
-                description="Convertir la extracción en un caso PK/PD con prioridades, tareas y trazas."
-                state={createState}
-                actionLabel="Crear caso"
-                onAction={canCreate ? () => void createCaseFromSelectedItem() : undefined}
-                busy={busyAction === 'create'}
-              />
-              <FlowStepCard
-                step="3"
-                title="Abrir caso"
-                description="Entrar en el Case Cockpit para validar determinantes y continuar el workflow."
-                state={openState}
-                actionLabel="Abrir"
-                onAction={
-                  canOpenCase
-                    ? () => {
-                        if (selected.createdCaseId) void onCaseCreated?.(selected.createdCaseId)
-                      }
-                    : undefined
-                }
-              />
-            </div>
           </div>
+
           {error ? (
-            <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+            <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
               {error}
             </div>
           ) : null}
         </div>
 
+        {/* Body: email body + context panel */}
         <div className="flex min-h-0 flex-1 overflow-hidden">
+          {/* Email body */}
           <div className="flex-1 overflow-y-auto border-r border-slate-100 px-6 py-5">
-            <div className="mb-4 rounded-2xl border border-[#8dc63f]/20 bg-[#edf7f6] p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#8dc63f] shadow-sm">
-                  <WandSparkles className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[#152520]">Trabajo automático ya completado antes de crear el caso</p>
-                  <p className="mt-1 text-xs text-[#4a7068]">
-                    La plataforma ya ha leído la solicitud, ha estructurado la información útil y ha detectado qué faltará validar antes de la revisión farmacéutica.
-                  </p>
-                  <div className="mt-3 grid gap-2 md:grid-cols-3">
-                    <AutomationStatCard label="Pasos IA completados" value={String(automation.completedSteps)} note="Del correo al borrador estructurado" />
-                    <AutomationStatCard label="Datos estructurados" value={String(automation.extractedFields)} note="Campos clínicos ya preparados" />
-                    <AutomationStatCard label="Tiempo evitado" value={`${automation.estimatedMinutesSaved} min`} note="Trabajo manual ahorrado" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-4 grid gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">Solicitante</p>
-                <p className="mt-2 text-sm font-semibold text-[#152520]">{selected.requesterName}</p>
-                <p className="text-xs text-[#4a7068]">{selected.centerName}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">Programa sugerido</p>
-                <p className="mt-2 text-sm font-semibold text-[#152520]">{selected.programSuggestion ?? 'Crohn PK/PD'}</p>
-                <p className="text-xs text-[#4a7068]">{selected.caseTypeSuggestion ?? 'Consulta PK/PD'}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">Estado de la extracción</p>
-                <p className="mt-2 text-sm font-semibold text-[#152520]">{selected.detectedGaps?.length ?? 0} gaps detectados</p>
-                <p className="text-xs text-[#4a7068]">El caso no pasa a revisión hasta validar esta extracción.</p>
-              </div>
-            </div>
-
-            <p className="mb-3 text-[10px] uppercase tracking-[0.16em] text-[#4a7068]">Email original</p>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
+              Email original
+            </p>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-[#152520]">
                 {selected.body}
               </pre>
             </div>
+
+            {/* Minimal meta below email */}
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Solicitante</p>
+                <p className="mt-1 text-xs font-semibold text-[#152520]">{selected.requesterName}</p>
+                <p className="text-[10px] text-[#4a7068]">{selected.centerName}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Programa sugerido</p>
+                <p className="mt-1 text-xs font-semibold text-[#152520]">
+                  {selected.programSuggestion ?? 'Crohn PK/PD'}
+                </p>
+                <p className="text-[10px] text-[#4a7068]">{selected.caseTypeSuggestion ?? 'Consulta PK/PD'}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Gaps detectados</p>
+                <p className="mt-1 text-xs font-semibold text-[#152520]">
+                  {selected.detectedGaps?.length ?? '—'}
+                </p>
+                <p className="text-[10px] text-[#4a7068]">
+                  {(selected.detectedGaps?.length ?? 0) > 0 ? 'Requieren revisión' : 'Sin gaps críticos'}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex w-[360px] shrink-0 flex-col overflow-y-auto bg-[#f8faf9] px-5 py-5">
+          {/* Context panel */}
+          <div className="w-[320px] shrink-0 overflow-y-auto bg-[#f8faf9] px-5 py-5">
             <div className="mb-4 flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#8dc63f]">
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#152520]">Extracción IA supervisada</p>
-                <p className="text-xs text-[#4a7068]">Trazabilidad visible antes de crear el caso.</p>
+                <p className="text-sm font-semibold text-[#152520]">Extracción IA</p>
+                <p className="text-xs text-[#4a7068]">Supervisada · trazable · revisable</p>
               </div>
             </div>
-
-            <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
-                Actividad del agente
-              </p>
-              <div className="space-y-2.5">
-                {selected.agentSteps.map((step) => (
-                  <div key={step.label} className="flex items-center gap-2.5">
-                    <StepIcon status={step.status} />
-                    <span
-                      className={`text-xs ${
-                        step.status === 'pending' ? 'text-slate-400' : 'text-[#152520]'
-                      }`}
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
-                Qué automatiza aquí la plataforma
-              </p>
-              <div className="space-y-2">
-                {automation.highlights.map((highlight) => (
-                  <div key={highlight} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-[#152520]">
-                    {highlight}
-                  </div>
-                ))}
-              </div>
-              <p className="mt-3 text-[11px] text-[#4a7068]">
-                Al crear el caso, estos hallazgos se transforman automáticamente en tareas, prioridades y trazas auditables.
-              </p>
-            </div>
-
-            <div className="mb-5 rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
-              <div className="mb-3 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-[#8dc63f]" />
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8dc63f]">
-                  Datos detectados
-                </p>
-              </div>
-              {selected.extraction ? (
-                <dl className="space-y-2">
-                  {Object.entries({
-                    Paciente: selected.extraction.patientCode,
-                    Fármaco: selected.extraction.drug,
-                    Indicación: selected.extraction.indication,
-                    Dosis: selected.extraction.currentDose,
-                    Intervalo: selected.extraction.interval,
-                    'Última administración': selected.extraction.recentDose,
-                    Nivel: selected.extraction.levelResult,
-                    PCR: selected.extraction.crp,
-                    Calprotectina: selected.extraction.calprotectin,
-                    Anticuerpos: selected.extraction.antibodies,
-                  }).map(([label, value]) => (
-                    <div key={label} className="grid grid-cols-[112px_1fr] gap-2 text-xs">
-                      <dt className="text-[#4a7068]">{label}</dt>
-                      <dd className="font-medium text-[#152520]">{value || 'No detectado'}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : (
-                <p className="text-sm text-[#4a7068]">La extracción estructurada aparecerá cuando el agente termine el análisis.</p>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
-                Gaps detectados
-              </p>
-              <div className="space-y-2">
-                {(selected.detectedGaps ?? []).map((gap) => (
-                  <div
-                    key={gap}
-                    className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800"
-                  >
-                    {gap}
-                  </div>
-                ))}
-                {(selected.detectedGaps ?? []).length === 0 ? (
-                  <p className="text-sm text-[#4a7068]">No hay gaps detectados en la solicitud actual.</p>
-                ) : null}
-              </div>
-              <p className="mt-3 text-[11px] text-[#4a7068]">
-                La creación del caso conserva estos gaps como tareas de revisión humana.
-              </p>
-            </div>
+            <ContextPanel item={selected} onOpen={onCaseCreated} />
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function AutomationStatCard({
-  label,
-  value,
-  note,
-}: {
-  label: string
-  value: string
-  note: string
-}) {
-  return (
-    <div className="rounded-xl border border-white/70 bg-white px-3 py-3 shadow-sm">
-      <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-[#152520]">{value}</p>
-      <p className="mt-1 text-[11px] text-[#4a7068]">{note}</p>
-    </div>
-  )
-}
-
-function FlowStepCard({
-  step,
-  title,
-  description,
-  state,
-  actionLabel,
-  onAction,
-  busy = false,
-}: {
-  step: string
-  title: string
-  description: string
-  state: FlowStepState
-  actionLabel: string
-  onAction?: () => void
-  busy?: boolean
-}) {
-  const styles =
-    state === 'current'
-      ? 'border-[#8dc63f]/30 bg-white shadow-sm'
-      : state === 'done'
-        ? 'border-teal-200 bg-teal-50/40'
-        : 'border-slate-200 bg-slate-50/80'
-
-  return (
-    <div className={`rounded-2xl border p-4 ${styles}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="rounded-xl bg-[#152520] px-2.5 py-1 text-[11px] font-semibold text-white">
-            Paso {step}
-          </span>
-          {state === 'done' ? (
-            <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-700">
-              Completado
-            </span>
-          ) : state === 'current' ? (
-            <span className="rounded-full bg-[#f1f8e6] px-2 py-0.5 text-[10px] font-semibold text-[#5a7820]">
-              Acción actual
-            </span>
-          ) : (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
-              Bloqueado
-            </span>
-          )}
-        </div>
-        {state === 'done' ? (
-          <CheckCircle2 className="h-4 w-4 text-teal-500" />
-        ) : state === 'current' && busy ? (
-          <Loader2 className="h-4 w-4 animate-spin text-[#8dc63f]" />
-        ) : (
-          <Clock3 className={`h-4 w-4 ${state === 'locked' ? 'text-slate-300' : 'text-amber-500'}`} />
-        )}
-      </div>
-
-      <p className="mt-4 text-sm font-semibold text-[#152520]">{title}</p>
-      <p className="mt-1 text-xs leading-6 text-[#4a7068]">{description}</p>
-
-      <Button
-        size="sm"
-        variant={state === 'current' ? 'default' : 'outline'}
-        className={`mt-4 h-10 w-full rounded-xl text-xs ${
-          state === 'current'
-            ? 'bg-[#152520] text-white hover:bg-[#243732]'
-            : 'bg-white text-[#152520]'
-        }`}
-        disabled={!onAction || busy}
-        onClick={onAction}
-      >
-        {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-        {actionLabel}
-      </Button>
     </div>
   )
 }

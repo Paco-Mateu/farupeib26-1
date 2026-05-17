@@ -5,20 +5,87 @@ import {
   Bot,
   BrainCircuit,
   Building2,
-  ClipboardList,
-  FilePenLine,
+  ClipboardCheck,
+  FileText,
+  GraduationCap,
   Microscope,
   ShieldCheck,
   Stethoscope,
   Users2,
 } from 'lucide-react'
 
+const DIFFERENTIATORS = [
+  {
+    icon: Stethoscope,
+    title: 'No es una calculadora',
+    text:
+      'Es una plataforma de soporte a la decisión farmacoterapéutica para escenarios complejos donde exposición, respuesta, biomarcadores, determinantes, historia terapéutica y criterio clínico deben analizarse de forma conjunta.',
+  },
+  {
+    icon: ClipboardCheck,
+    title: 'No es solo un gestor de casos',
+    text:
+      'Cada caso se convierte en un objeto clínico vivo, con timeline, determinantes, gaps, actividad de agentes, tareas, interpretación PK/PD, recomendación, informe y seguimiento.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'No es un chatbot aislado',
+    text:
+      'Los agentes IA trabajan dentro de un workflow clínico gobernado. Todo lo que generan queda trazado, revisable y sujeto a validación humana obligatoria.',
+  },
+  {
+    icon: Building2,
+    title: 'Sí es una plataforma de red',
+    text:
+      'El valor no está solo en resolver mejor un caso individual. El valor está en que distintos hospitales y profesionales puedan compartir conocimiento, aprender de casos validados y mejorar la práctica clínica de forma descentralizada.',
+  },
+]
+
+const CAPABILITIES = [
+  {
+    icon: Users2,
+    title: 'Inteligencia clínica colaborativa',
+    text:
+      'Farmacia Hospitalaria, Digestivo, Enfermería y Laboratorio trabajan sobre el mismo caso, con una visión compartida del contexto clínico, los determinantes, las tareas pendientes y el siguiente paso recomendado.',
+  },
+  {
+    icon: BrainCircuit,
+    title: 'Farmacia como consultoría experta',
+    text:
+      'La plataforma eleva el rol del farmacéutico hospitalario, ayudándole a aportar criterio especializado en decisiones terapéuticas complejas, no solo en validación o dispensación.',
+  },
+  {
+    icon: Bot,
+    title: 'Agentes IA supervisados',
+    text:
+      'La IA prepara el trabajo: lee, estructura, detecta gaps, genera tareas, ayuda a interpretar el caso y redacta borradores. El profesional revisa, ajusta, valida y decide.',
+  },
+  {
+    icon: GraduationCap,
+    title: 'Conocimiento descentralizado de red',
+    text:
+      'Cada hospital mantiene su contexto y su operativa, pero la red puede aprender de casos anonimizados, patrones clínicos, decisiones revisadas y resultados de seguimiento.',
+  },
+  {
+    icon: Microscope,
+    title: 'Inteligencia PK/PD aplicada',
+    text:
+      'La plataforma ayuda a responder preguntas críticas sobre exposición, respuesta, inmunogenicidad, optimización, cambio terapéutico, ratificación o desintensificación.',
+  },
+  {
+    icon: FileText,
+    title: 'Trazabilidad y gobierno clínico',
+    text:
+      'Cada dato, recomendación, tarea, validación e informe queda registrado con su fuente, estado, versión de protocolo y profesional responsable.',
+  },
+]
+
 const DEMO_STEPS = [
   {
     step: '01',
     title: 'Entrar por Bandeja IA',
     description:
-      'Parte de un email clínico realista, deja que la IA lo lea, extraiga los datos útiles y detecte los gaps antes de que el equipo empiece a revisar.',
+      'Parte de una solicitud clínica realista. La IA identifica el tipo de caso, extrae información útil, detecta gaps y propone las primeras tareas antes de que el equipo clínico empiece la revisión.',
     href: '/?vista=bandeja',
     action: 'Abrir Bandeja IA',
   },
@@ -26,57 +93,50 @@ const DEMO_STEPS = [
     step: '02',
     title: 'Crear y abrir el caso',
     description:
-      'Convierte la solicitud en un caso PK/PD vivo, con timeline, determinantes, tareas y trazas de agentes listas para validación humana.',
+      'La solicitud se convierte en un caso PK/PD estructurado, con timeline, determinantes, estado del pipeline, profesionales implicados y trazas de agentes listas para validación humana.',
     href: '/?vista=casos',
     action: 'Ir a Casos PK/PD',
   },
   {
     step: '03',
-    title: 'Orquestar el paquete clínico',
+    title: 'Revisar el Case Cockpit',
     description:
-      'Haz visible cómo la plataforma prepara interpretación PK/PD, borrador de recomendación y borrador HCE sin quitar control al farmacéutico.',
+      'El equipo trabaja sobre una visión única del caso: datos clínicos, tratamiento, laboratorio, gaps, tareas, interpretación PK/PD, escenarios posibles, recomendación e informe HCE.',
     href: '/?vista=casos',
     action: 'Ver Case Cockpit',
   },
   {
     step: '04',
-    title: 'Enseñar gobierno e impacto',
+    title: 'Validar la recomendación',
     description:
-      'Cierra la demo en Agentes IA e Informes para mostrar trazabilidad, ahorro operativo y aprendizaje de red.',
-    href: '/?vista=agentes',
-    action: 'Abrir Agentes IA',
-  },
-]
-
-const DIFFERENTIATORS = [
-  {
-    icon: ClipboardList,
-    title: 'Gestión estructurada de casos',
-    text: 'Cada consulta PK/PD deja de ser un email suelto y pasa a ser un caso trazable, asignable y revisable.',
+      'El farmacéutico revisa la interpretación preparada por los agentes, ajusta el razonamiento si es necesario y genera una recomendación farmacoterapéutica trazable para discusión o registro clínico.',
+    href: '/?vista=casos',
+    action: 'Revisar recomendación',
   },
   {
-    icon: Bot,
-    title: 'Agentes IA supervisados',
-    text: 'La IA lee, estructura, detecta gaps, prepara tareas, redacta borradores y deja una traza completa para revisión humana.',
-  },
-  {
-    icon: Users2,
-    title: 'Colaboración clínica real',
-    text: 'Farmacia Hospitalaria, Digestivo, Enfermería y Laboratorio trabajan sobre el mismo objeto clínico y el mismo workflow.',
-  },
-  {
-    icon: BrainCircuit,
-    title: 'Inteligencia PK/PD aplicada',
-    text: 'La plataforma no se presenta como calculadora; se presenta como capa operativa para decisiones complejas de exposición, respuesta y seguimiento.',
+    step: '05',
+    title: 'Cerrar el ciclo de aprendizaje',
+    description:
+      'El caso queda vinculado a seguimiento, outcomes y aprendizaje de red. La plataforma no termina en la recomendación: acompaña el resultado y convierte cada caso validado en conocimiento compartible.',
+    href: '/?vista=reporting',
+    action: 'Abrir Informes y aprendizaje',
   },
 ]
 
 const QUESTIONS = [
-  '¿El paciente está recibiendo suficiente exposición?',
+  '¿El paciente tiene una exposición adecuada al tratamiento?',
+  '¿La pérdida de respuesta parece relacionada con baja exposición, inmunogenicidad o posible fallo farmacodinámico?',
   '¿Faltan determinantes críticos antes de emitir una recomendación segura?',
-  '¿Tiene sentido optimizar dosis, cambiar intervalo, cambiar mecanismo o simplemente confirmar el tratamiento?',
+  '¿Tiene sentido optimizar dosis, cambiar intervalo, cambiar mecanismo, confirmar tratamiento o plantear desintensificación?',
+  '¿Qué tareas debe realizar cada profesional para completar el caso?',
   '¿Qué debe quedar documentado en la historia clínica electrónica?',
-  '¿Qué puede aprender la red a partir de este caso?',
+  '¿Qué puede aprender la red a partir de este caso validado?',
+]
+
+const TAGLINES = [
+  'Inteligencia colaborativa para farmacoterapia de precisión.',
+  'Donde cada caso PK/PD se convierte en conocimiento de red.',
+  'Farmacia Hospitalaria como motor de decisión clínica avanzada.',
 ]
 
 export function DemoIntro() {
@@ -84,8 +144,11 @@ export function DemoIntro() {
     <main className="min-h-screen bg-[#f7faf9] text-[#152520]">
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-6">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Image src="/brand/xarxapkpd.png" alt="Xarxa PK/PD" width={180} height={40} className="h-10 w-auto" />
+            <span className="rounded-full bg-[#edf7f6] px-3 py-1 text-xs font-semibold text-[#1a6860]">
+              Plataforma colaborativa de inteligencia clínica PK/PD
+            </span>
             <span className="rounded-full bg-[#f1f8e6] px-3 py-1 text-xs font-semibold text-[#5a7820]">
               Programa activo: Crohn PK/PD
             </span>
@@ -94,27 +157,31 @@ export function DemoIntro() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full bg-[#edf7f6] px-3 py-1 text-xs font-semibold text-[#1a6860]">
-                Plataforma colaborativa de inteligencia clínica
+                Farmacia Hospitalaria + Digestivo + Enfermería + Laboratorio
               </span>
               <span className="rounded-full bg-[#f6f0fb] px-3 py-1 text-xs font-semibold text-[#7b3fa0]">
-                Farmacia Hospitalaria + Digestivo + Enfermería + Laboratorio
+                IA como capa de orquestación y preparación
               </span>
             </div>
 
-            <h1 className="mt-5 max-w-4xl text-4xl font-semibold tracking-tight text-[#152520]">
-              Xarxa PK/PD Intelligence Hub convierte solicitudes fragmentadas en farmacoterapia de precisión colaborativa.
+            <h1 className="mt-5 max-w-5xl text-4xl font-semibold tracking-tight text-[#152520]">
+              Xarxa PK/PD Intelligence Hub impulsa una nueva forma de optimizar tratamientos complejos: colaborativa, trazable, basada en conocimiento experto y aumentada por IA.
             </h1>
 
-            <p className="mt-5 max-w-3xl text-base leading-8 text-[#4a7068]">
-              Esta demo presenta una plataforma clínica para optimización terapéutica basada en PK/PD. Empieza con Crohn como primer programa activo y está diseñada para crecer hacia nuevas especialidades, enfermedades, fármacos, determinantes, workflows y protocolos clínicos configurables.
+            <p className="mt-5 max-w-4xl text-base leading-8 text-[#4a7068]">
+              La plataforma nace con Crohn como primer programa clínico activo, pero está diseñada para crecer hacia nuevas especialidades, enfermedades, fármacos, determinantes, workflows y protocolos configurables.
             </p>
 
-            <p className="mt-4 max-w-3xl text-base leading-8 text-[#4a7068]">
-              La IA no sustituye el juicio experto. La IA lee solicitudes, estructura casos, detecta gaps, crea tareas, prepara interpretación PK/PD, redacta borradores de recomendación y genera notas HCE. La decisión final sigue siendo del profesional sanitario.
+            <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
+              Su objetivo no es automatizar la decisión clínica. Su objetivo es amplificar el papel del farmacéutico hospitalario como consultor experto, facilitando que participe de forma activa, estructurada y documentada en decisiones de inicio, optimización, pérdida de respuesta, cambio de medicación, ratificación y desintensificación de tratamientos.
+            </p>
+
+            <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
+              La IA actúa como una capa de apoyo inteligente: estructura casos, detecta gaps, coordina tareas, interpreta señales PK/PD, prepara borradores de recomendación y genera notas para HCE. La decisión final siempre permanece en manos del equipo clínico.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -132,69 +199,96 @@ export function DemoIntro() {
                 Entrar en la cola de casos
               </Link>
             </div>
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 lg:hidden">
+              La demo interactiva de Bandeja IA, Case Cockpit y Reporting está pensada para escritorio. Desde móvil puedes revisar esta introducción y abrir el entorno completo más tarde en un ordenador.
+            </div>
           </div>
 
           <div className="rounded-[32px] border border-[#8dc63f]/20 bg-[#f0f7e3] p-8 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5a7820]">
-              Qué hace especial esta demo
+              Posicionamiento ejecutivo
             </p>
-            <div className="mt-5 space-y-4">
-              <InfoRow icon={Stethoscope} title="No es una calculadora">
-                Es una capa operativa para decisiones complejas de inicio, optimización, pérdida de respuesta, cambio de medicación, ratificación y desintensificación.
-              </InfoRow>
-              <InfoRow icon={Microscope} title="No es solo un gestor de casos">
-                Cada caso vive como un objeto clínico con timeline, determinantes, gaps, actividad de agentes, recomendación y seguimiento.
-              </InfoRow>
-              <InfoRow icon={ShieldCheck} title="No es un chatbot aislado">
-                Todo lo generado por IA queda auditado, revisable y sujeto a validación humana obligatoria.
-              </InfoRow>
-              <InfoRow icon={Building2} title="Sí es una plataforma de red">
-                El valor no es solo resolver un caso. El valor es que la red aprenda y mejore a partir de cada caso validado.
-              </InfoRow>
+            <p className="mt-4 text-sm leading-7 text-[#4a7068]">
+              Xarxa PK/PD Intelligence Hub es una plataforma colaborativa para optimizar tratamientos complejos mediante inteligencia PK/PD, coordinación multidisciplinar y aprendizaje de red.
+            </p>
+            <p className="mt-4 text-sm leading-7 text-[#4a7068]">
+              Empieza con Crohn como primer programa clínico, conectando Farmacia Hospitalaria, Digestivo, Enfermería y Laboratorio en torno a un caso clínico compartido. La IA estructura la información, detecta gaps, coordina tareas y prepara interpretaciones y borradores, mientras el equipo sanitario mantiene siempre el control de la decisión.
+            </p>
+            <p className="mt-4 text-sm leading-7 text-[#4a7068]">
+              El resultado es una nueva forma de trabajar: más colaborativa, más trazable y orientada a elevar el papel del farmacéutico hospitalario como consultor experto en farmacoterapia de precisión.
+            </p>
+
+            <div className="mt-6 space-y-2">
+              {TAGLINES.map((tagline) => (
+                <div
+                  key={tagline}
+                  className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-sm font-medium text-[#152520]"
+                >
+                  {tagline}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 pb-10">
-        <div className="grid gap-4 lg:grid-cols-4">
-          {DIFFERENTIATORS.map(({ icon: Icon, title, text }) => (
-            <article key={title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h2 className="mt-4 text-base font-semibold text-[#152520]">{title}</h2>
-              <p className="mt-2 text-sm leading-7 text-[#4a7068]">{text}</p>
-            </article>
-          ))}
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-10">
         <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
+            Qué hace especial esta demo
+          </p>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {DIFFERENTIATORS.map(({ icon: Icon, title, text }) => (
+              <InfoCard key={title} icon={Icon} title={title} text={text} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-10">
+        <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
+            Capacidades clave
+          </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {CAPABILITIES.map(({ icon: Icon, title, text }) => (
+              <article key={title} className="rounded-3xl border border-slate-200 bg-[#fbfcfb] p-6">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h2 className="mt-4 text-base font-semibold text-[#152520]">{title}</h2>
+                <p className="mt-2 text-sm leading-7 text-[#4a7068]">{text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-10">
+        <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
                 Recorrido recomendado de la demo
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-[#152520]">
-                Guion para enseñar automatización, validación humana y aprendizaje de red
+                Guion para enseñar colaboración, IA supervisada y aprendizaje de red
               </h2>
             </div>
             <Link
               href="/?vista=bandeja"
-              className="hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-[#152520] transition hover:border-slate-300 hover:bg-white lg:inline-flex"
+              className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-[#152520] transition hover:border-slate-300 hover:bg-white"
             >
               Entrar en la demo
             </Link>
           </div>
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="mt-6 grid gap-4 xl:grid-cols-5">
             {DEMO_STEPS.map((step) => (
               <Link
                 key={step.step}
                 href={step.href}
-                className="group rounded-3xl border border-slate-200 bg-[#fbfcfb] p-6 transition hover:-translate-y-0.5 hover:border-[#8dc63f]/30 hover:bg-white hover:shadow-sm"
+                className="group rounded-3xl border border-slate-200 bg-[#fbfcfb] p-5 transition hover:-translate-y-0.5 hover:border-[#8dc63f]/30 hover:bg-white hover:shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className="rounded-2xl bg-[#152520] px-3 py-1 text-xs font-semibold text-white">
@@ -202,7 +296,7 @@ export function DemoIntro() {
                   </span>
                   <ArrowRight className="h-4 w-4 text-[#4a7068] transition group-hover:text-[#8dc63f]" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-[#152520]">{step.title}</h3>
+                <h3 className="mt-4 text-base font-semibold text-[#152520]">{step.title}</h3>
                 <p className="mt-2 text-sm leading-7 text-[#4a7068]">{step.description}</p>
                 <div className="mt-5 inline-flex rounded-2xl bg-[#f1f8e6] px-3 py-2 text-sm font-semibold text-[#5a7820]">
                   {step.action}
@@ -220,10 +314,16 @@ export function DemoIntro() {
               Narrativa de apertura
             </p>
             <p className="mt-4 text-base leading-8 text-[#4a7068]">
-              Imagina que Digestivo envía un correo a Farmacia Hospitalaria para revisar un paciente con Crohn y sospecha de pérdida de respuesta a un biológico. Hoy esa solicitud puede llegar incompleta. Con Xarxa PK/PD, ese correo se convierte en un caso estructurado: la IA identifica el tipo de caso, detecta datos faltantes, crea tareas, valida si los determinantes son interpretables, prepara una interpretación PK/PD y deja un borrador para que el farmacéutico lo revise.
+              Imagina que un equipo de Digestivo quiere revisar un paciente con Crohn y sospecha de pérdida de respuesta a un biológico.
             </p>
             <p className="mt-4 text-base leading-8 text-[#4a7068]">
-              El profesional sigue siendo el experto. La plataforma elimina fricción, mejora consistencia y convierte cada caso en una oportunidad de aprendizaje para toda la red.
+              En lugar de tratar la consulta como una petición aislada, Xarxa PK/PD Intelligence Hub la convierte en un caso clínico colaborativo. La IA identifica el contexto, estructura la información, detecta qué datos faltan, crea tareas para los profesionales adecuados, revisa si los determinantes son interpretables y prepara una primera lectura PK/PD para que Farmacia Hospitalaria pueda validarla.
+            </p>
+            <p className="mt-4 text-base leading-8 text-[#4a7068]">
+              El farmacéutico no pierde protagonismo. Al contrario: gana una posición más visible como consultor experto en farmacoterapia de precisión.
+            </p>
+            <p className="mt-4 text-base leading-8 text-[#4a7068]">
+              La plataforma ayuda a que cada decisión sea más estructurada, más trazable, más colaborativa y más útil para el aprendizaje de toda la red.
             </p>
           </div>
 
@@ -233,17 +333,19 @@ export function DemoIntro() {
             </p>
             <div className="mt-5 space-y-3">
               {QUESTIONS.map((question) => (
-                <div key={question} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-[#152520]">
+                <div
+                  key={question}
+                  className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-[#152520]"
+                >
                   {question}
                 </div>
               ))}
             </div>
+
             <div className="mt-6 rounded-2xl border border-[#8dc63f]/20 bg-[#f0f7e3] p-4">
-              <p className="text-sm font-semibold text-[#152520]">
-                Posicionamiento
-              </p>
+              <p className="text-sm font-semibold text-[#152520]">Posicionamiento</p>
               <p className="mt-2 text-sm leading-7 text-[#4a7068]">
-                Xarxa PK/PD Intelligence Hub es una plataforma colaborativa de inteligencia de casos que ayuda a equipos hospitalarios multidisciplinares a optimizar terapias complejas mediante workflows PK/PD estructurados, validación humana y aprendizaje de red.
+                Xarxa PK/PD Intelligence Hub es una plataforma colaborativa de inteligencia clínica que ayuda a equipos hospitalarios multidisciplinares a optimizar terapias complejas mediante workflows PK/PD estructurados, agentes IA supervisados, validación humana y aprendizaje descentralizado de red.
               </p>
             </div>
           </div>
@@ -253,23 +355,23 @@ export function DemoIntro() {
   )
 }
 
-function InfoRow({
+function InfoCard({
   icon: Icon,
   title,
-  children,
+  text,
 }: {
   icon: typeof Bot
   title: string
-  children: string
+  text: string
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/80 p-4">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#edf7f6] text-[#1a6860]">
-        <Icon className="h-4 w-4" />
+    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-[#fbfcfb] p-5">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+        <Icon className="h-5 w-5" />
       </div>
       <div>
         <p className="text-sm font-semibold text-[#152520]">{title}</p>
-        <p className="mt-1 text-sm leading-7 text-[#4a7068]">{children}</p>
+        <p className="mt-1 text-sm leading-7 text-[#4a7068]">{text}</p>
       </div>
     </div>
   )

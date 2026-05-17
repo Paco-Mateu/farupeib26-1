@@ -5,6 +5,7 @@ import {
   BarChart3,
   Bell,
   Bot,
+  BookOpenCheck,
   Building2,
   CalendarRange,
   ChevronDown,
@@ -14,6 +15,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  Monitor,
   Search,
   ShieldCheck,
   TriangleAlert,
@@ -22,6 +24,7 @@ import {
   Video,
   X,
 } from 'lucide-react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   type ElementType,
@@ -162,10 +165,12 @@ function Sidebar({
   active,
   onNavigate,
   bandejaCount,
+  onOpenIntro,
 }: {
   active: Vista
   onNavigate: (v: Vista) => void
   bandejaCount: number
+  onOpenIntro: () => void
 }) {
   const isAdminVista = ADMIN_VISTAS.includes(active)
   const [adminOpen, setAdminOpen] = useState(isAdminVista)
@@ -225,8 +230,7 @@ function Sidebar({
           </div>
         ) : (
           <div className="min-w-0 flex-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/xarxapkpd.png" alt="Xarxa PK/PD" className="h-8 w-auto" />
+            <Image src="/brand/xarxapkpd.png" alt="Xarxa PK/PD" width={144} height={32} className="h-8 w-auto" />
             <p className="mt-0.5 text-[10px] text-[#4a7068]">Crohn PK/PD</p>
           </div>
         )}
@@ -259,7 +263,35 @@ function Sidebar({
         </div>
       </nav>
 
-      <div className={`border-t border-slate-100 px-2 py-3 ${collapsed ? 'flex justify-center' : 'px-3'}`}>
+      <div className="border-t border-slate-100 px-2 py-3">
+        {collapsed ? (
+          <div className="mb-2 flex justify-center">
+            <button
+              onClick={onOpenIntro}
+              title="Intro de la demo"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-[#4a7068] transition hover:border-slate-300 hover:bg-white hover:text-[#152520]"
+            >
+              <BookOpenCheck className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onOpenIntro}
+            className="mb-3 flex w-full items-start gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-left transition hover:border-slate-300 hover:bg-white"
+          >
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#edf7f6] text-[#1a6860]">
+              <BookOpenCheck className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-[#152520]">Intro de la demo</p>
+              <p className="mt-1 text-[10px] leading-5 text-[#4a7068]">
+                Explicación de negocio, recorrido recomendado y propuesta de valor.
+              </p>
+            </div>
+          </button>
+        )}
+
+        <div className={collapsed ? 'flex justify-center' : 'px-1'}>
         {collapsed ? (
           <div
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8dc63f]/10 text-[11px] font-bold text-[#8dc63f]"
@@ -281,6 +313,7 @@ function Sidebar({
             </button>
           </div>
         )}
+        </div>
       </div>
     </aside>
   )
@@ -295,6 +328,39 @@ function MetricPill({ metric }: { metric: HeaderMetric }) {
         {metric.label}
       </p>
       <p className="mt-1 text-sm font-semibold">{metric.value}</p>
+    </div>
+  )
+}
+
+function DesktopOnlyNotice() {
+  return (
+    <div className="flex min-h-screen flex-col bg-[#f7faf9] px-5 py-8 lg:hidden">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf7f6] text-[#1a6860]">
+            <Monitor className="h-6 w-6" />
+          </div>
+          <h1 className="mt-5 text-2xl font-semibold text-[#152520]">Demo interactiva disponible en escritorio</h1>
+          <p className="mt-3 text-sm leading-7 text-[#4a7068]">
+            Desde el móvil puedes revisar la introducción de la plataforma, pero la demo operativa de
+            Bandeja IA, Case Cockpit, agentes y reporting está preparada para una experiencia de escritorio.
+          </p>
+          <p className="mt-3 text-sm leading-7 text-[#4a7068]">
+            Para iniciar la demo completa, abre Xarxa PK/PD Intelligence Hub desde un ordenador.
+          </p>
+          <div className="mt-6 flex flex-col gap-3">
+            <a
+              href="/"
+              className="inline-flex items-center justify-center rounded-2xl bg-[#8dc63f] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#9fd44e]"
+            >
+              Ver intro de la demo
+            </a>
+            <p className="text-center text-[11px] text-[#4a7068]">
+              La experiencia interactiva se activa automáticamente en pantallas de escritorio.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -861,6 +927,15 @@ export function XarraPro() {
     setNotificationsOpen(false)
   }, [router])
 
+  const openIntro = useCallback(() => {
+    router.push('/')
+    setOpenCaseId(null)
+    setOpenCase(null)
+    setCaseStatus('idle')
+    setCaseError(null)
+    setNotificationsOpen(false)
+  }, [router])
+
   function openPalette(initialQuery = '') {
     setNotificationsOpen(false)
     setPaletteQuery(initialQuery)
@@ -1396,11 +1471,14 @@ export function XarraPro() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f4f7f6]">
+    <>
+      <DesktopOnlyNotice />
+      <div className="hidden h-screen overflow-hidden bg-[#f4f7f6] lg:flex">
       <Sidebar
         active={activeVista}
         onNavigate={navigate}
         bandejaCount={bandejaCount}
+        onOpenIntro={openIntro}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -1439,6 +1517,7 @@ export function XarraPro() {
         onQueryChange={setPaletteQuery}
         onClose={closePalette}
       />
-    </div>
+      </div>
+    </>
   )
 }
