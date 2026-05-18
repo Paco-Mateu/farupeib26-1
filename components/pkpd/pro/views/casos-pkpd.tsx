@@ -617,8 +617,12 @@ export function CasosPkpd({
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-5 py-16 text-center text-sm text-[#4a7068]">
-                  No hay casos con estos filtros.
-                  <span className="block mt-1 text-xs text-slate-400">Prueba a ampliar el rango o quitar algún filtro.</span>
+                  {isRefreshing ? 'Actualizando casos…' : 'No hay casos con estos filtros.'}
+                  <span className="mt-1 block text-xs text-slate-400">
+                    {isRefreshing
+                      ? 'Estamos aplicando los filtros y preparando la cola clínica.'
+                      : 'Prueba a ampliar el rango o quitar algún filtro.'}
+                  </span>
                 </td>
               </tr>
             )}

@@ -641,7 +641,7 @@ export function XarraPro() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [sessions, setSessions] = useState<SessionItem[]>([])
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([])
-  const [selectedProgramId, setSelectedProgramId] = useState('prog-crohn')
+  const [selectedProgramId, setSelectedProgramId] = useState('')
   const [selectedCenterId, setSelectedCenterId] = useState('')
   const [caseDateRangeDays, setCaseDateRangeDays] = useState(30)
   const [openCaseId, setOpenCaseId] = useState<string | null>(null)
@@ -657,8 +657,10 @@ export function XarraPro() {
   const [paletteQuery, setPaletteQuery] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [shellNotice, setShellNotice] = useState<string | null>(null)
+  const [programFilterReady, setProgramFilterReady] = useState(false)
 
   const notificationContainerRef = useRef<HTMLDivElement>(null)
+  const queueRequestRef = useRef(0)
 
   async function loadShellContext() {
     setShellStatus('loading')
@@ -737,6 +739,7 @@ export function XarraPro() {
   }
 
   const loadQueue = useCallback(async () => {
+    const requestId = ++queueRequestRef.current
     setQueueStatus((current) => (current === 'idle' ? 'loading' : 'refreshing'))
     setQueueError(null)
 
@@ -752,6 +755,7 @@ export function XarraPro() {
         { timeoutMs: 9000 }
       )
         .then((kpisData) => {
+          if (queueRequestRef.current !== requestId) return
           setKpis(kpisData.kpis ?? [])
         })
         .catch(() => {
@@ -762,10 +766,12 @@ export function XarraPro() {
         timeoutMs: 9000,
       })
 
+      if (queueRequestRef.current !== requestId) return
       setCasos(casesData.items ?? [])
       setQueueStatus('ready')
       void kpisRequest
     } catch (error) {
+      if (queueRequestRef.current !== requestId) return
       setQueueStatus('error')
       setQueueError(
         error instanceof Error ? error.message : 'No se ha podido cargar la cola de casos.'
@@ -781,18 +787,37 @@ export function XarraPro() {
   }, [])
 
   useEffect(() => {
-    if (programs.length === 0) return
-    if (programs.some((program) => program._id === selectedProgramId)) return
+    if (programs.length === 0) {
+      if (shellStatus === 'ready' || shellStatus === 'error') {
+        setProgramFilterReady(true)
+      }
+      return
+    }
+
+    if (programs.some((program) => program._id === selectedProgramId)) {
+      setProgramFilterReady(true)
+      return
+    }
+
     const preferred =
+      programs.find((program) => program._id === 'prog-crohn-pkpd') ??
       programs.find((program) => program._id === 'prog-crohn') ??
       programs.find((program) => program.label.toLowerCase().includes('crohn')) ??
+      programs.find((program) => program.status === 'Activo') ??
       programs[0]
-    if (preferred) setSelectedProgramId(preferred._id)
-  }, [programs, selectedProgramId])
+
+    if (preferred?._id && preferred._id !== selectedProgramId) {
+      setSelectedProgramId(preferred._id)
+      return
+    }
+
+    setProgramFilterReady(true)
+  }, [programs, selectedProgramId, shellStatus])
 
   useEffect(() => {
+    if (!programFilterReady) return
     void loadQueue()
-  }, [loadQueue])
+  }, [loadQueue, programFilterReady])
 
   useEffect(() => {
     if (!openCaseId) {
@@ -1297,7 +1322,7 @@ export function XarraPro() {
 
     switch (activeVista) {
       case 'casos':
-        if (queueStatus === 'loading' && casos.length === 0) {
+        if ((!programFilterReady || queueStatus === 'loading') && casos.length === 0) {
           return <CasesQueueSkeleton />
         }
         if (queueStatus === 'error' && casos.length === 0) {
