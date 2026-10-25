@@ -1,7 +1,10 @@
+from urllib.parse import urlsplit
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from backend.config import settings
 from backend.db.mongo import MongoConnectionError
 from backend.routes.ai import router as ai_router
 from backend.routes.health import router as health_router
@@ -14,10 +17,27 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+def _origin(url: str) -> str | None:
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}" if parts.netloc else None
+
+
+def _allowed_origins() -> list[str]:
+    origins = {
+        _origin(settings.resolved_public_demo_url),
+        _origin(settings.resolved_public_demo_url_portal),
+        _origin(settings.resolved_public_demo_url_app),
+    }
+    for port in (3001, 3002, 3003):
+        origins.update({f"http://localhost:{port}", f"http://127.0.0.1:{port}"})
+    return sorted(origin for origin in origins if origin)
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=_allowed_origins(),
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

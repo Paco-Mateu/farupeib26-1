@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Any
 
+from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
 from backend.services.xarxa_repository import (
     approve_xarxa_professional_request,
@@ -77,7 +78,7 @@ class CreateCaseRequest(BaseModel):
     priority: str = "Media"
     entrySource: str = "Formulario web"
     clinicalContext: str = ""
-    programId: str = "prog-crohn"
+    programId: str = "prog-crohn-pkpd"
     pipelineStage: str = "Solicitud recibida"
     nextAction: str | None = None
     patientProfile: PatientProfilePayload | None = None
@@ -227,7 +228,7 @@ def _error_status(exc: ValueError) -> int:
     return 400
 
 
-@router.post("/seed")
+@router.post("/seed", dependencies=[Depends(require_admin_token)])
 async def seed_demo(force: bool = False):
     return seed_xarxa_demo(force=force)
 

@@ -926,14 +926,15 @@ def list_xarxa_cases(
     if program:
         query["programId"] = program
     if search:
+        escaped = re.escape(search)
         query["$or"] = [
-            {"caseId": {"$regex": search, "$options": "i"}},
-            {"title": {"$regex": search, "$options": "i"}},
-            {"patientCode": {"$regex": search, "$options": "i"}},
-            {"centerName": {"$regex": search, "$options": "i"}},
-            {"requesterName": {"$regex": search, "$options": "i"}},
-            {"caseType": {"$regex": search, "$options": "i"}},
-            {"pipelineStage": {"$regex": search, "$options": "i"}},
+            {"caseId": {"$regex": escaped, "$options": "i"}},
+            {"title": {"$regex": escaped, "$options": "i"}},
+            {"patientCode": {"$regex": escaped, "$options": "i"}},
+            {"centerName": {"$regex": escaped, "$options": "i"}},
+            {"requesterName": {"$regex": escaped, "$options": "i"}},
+            {"caseType": {"$regex": escaped, "$options": "i"}},
+            {"pipelineStage": {"$regex": escaped, "$options": "i"}},
         ]
 
     projection = {
@@ -1008,7 +1009,7 @@ def create_xarxa_case(data: dict) -> dict:
         "caseId": case_id,
         "title": title,
         "patientCode": data["patientCode"],
-        "programId": data.get("programId", "prog-crohn"),
+        "programId": data.get("programId", "prog-crohn-pkpd"),
         "specialty": data.get("specialty", "Digestivo"),
         "centerId": data["centerId"],
         "centerName": data["centerName"],
@@ -1312,7 +1313,7 @@ def create_xarxa_case_from_inbox(item_id: str) -> dict:
             "entrySource": "Email",
             "clinicalContext": clinical_summary,
             "fieldReview": initial_field_review,
-            "programId": "prog-crohn",
+            "programId": "prog-crohn-pkpd",
             "pipelineStage": "Caso creado por IA",
             "nextAction": "Validar extracción estructurada y lanzar revisión de completitud",
             "patientProfile": {
