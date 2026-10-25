@@ -7,6 +7,7 @@ from pathlib import Path
 
 from backend.db.mongo import get_database
 from backend.services.xarxa_repository import reset_xarxa_runtime_state
+from backend.services.xarxa_seed_network import network_demo_payload
 from backend.services.xarxa_terminology import ensure_xarxa_terminology
 
 _SEED_FILE = Path(__file__).resolve().parents[2] / "docs" / "xarxa_pkpd_seed_data_es.json"
@@ -717,7 +718,7 @@ def _curated_demo_payload() -> dict[str, list[dict]]:
         {"_id": "run-0109", "caseId": "PKPD-2026-0009", "agent": "Agente de informe HCE", "status": "Completado", "message": "Informe validado para mantener pauta actual y seguimiento programado", "timestamp": "2026-05-16T09:40:00+02:00"},
     ]
 
-    return {
+    merged = {
         "cases": cases,
         "tasks": tasks,
         "caseEvents": case_events,
@@ -726,6 +727,13 @@ def _curated_demo_payload() -> dict[str, list[dict]]:
         "followUps": followups,
         "agentRuns": agent_runs,
     }
+
+    # Network demo cases rebuilt from the anonymized Bellvitge PK/PD material
+    network = network_demo_payload()
+    for key in merged:
+        merged[key] = [*merged[key], *network.get(key, [])]
+
+    return merged
 
 
 def ensure_curated_demo_cases() -> dict[str, object]:

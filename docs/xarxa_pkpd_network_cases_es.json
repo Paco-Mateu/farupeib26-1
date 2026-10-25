@@ -1,0 +1,2020 @@
+{
+  "metadata": {
+    "source": "Reconstrucción sintética fiel de los casos anonimizados presentados en la Sessió 23 de la Xarxa PK/PD (10/06/2026) y de los casos docentes de voriconazol y linezolid del HUB",
+    "note": "Datos sintéticos para demo. No representan pacientes reales. Los códigos de hospital corresponden a centros de la red real.",
+    "schemaVersion": 2,
+    "schemaNotes": "Casos con historial de dosis temporizado (doses[]) y determinantes con fecha/hora de extracción y tipo de muestra, según el formulario de solicitud de la red"
+  },
+  "cases": [
+    {
+      "_id": "case-0010",
+      "caseId": "PKPD-2026-0010",
+      "demoSeedTag": "bellvitge-net-ustekinumab-intensification",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Ustekinumab: valle subóptimo con actividad inflamatoria alta — propuesta de intensificación",
+      "patientCode": "P-2010",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-camils",
+      "centerName": "Hospital Camils",
+      "requesterId": "pro-farm-005",
+      "requesterName": "Dra. Silvia Romero",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Pérdida de respuesta",
+      "entrySource": "Formulario normalizado",
+      "priority": "Alta",
+      "pipelineStage": "Análisis PK/PD generado",
+      "nextAction": "Validar recomendación de intensificación en revisión farmacéutica",
+      "createdAt": "2026-05-19T09:05:00+02:00",
+      "updatedAt": "2026-06-10T11:30:00+02:00",
+      "clinicalSummary": "Emporamiento clínico con actividad biológica alta pese a pauta de mantenimiento de ustekinumab 90 mg SC cada 8 semanas. La estimación individualizada indica un aclaramiento un 13% inferior a la media poblacional; aun así, el intervalo de 8 semanas conduce a un valle subóptimo (1,93 mg/L previsto) incapaz de controlar la actividad inflamatoria (calprotectina 933 µg/g).",
+      "patientProfile": {
+        "age": 42,
+        "sex": "Mujer",
+        "weightKg": 68,
+        "heightCm": 164,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileocolónico",
+        "activity": "Brote activo (CPF 933 µg/g)"
+      },
+      "therapyContext": {
+        "currentDrug": "Ustekinumab",
+        "currentDose": "90 mg",
+        "interval": "Cada 8 semanas",
+        "route": "Subcutánea",
+        "treatmentStartDate": "2025-07-14",
+        "regimenStartDate": "2025-11-24",
+        "lastAdministration": "2026-05-11T09:00:00+02:00",
+        "previousTherapies": [
+          "Azatioprina",
+          "Adalimumab"
+        ],
+        "adherence": "Excelente, confirmada por dispensación"
+      },
+      "doses": [
+        {
+          "administeredAt": "2025-11-24T09:10:00+01:00",
+          "doseAmount": "90",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 67,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-01-19T09:05:00+01:00",
+          "doseAmount": "90",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 68,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-03-16T09:00:00+01:00",
+          "doseAmount": "90",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 68,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-05-11T09:00:00+02:00",
+          "doseAmount": "90",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 68,
+          "phase": "Mantenimiento"
+        }
+      ],
+      "labDeterminants": [
+        {
+          "label": "Concentración sérica de ustekinumab",
+          "value": 5.7,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Mitja d'interval confirmada",
+          "sampleDateTime": "2026-04-08T09:30:00+02:00",
+          "sampleType": "Mitja d'interval",
+          "interpretation": "Nivel observado en contexto de pauta cada 8 semanas"
+        },
+        {
+          "label": "Anticuerpos anti-fármaco (ATU)",
+          "value": "Indetectables",
+          "unit": null,
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-04-08T09:30:00+02:00",
+          "sampleType": "Mitja d'interval",
+          "interpretation": "Sin inmunogenicidad"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 933,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-18T08:15:00+02:00",
+          "sampleType": null,
+          "interpretation": "Actividad inflamatoria alta"
+        },
+        {
+          "label": "PCR",
+          "value": 7.0,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-18T08:15:00+02:00",
+          "sampleType": null,
+          "interpretation": "Reactante elevado"
+        },
+        {
+          "label": "Albúmina",
+          "value": 47,
+          "unit": "g/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-18T08:15:00+02:00",
+          "sampleType": null,
+          "interpretation": "Normal"
+        }
+      ],
+      "gaps": [],
+      "tasks": [
+        {
+          "taskId": "tsk-0210",
+          "title": "Confirmar nivel predosis antes de la 3ª administración con la nueva pauta",
+          "ownerRole": "Farmacéutico de hospital",
+          "ownerId": "pro-farm-005",
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-07-06",
+          "createdBy": "Agente PK/PD"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Exposición subóptima con aclaramiento individual reducido",
+        "confidence": "Alta",
+        "summary": "Aclaramiento (CL): 0,00673 L/h (poblacional 0,00775 L/h); biodisponibilidad F 51,3%, Ka 0,0068 día⁻¹. Cmin predicha a 8 semanas: 1,93 mg/L (subóptima) frente a Cmin observada 5,70 mg/L en mitad de intervalo. La exposición no controla la actividad inflamatoria pese a la ausencia de inmunogenicidad."
+      },
+      "simulation": {
+        "currentScenario": "90 mg / 8 semanas (actual)",
+        "preferredScenario": "90 mg / 5 semanas",
+        "scenarios": [
+          "90 mg / 4 semanas",
+          "90 mg / 5 semanas",
+          "90 mg / 6 semanas",
+          "90 mg / 8 semanas (actual)"
+        ]
+      },
+      "recommendation": {
+        "status": "Editado por farmacia",
+        "text": "Intensificar a ustekinumab 90 mg SC cada 5 semanas para asegurar una concentración valle objetivo predicha, alineada con los objetivos de inducción de remisión en enfermedad activa. Programar nuevo control de niveles predosis antes de la 3ª administración con la nueva pauta."
+      },
+      "clinicalNote": {
+        "status": "Pendiente de co-validación",
+        "text": "Paciente con Crohn en tratamiento con ustekinumab 90 mg SC cada 8 semanas que presenta empeoramiento con CPF 933 µg/g. Estimación individualizada de aclaramiento un 13% inferior a la poblacional con valle previsto subóptimo (1,93 mg/L). Se propone intensificación a cada 5 semanas con control farmacocinético antes de la 3ª dosis."
+      },
+      "caseOutcome": null,
+      "followUps": [
+        {
+          "label": "Control farmacocinético predosis (3ª dosis nueva pauta)",
+          "status": "Programado",
+          "dueDate": "2026-07-06",
+          "controlType": "Nivel predosis + CPF"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso 4 de la Sessió 23 (H. Camils)"
+    },
+    {
+      "_id": "case-0011",
+      "caseId": "PKPD-2026-0011",
+      "demoSeedTag": "bellvitge-net-infliximab-rescue-tirzepatida",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Infliximab IV: rescate con pauta intensificada y elección de mantenimiento por AUC equivalente",
+      "patientCode": "P-2011",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-vilafranca",
+      "centerName": "Hospital de Vilafranca",
+      "requesterId": "pro-farm-003",
+      "requesterName": "Dra. Nuria Campos",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Pérdida de respuesta",
+      "entrySource": "Formulario normalizado",
+      "priority": "Alta",
+      "pipelineStage": "Informe generado",
+      "nextAction": "Control en estado estacionario antes de la 3ª dosis de la nueva pauta",
+      "createdAt": "2026-05-04T08:40:00+02:00",
+      "updatedAt": "2026-06-10T11:45:00+02:00",
+      "clinicalSummary": "Crohn pancolítico corticorresistente/corticodependiente con EPA compleja (antecedente de absceso paravesical y perianal controlados). Emporamiento clínico (astenia intensa) desde septiembre de 2025 con actividad biológica (CPF elevada) y niveles valle límite de infliximab (~5 mg/L). Aclaramiento calculado elevado (6,20 mL/kg/día frente a 5,42 poblacional), en contexto de tratamiento activo con tirzepatida. Se inicia rescate con 10 mg/kg y se acepta mantenimiento a 10 mg/kg cada 5 semanas por equivalencia de exposición total (AUC) y mejor tolerabilidad.",
+      "patientProfile": {
+        "age": 38,
+        "sex": "Mujer",
+        "weightKg": 62,
+        "heightCm": 168,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Pancolitis corticorresistente, EPA compleja",
+        "activity": "Emporamiento con actividad biológica elevada"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "10 mg/kg",
+        "interval": "Cada 5 semanas",
+        "route": "Intravenosa",
+        "treatmentStartDate": "2024-09-12",
+        "regimenStartDate": "2026-05-06",
+        "lastAdministration": "2026-05-06T11:00:00+02:00",
+        "previousTherapies": [
+          "Infliximab 5 mg/kg cada 8 semanas",
+          "6-mercaptopurina (suspendida por hepatotoxicidad)"
+        ],
+        "adherence": "Confirmada por administración hospitalaria"
+      },
+      "doses": [
+        {
+          "administeredAt": "2026-03-11T11:00:00+01:00",
+          "doseAmount": "5 mg/kg (310 mg)",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 62,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-04-08T11:00:00+02:00",
+          "doseAmount": "5 mg/kg (310 mg)",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 62,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-05-06T11:00:00+02:00",
+          "doseAmount": "10 mg/kg (620 mg) — rescate",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 62,
+          "phase": "Mantenimiento"
+        }
+      ],
+      "labDeterminants": [
+        {
+          "label": "Concentración valle de infliximab",
+          "value": 6.0,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Predosis (pre-rescate)",
+          "sampleDateTime": "2026-05-06T09:30:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Valle límite con aclaramiento elevado"
+        },
+        {
+          "label": "Anticuerpos anti-infliximab (ATI)",
+          "value": "Indetectables",
+          "unit": null,
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-06T09:30:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Sin inmunogenicidad"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 354.7,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2025-11-13T08:20:00+01:00",
+          "sampleType": null,
+          "interpretation": "Última muestra disponible antes del rescate (previa: 848,9 µg/g el 16/10/25)"
+        },
+        {
+          "label": "Albúmina",
+          "value": 35.7,
+          "unit": "g/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-06T09:30:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Ligeramente disminuida"
+        },
+        {
+          "label": "PCR",
+          "value": 10.5,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2025-09-03T08:20:00+02:00",
+          "sampleType": null,
+          "interpretation": "Histórico (03/09/25)"
+        }
+      ],
+      "gaps": [],
+      "tasks": [
+        {
+          "taskId": "tsk-0211",
+          "title": "Control en estado estacionario antes de la 3ª dosis (Cmin IFX, ATI, albúmina, CPF)",
+          "ownerRole": "Farmacéutico de hospital",
+          "ownerId": "pro-farm-003",
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-06-24",
+          "createdBy": "Agente PK/PD"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Aclaramiento elevado con exposición insuficiente",
+        "confidence": "Alta",
+        "summary": "Aclaramiento calculado: 6,20 mL/kg/día (poblacional 5,42) — elevado, en contexto de agonista GLP-1/GIP (tirzepatida). Estimación bayesiana con pauta 5 mg/kg/4s: Cmin 6,08 mg/L, AUC 19345 mg·h/L. Escenarios de mantenimiento: 8 mg/kg/4s predice Cmin >10 mg/L (AUC 38690) y 10 mg/kg/5s predice Cmin >7 mg/L con la misma AUC — se elige por equivalencia de exposición total y preferencia de la paciente."
+      },
+      "simulation": {
+        "currentScenario": "10 mg/kg / 5 semanas IV (elegida)",
+        "preferredScenario": "10 mg/kg / 5 semanas IV",
+        "scenarios": [
+          "8 mg/kg / 4 semanas IV (Cmin >10)",
+          "10 mg/kg / 5 semanas IV (AUC equivalente, elegida)"
+        ]
+      },
+      "recommendation": {
+        "status": "Editado por farmacia",
+        "text": "Rescate iniciado el 06/05 con 10 mg/kg. Se acepta la pauta de mantenimiento solicitada de 10 mg/kg cada 5 semanas al garantizar la equivalencia de exposición total (AUC 38690 mg·h/L) respecto a 8 mg/kg cada 4 semanas, con mejor tolerabilidad y preferencia de la paciente. Programar control en estado estacionario antes de la 3ª dosis de la nueva pauta (Cmin infliximab, ATI, albúmina y calprotectina fecal) para reevaluar."
+      },
+      "clinicalNote": {
+        "status": "Pendiente de co-validación",
+        "text": "Paciente con Crohn pancolítico corticorresistente y EPA compleja con pérdida de respuesta a infliximab 5 mg/kg cada 8 semanas en contexto de aclaramiento elevado (tratamiento concomitante con tirzepatida). Rescate con 10 mg/kg y mantenimiento a 10 mg/kg cada 5 semanas por AUC equivalente a la intensificación estándar. Colonoscopia de control reciente (12/05)."
+      },
+      "caseOutcome": null,
+      "followUps": [
+        {
+          "label": "Control en estado estacionario antes de la 3ª dosis",
+          "status": "Programado",
+          "dueDate": "2026-06-24",
+          "controlType": "Cmin IFX + ATI + albúmina + CPF"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso 5 de la Sessió 23 (H. Vilafranca)"
+    },
+    {
+      "_id": "case-0012",
+      "caseId": "PKPD-2026-0012",
+      "demoSeedTag": "bellvitge-net-ifx-sc-overexposure-pharmacy",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Infliximab SC: sobreexposición crítica (83,2 mg/L) — desintensificación simulada por bayesiana",
+      "patientCode": "P-2012",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-viladecans",
+      "centerName": "Hospital de Viladecans",
+      "requesterId": "pro-farm-002",
+      "requesterName": "Dr. Marcos Ortega",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Desintensificación",
+      "entrySource": "Correo electrónico",
+      "priority": "Media",
+      "pipelineStage": "Revisión farmacéutica",
+      "nextAction": "Consenso de la comisión de red y control antes de la 4ª dosis SC",
+      "createdAt": "2026-05-18T10:15:00+02:00",
+      "updatedAt": "2026-06-10T12:00:00+02:00",
+      "clinicalSummary": "Crohn ileal (dx 2014) en remisión objetiva profunda tras cambio a infliximab SC 240 mg cada 14 días (12/2025), con adición reciente de metotrexato por psoriasis/SpA (efecto sinérgico en el aclaramiento). Niveles críticamente elevados de infliximab (83,2 mg/L) con CPF <24 µg/g y PCR <0,6. Se percibe mayor tasa de infecciones intercurrentes desde el paso a vía SC. Se propone desintensificación progresiva a 120 mg cada 10 días SC con control antes de la 4ª dosis.",
+      "patientProfile": {
+        "age": 51,
+        "sex": "Mujer",
+        "weightKg": 64,
+        "heightCm": 161,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileal extensa, remisión objetiva (EnteroRMN 09/04/25 sin actividad)",
+        "activity": "Remisión biológica profunda (CPF <24, PCR <0,6)"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "240 mg",
+        "interval": "Cada 14 días",
+        "route": "Subcutánea",
+        "treatmentStartDate": "2014-03-08",
+        "regimenStartDate": "2025-12-16",
+        "lastAdministration": "2026-05-15T09:30:00+02:00",
+        "previousTherapies": [
+          "Infliximab IV 10 mg/kg cada 6 semanas",
+          "6-MP (suspendida por trombocitemia CALR+)"
+        ],
+        "adherence": "Excelente (IFX SC + MTX)"
+      },
+      "doses": [
+        {
+          "administeredAt": "2026-04-17T09:30:00+02:00",
+          "doseAmount": "240",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 64,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-05-01T09:30:00+02:00",
+          "doseAmount": "240",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 64,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-05-15T09:30:00+02:00",
+          "doseAmount": "240",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 64,
+          "phase": "Mantenimiento"
+        }
+      ],
+      "labDeterminants": [
+        {
+          "label": "Nivel infliximab SC",
+          "value": 83.2,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Predosis",
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Sobreexposición crítica (históricos: 12 y 11 mg/L en vía IV)"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "value": 24,
+          "unit": "µg/g",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-27T08:10:00+02:00",
+          "sampleType": null,
+          "interpretation": "<24 µg/g — remisión biológica profunda"
+        },
+        {
+          "label": "PCR",
+          "value": 0.6,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "<0,6 mg/L — normal"
+        },
+        {
+          "label": "Albúmina",
+          "value": 48,
+          "unit": "g/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Normal"
+        },
+        {
+          "label": "Plaquetas",
+          "value": 645,
+          "unit": "x10⁹/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Trombocitemia esencial CALR+ conocida (interfiere K+)"
+        }
+      ],
+      "gaps": [],
+      "tasks": [
+        {
+          "taskId": "tsk-0212",
+          "title": "Presentar caso en la comisión de red para consenso de desintensificación",
+          "ownerRole": "Farmacéutico experto",
+          "ownerId": "pro-farm-001",
+          "priority": "Media",
+          "status": "En curso",
+          "dueDate": "2026-06-10",
+          "createdBy": "Agente de sesión"
+        },
+        {
+          "taskId": "tsk-0213",
+          "title": "Control de nivel antes de la 4ª dosis SC con la nueva pauta",
+          "ownerRole": "Farmacéutico de hospital",
+          "ownerId": "pro-farm-002",
+          "priority": "Media",
+          "status": "Pendiente",
+          "dueDate": "2026-07-08",
+          "createdBy": "Agente PK/PD"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Sobreexposición mantenida con remisión profunda",
+        "confidence": "Alta",
+        "summary": "Aclaramiento IV previo: 4,82 mL/kg/día (0,241 L/día). La pauta SC intensificada combinada con la adición de MTX reduce el aclaramiento y explica la acumulación (83,2 mg/L). El área bajo la curva actual (AUC8w 4061 mg·d/L) es marcadamente superior al perfil histórico de seguridad; corrige el riesgo de infecciones intercurrentes referido por la paciente."
+      },
+      "simulation": {
+        "currentScenario": "240 mg / 14 días SC (actual)",
+        "preferredScenario": "120 mg / 10 días SC",
+        "scenarios": [
+          "240 mg / 14 días SC — Cipred 63,6 mg/L, AUC8w 4061 (sobreexposición)",
+          "120 mg / 7 días SC — Cipred 68,5 mg/L, AUC8w 3877 (alta frecuencia)",
+          "120 mg / 14 días SC — Cipred 33,0 mg/L, AUC8w 2227 (desescalada excesivamente rápida)",
+          "120 mg / 10 días SC — Cipred 48,8 mg/L, AUC8w 3059 (pauta recomendada)"
+        ]
+      },
+      "recommendation": {
+        "status": "Editado por farmacia",
+        "text": "Ante la remisión biológica profunda (CPF <24 µg/g, PCR <0,6) y la sobreexposición crítica (83,2 mg/L), se propone desintensificación progresiva a 120 mg cada 10 días SC. Requerido: nuevo control de niveles antes de la 4ª dosis SC con la nueva pauta para reevaluar la cinética de depuración en estado estacionario."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Paciente con Crohn ileal en remisión profunda con infliximab SC 240 mg/14 días y MTX. Sobreexposición crítica (83,2 mg/L) por efecto sinérgico sobre el aclaramiento. Se coordina desintensificación a 120 mg/10 días SC con control farmacocinético antes de la 4ª dosis. Se activan programas de seguimiento PROMS."
+      },
+      "caseOutcome": null,
+      "followUps": [
+        {
+          "label": "Control de nivel antes de la 4ª dosis SC",
+          "status": "Programado",
+          "dueDate": "2026-07-08",
+          "controlType": "Cmin IFX SC"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso 6 de la Sessió 23 (H. Viladecans, vista Farmàcia)"
+    },
+    {
+      "_id": "case-0013",
+      "caseId": "PKPD-2026-0013",
+      "demoSeedTag": "bellvitge-net-ifx-sc-multidisciplinar-reuma",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Mismo paciente P-2012 — vista reumatología/dermatología: consenso multidisciplinar",
+      "patientCode": "P-2012",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Reumatología",
+      "centerId": "ctr-viladecans",
+      "centerName": "Hospital de Viladecans",
+      "requesterId": "pro-farm-002",
+      "requesterName": "Dr. Marcos Ortega",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Seguimiento PK/PD",
+      "entrySource": "Derivación interna",
+      "priority": "Media",
+      "pipelineStage": "Discusión en red",
+      "nextAction": "Registrar consenso interdisciplinar y calendario de controles",
+      "createdAt": "2026-05-20T09:20:00+02:00",
+      "updatedAt": "2026-06-10T12:10:00+02:00",
+      "clinicalSummary": "Vista reumatológica y dermatológica del mismo caso PKPD-2026-0012 (P-2012). SpA asociada a EII y psoriasis con excelente control con la combinación infliximab + MTX: NAD 0 / NAT 0, entesitis LEI 0, lesiones psoriasiformes residuales leves. Consenso: sin cambios en el eje REU/DERMA; Gastroenterología procede a la optimización (desintensificación) de infliximab. Calendario de controles: 3 meses con enfermería de reumatología y visita médica a los 6 meses.",
+      "patientProfile": {
+        "age": 51,
+        "sex": "Mujer",
+        "weightKg": 64,
+        "heightCm": 161,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "SpA asociada a EII + psoriasis",
+        "phenotype": "Axial/periférica sin actividad; psoriasis residual leve",
+        "activity": "Remisión articular y cutánea (NAD 0, NAT 0, LEI 0)"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "240 mg",
+        "interval": "Cada 14 días",
+        "route": "Subcutánea",
+        "regimenStartDate": "2025-12-16",
+        "previousTherapies": [
+          "Infliximab IV 10 mg/kg cada 6 semanas"
+        ],
+        "adherence": "Excelente (IFX SC + MTX 10 mg/semana)"
+      },
+      "doses": [],
+      "labDeterminants": [
+        {
+          "label": "PCR",
+          "value": 0.6,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "<0,6 mg/L"
+        },
+        {
+          "label": "Hemoglobina",
+          "value": 125,
+          "unit": "g/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Normal"
+        },
+        {
+          "label": "Plaquetas",
+          "value": 645,
+          "unit": "x10⁹/L",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": "2026-05-15T08:45:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Trombocitemia esencial CALR+ (rango bajo de riesgo)"
+        }
+      ],
+      "gaps": [],
+      "tasks": [
+        {
+          "taskId": "tsk-0214",
+          "title": "Control enfermería reumatología a los 3 meses de la optimización",
+          "ownerRole": "Enfermería EII",
+          "ownerId": "pro-enf-001",
+          "priority": "Media",
+          "status": "Pendiente",
+          "dueDate": "2026-09-15",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0215",
+          "title": "Visita médica de control a los 6 meses",
+          "ownerRole": "Digestólogo",
+          "ownerId": "pro-dig-002",
+          "priority": "Baja",
+          "status": "Pendiente",
+          "dueDate": "2026-12-15",
+          "createdBy": "Agente de gaps"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Remisión articular y cutánea mantenida",
+        "confidence": "Alta",
+        "summary": "La vista multidisciplinar confirma que el eje REU/DERMA permanece estable y que la intervención farmacocinética (desintensificación de infliximab) es la única modificación propuesta. Un caso, tres especialidades, un único objeto clínico compartido."
+      },
+      "simulation": {
+        "currentScenario": "Mantener IFX SC con desintensificación coordinada",
+        "preferredScenario": "Mantener IFX SC con desintensificación coordinada",
+        "scenarios": [
+          "Mantener IFX SC con desintensificación coordinada",
+          "Añadir terapias tópicas (descartado, MTX eficaz)"
+        ]
+      },
+      "recommendation": {
+        "status": "Editado por farmacia",
+        "text": "Tratamiento REU/DERMA sin cambios dada la excelente remisión articular y cutánea. Se acepta la estabilidad digestiva y se valida que Gastroenterología proceda a la desintensificación de infliximab (ver PKPD-2026-0012). Calendario: control a 3 meses con enfermería de reumatología y visita médica a los 6 meses."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Consenso interdisciplinar registrado sobre caso compartido P-2012: reumatología y dermatología sin cambios; farmacocinética a cargo de digestivo/farmacia con la pauta de desintensificación propuesta en PKPD-2026-0012. Planificación gestacional comentada con la paciente (conoce el circuito de seguridad)."
+      },
+      "caseOutcome": null,
+      "followUps": [
+        {
+          "label": "Control enfermería REU (3 meses)",
+          "status": "Programado",
+          "dueDate": "2026-09-15",
+          "controlType": "Evaluación sintomática"
+        },
+        {
+          "label": "Visita médica (6 meses)",
+          "status": "Programado",
+          "dueDate": "2026-12-15",
+          "controlType": "Visita médica"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso 7 de la Sessió 23 (H. Viladecans, vista Reumatologia + Farmàcia)"
+    },
+    {
+      "_id": "case-0014",
+      "caseId": "PKPD-2026-0014",
+      "demoSeedTag": "bellvitge-net-shared-case-incomplete",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Caso compartido H. Vilafranca + HUB: pendiente de completar cinética",
+      "patientCode": "P-2014",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-vilafranca",
+      "centerName": "Hospital de Vilafranca",
+      "requesterId": "pro-farm-003",
+      "requesterName": "Dra. Nuria Campos",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Cambio de medicación",
+      "entrySource": "Formulario normalizado",
+      "priority": "Media",
+      "pipelineStage": "Datos incompletos",
+      "nextAction": "Completar fecha/hora de última administración y tipo de muestra del nivel",
+      "createdAt": "2026-06-08T08:30:00+02:00",
+      "updatedAt": "2026-06-10T09:00:00+02:00",
+      "clinicalSummary": "Caso compartido entre H. Vilafranca y el HUB para valoración de cambio terapéutico en paciente con Crohn en tratamiento con infliximab. La solicitud llega sin fecha y hora exactas de la última administración y sin el tipo de muestra del nivel de fármaco, imprescindibles para la congruencia cinética.",
+      "patientProfile": {
+        "age": 29,
+        "sex": "Varón",
+        "weightKg": 77,
+        "heightCm": 181,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileocolónico",
+        "activity": "Pérdida de respuesta parcial"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "5 mg/kg",
+        "interval": "Cada 8 semanas",
+        "route": "Intravenosa",
+        "previousTherapies": [],
+        "adherence": "Pendiente de confirmar"
+      },
+      "doses": [],
+      "labDeterminants": [
+        {
+          "label": "Concentración valle de infliximab",
+          "value": 2.1,
+          "unit": "mg/L",
+          "status": "Pendiente de validar",
+          "source": "Laboratorio",
+          "relationToDose": null,
+          "sampleDateTime": null,
+          "sampleType": null,
+          "interpretation": "Baja exposición si es valle confirmado — pendiente de contexto"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Fecha y hora de la última administración",
+          "severity": "Crítico",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Tipo de muestra del nivel de fármaco",
+          "severity": "Crítico",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Anticuerpos anti-fármaco",
+          "severity": "Importante",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0216",
+          "title": "Solicitar al centro origen fecha/hora de administración y tipo de muestra",
+          "ownerRole": "Farmacéutico experto",
+          "ownerId": "pro-farm-001",
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-06-12",
+          "createdBy": "Agente de gaps"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "",
+        "confidence": "",
+        "summary": "Pendiente de datos cinéticos completos para interpretar. Sin congruencia entre hora de administración y extracción no procede el análisis bayesiano."
+      },
+      "simulation": {
+        "currentScenario": "",
+        "preferredScenario": "",
+        "scenarios": []
+      },
+      "recommendation": {
+        "status": "Borrador IA",
+        "text": "Completar los datos críticos de cinética antes de preparar el análisis PK/PD y la propuesta de cambio."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Caso en curso de completado por el centro de origen."
+      },
+      "caseOutcome": null,
+      "followUps": [],
+      "demoNote": "Reconstrucción sintética del caso 1 de la Sessió 23 (compartida H. Vilafranca + HUB)"
+    },
+    {
+      "_id": "case-0015",
+      "caseId": "PKPD-2026-0015",
+      "demoSeedTag": "bellvitge-net-awaiting-determinants",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Adalimumab: pendiente de determinantes para valoración de optimización",
+      "patientCode": "P-2015",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-viladecans",
+      "centerName": "Hospital de Viladecans",
+      "requesterId": "pro-dig-002",
+      "requesterName": "Dr. Javier Soler",
+      "assignedTo": "pro-farm-002",
+      "assignedName": "Dr. Marcos Ortega",
+      "caseType": "Pérdida de respuesta",
+      "entrySource": "Formulario normalizado",
+      "priority": "Media",
+      "pipelineStage": "Pendiente de determinantes",
+      "nextAction": "Extraer nivel valle + ATI + biomarcadores antes de la próxima sesión",
+      "createdAt": "2026-06-05T11:45:00+02:00",
+      "updatedAt": "2026-06-10T09:20:00+02:00",
+      "clinicalSummary": "Digestología del H. Viladecans solicita valoración de optimización por pérdida de respuesta parcial a adalimumab 40 mg cada 14 días. El caso queda marcado para la próxima sesión quincenal a la espera de los determinantes solicitados.",
+      "patientProfile": {
+        "age": 47,
+        "sex": "Varón",
+        "weightKg": 82,
+        "heightCm": 176,
+        "specialPopulation": [
+          "Obesidad"
+        ]
+      },
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileal",
+        "activity": "Síntomas fluctuantes"
+      },
+      "therapyContext": {
+        "currentDrug": "Adalimumab",
+        "currentDose": "40 mg",
+        "interval": "Cada 14 días",
+        "route": "Subcutánea",
+        "treatmentStartDate": "2025-02-10",
+        "regimenStartDate": "2025-02-10",
+        "previousTherapies": [],
+        "adherence": "Confirmada"
+      },
+      "doses": [
+        {
+          "administeredAt": "2026-05-04T08:40:00+02:00",
+          "doseAmount": "40",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 82,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-05-18T08:40:00+02:00",
+          "doseAmount": "40",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 82,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-06-01T08:40:00+02:00",
+          "doseAmount": "40",
+          "unit": "mg",
+          "route": "SC",
+          "weightKg": 82,
+          "phase": "Mantenimiento"
+        }
+      ],
+      "labDeterminants": [],
+      "gaps": [
+        {
+          "label": "Nivel valle de adalimumab",
+          "severity": "Crítico",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Anticuerpos anti-adalimumab",
+          "severity": "Importante",
+          "status": "Pendiente"
+        },
+        {
+          "label": "Calprotectina fecal",
+          "severity": "Importante",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0217",
+          "title": "Registrar extracción de nivel valle + ATI + CPF",
+          "ownerRole": "Enfermería EII",
+          "ownerId": "pro-enf-001",
+          "priority": "Alta",
+          "status": "En curso",
+          "dueDate": "2026-06-15",
+          "createdBy": "Agente de gaps"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "",
+        "confidence": "",
+        "summary": "Pendiente de determinantes. En obesidad, la exposición a adalimumab puede verse reducida; se valorará dosis ajustada."
+      },
+      "simulation": {
+        "currentScenario": "",
+        "preferredScenario": "",
+        "scenarios": []
+      },
+      "recommendation": {
+        "status": "Borrador IA",
+        "text": "Esperar determinantes para valorar intensificación u optimización de dosis en contexto de obesidad."
+      },
+      "clinicalNote": {
+        "status": "Borrador",
+        "text": "Caso marcado para sesión quincenal a la espera de determinantes."
+      },
+      "caseOutcome": null,
+      "followUps": [],
+      "demoNote": "Reconstrucción sintética del caso 2 de la Sessió 23 (H. Viladecans)"
+    },
+    {
+      "_id": "case-0016",
+      "caseId": "PKPD-2026-0016",
+      "demoSeedTag": "bellvitge-net-weight-based-recall",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "Infliximab: siguiente dosis a 10 mg/kg con nivel predosis para cálculo de mantenimiento",
+      "patientCode": "P-2016",
+      "programId": "prog-crohn-pkpd",
+      "specialty": "Digestivo",
+      "centerId": "ctr-martorell",
+      "centerName": "Hospital de Martorell",
+      "requesterId": "pro-farm-004",
+      "requesterName": "Dr. Víctor Molina",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Seguimiento PK/PD",
+      "entrySource": "Formulario normalizado",
+      "priority": "Media",
+      "pipelineStage": "Informe validado",
+      "nextAction": "Administrar siguiente dosis (semana del 22-26/06/2026) con nivel predosis",
+      "createdAt": "2026-06-03T12:30:00+02:00",
+      "updatedAt": "2026-06-10T12:20:00+02:00",
+      "clinicalSummary": "Paciente en fase de inducción con infliximab. La recomendación farmacocinética de la red (emitida en la sesión del 10/06) indica administrar la siguiente dosis a 10 mg/kg la semana del 22-26/06/2026 con niveles predosis para calcular la pauta de mantenimiento.",
+      "patientProfile": {
+        "age": 33,
+        "sex": "Varón",
+        "weightKg": 71,
+        "heightCm": 178,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "Enfermedad de Crohn",
+        "phenotype": "Ileocolónico",
+        "activity": "Inducción en curso"
+      },
+      "therapyContext": {
+        "currentDrug": "Infliximab",
+        "currentDose": "10 mg/kg",
+        "interval": "Semanal (inducción)",
+        "route": "Intravenosa",
+        "treatmentStartDate": "2026-05-20",
+        "regimenStartDate": "2026-05-20",
+        "previousTherapies": [],
+        "adherence": "Confirmada"
+      },
+      "doses": [
+        {
+          "administeredAt": "2026-05-20T10:00:00+02:00",
+          "doseAmount": "10 mg/kg (710 mg)",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 71,
+          "phase": "Induccion"
+        },
+        {
+          "administeredAt": "2026-06-03T10:00:00+02:00",
+          "doseAmount": "10 mg/kg (710 mg)",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 71,
+          "phase": "Induccion"
+        }
+      ],
+      "labDeterminants": [],
+      "gaps": [],
+      "tasks": [
+        {
+          "taskId": "tsk-0218",
+          "title": "Extraer nivel predosis la semana del 22-26/06 y administrar 10 mg/kg",
+          "ownerRole": "Farmacéutico de hospital",
+          "ownerId": "pro-farm-004",
+          "priority": "Media",
+          "status": "Pendiente",
+          "dueDate": "2026-06-26",
+          "createdBy": "Agente de sesión"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Planificación de control en inducción",
+        "confidence": "Alta",
+        "summary": "El nivel predosis de la 3ª dosis de inducción permitirá estimar el aclaramiento individual y calcular la pauta de mantenimiento por modelado bayesiano."
+      },
+      "simulation": {
+        "currentScenario": "Inducción 10 mg/kg semanal",
+        "preferredScenario": "Pendiente de cálculo con nivel predosis",
+        "scenarios": [
+          "Pendiente de cálculo con nivel predosis"
+        ]
+      },
+      "recommendation": {
+        "status": "Validado",
+        "text": "Administrar la siguiente dosis a 10 mg/kg la semana del 22-26/06/2026 con niveles predosis para calcular la pauta de mantenimiento."
+      },
+      "clinicalNote": {
+        "status": "Registrado en HCE",
+        "text": "Recomendación de la Xarxa PK/PD registrada: siguiente dosis 10 mg/kg (semana 22-26/06/2026) con nivel predosis para cálculo de mantenimiento."
+      },
+      "caseOutcome": null,
+      "followUps": [
+        {
+          "label": "Nivel predosis + administración 3ª dosis inducción",
+          "status": "Programado",
+          "dueDate": "2026-06-26",
+          "controlType": "Cmin IFX predosis"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso 3 de la Sessió 23 (H. Martorell) — incluye la recomendación textual de la sesión"
+    },
+    {
+      "_id": "case-0017",
+      "caseId": "PKPD-2026-0017",
+      "demoSeedTag": "bellvitge-net-voriconazol-urgent",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "URGENTE — Voriconazol: Cmin baja en Fusarium, ajuste empírico de pauta",
+      "patientCode": "P-2017",
+      "programId": "prog-tdm-antibioticos",
+      "specialty": "Infecciosas",
+      "centerId": "ctr-martorell",
+      "centerName": "Hospital de Martorell",
+      "requesterId": "pro-farm-004",
+      "requesterName": "Dr. Víctor Molina",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Optimización de exposición",
+      "entrySource": "Formulario normalizado",
+      "priority": "Urgente",
+      "pipelineStage": "Análisis PK/PD generado",
+      "nextAction": "Emitir recomendación del circuito urgente en <24-48h",
+      "createdAt": "2026-05-22T14:10:00+02:00",
+      "updatedAt": "2026-06-02T16:00:00+02:00",
+      "clinicalSummary": "Varón de 77 años, 180 cm y 108 kg (IMC 33,3; dosis por peso ajustado 83 kg) con infección de úlcera por Fusarium. Pauta de carga 660 mg/12h (2 dosis) seguida de mantenimiento 356 mg/12h IV. Cmin 0,9 µg/mL el 22/05 — subóptima. Se intensifica a 450 mg/12h el 27/05: Cmin 3,2 µg/mL el 02/06, en objetivo (1–5,5 mg/L). Aplicación del diagrama empírico de la red.",
+      "patientProfile": {
+        "age": 77,
+        "sex": "Varón",
+        "weightKg": 108,
+        "heightCm": 180,
+        "specialPopulation": [
+          "Obesidad",
+          "Geriátrico"
+        ]
+      },
+      "diseaseContext": {
+        "diagnosis": "Infección de úlcera cutánea por Fusarium",
+        "phenotype": "Infección activa localizada",
+        "activity": "Infección en tratamiento"
+      },
+      "therapyContext": {
+        "currentDrug": "Voriconazol",
+        "currentDose": "450 mg",
+        "interval": "Cada 12 horas",
+        "route": "Intravenosa",
+        "treatmentStartDate": "2026-05-19",
+        "regimenStartDate": "2026-05-27",
+        "lastAdministration": "2026-06-02T13:00:00+02:00",
+        "previousTherapies": [
+          "Voriconazol 660 mg/12h (carga, 2 dosis)",
+          "Voriconazol 356 mg/12h (mantenimiento inicial)"
+        ],
+        "adherence": "Administración hospitalaria"
+      },
+      "doses": [
+        {
+          "administeredAt": "2026-05-19T14:00:00+02:00",
+          "doseAmount": "660",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 83,
+          "phase": "Induccion",
+          "notes": "Dosis de carga 1/2"
+        },
+        {
+          "administeredAt": "2026-05-20T02:00:00+02:00",
+          "doseAmount": "660",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 83,
+          "phase": "Induccion",
+          "notes": "Dosis de carga 2/2"
+        },
+        {
+          "administeredAt": "2026-05-20T13:00:00+02:00",
+          "doseAmount": "356",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 83,
+          "phase": "Mantenimiento"
+        },
+        {
+          "administeredAt": "2026-05-27T13:00:00+02:00",
+          "doseAmount": "450",
+          "unit": "mg",
+          "route": "IV",
+          "weightKg": 83,
+          "phase": "Mantenimiento",
+          "notes": "Intensificación por Cmin subóptima"
+        }
+      ],
+      "labDeterminants": [
+        {
+          "label": "Concentración valle de voriconazol",
+          "value": 0.9,
+          "unit": "µg/mL",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Predosis",
+          "sampleDateTime": "2026-05-22T07:30:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "Por debajo del objetivo (1–5,5 mg/L)"
+        },
+        {
+          "label": "Concentración valle de voriconazol (post-ajuste)",
+          "value": 3.2,
+          "unit": "µg/mL",
+          "status": "Confirmado",
+          "source": "Laboratorio",
+          "relationToDose": "Predosis tras intensificación",
+          "sampleDateTime": "2026-06-02T07:30:00+02:00",
+          "sampleType": "Predosis",
+          "interpretation": "En rango objetivo (1–5,5 mg/L)"
+        }
+      ],
+      "gaps": [],
+      "tasks": [
+        {
+          "taskId": "tsk-0219",
+          "title": "Control de Cmin en estado estacionario con pauta 450 mg/12h",
+          "ownerRole": "Farmacéutico de hospital",
+          "ownerId": "pro-farm-004",
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-06-09",
+          "createdBy": "Agente PK/PD"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Exposición subóptima corregida con diagrama empírico",
+        "confidence": "Alta",
+        "summary": "Cmin objetivo: 1–5,5 mg/L. Diagrama empírico aplicado: Cmin <1 mg/L → incremento del 100% de la dosis; Cmin >5,5 mg/L sin efectos adversos → reducción del 50%; Cmin >10 mg/L o >5,5 con efectos adversos → suspender una dosis y reiniciar con el 50%. Con Cmin 0,9 se intensificó de 356 a 450 mg/12h alcanzándose Cmin 3,2 (en objetivo). Ajuste por peso en obesidad (peso ajustado 83 kg)."
+      },
+      "simulation": {
+        "currentScenario": "450 mg / 12 h IV (en objetivo)",
+        "preferredScenario": "450 mg / 12 h IV",
+        "scenarios": [
+          "356 mg / 12 h — Cmin 0,9 (subóptima)",
+          "450 mg / 12 h — Cmin 3,2 (en objetivo)"
+        ]
+      },
+      "recommendation": {
+        "status": "Validado",
+        "text": "Intensificar a 450 mg/12h según diagrama empírico (Cmin 0,9 <1 mg/L → incremento de dosis). Control de Cmin en estado estacionario. Objetivo: Cmin 1–5,5 mg/L. Con Cmin 3,2 del 02/06 se mantiene la pauta y se programa control periódico."
+      },
+      "clinicalNote": {
+        "status": "Registrado en HCE",
+        "text": "Circuito urgente de la Xarxa PK/PD: varón 77 años con infección por Fusarium en tratamiento con voriconazol. Cmin subóptima (0,9 µg/mL) con pauta de 356 mg/12h; se intensifica a 450 mg/12h alcanzándose Cmin 3,2 µg/mL (objetivo 1–5,5). Mantener pauta con control analítico programado."
+      },
+      "caseOutcome": {
+        "recommendationAccepted": "Aceptada íntegramente",
+        "clinicalResponse": "Exposición en objetivo",
+        "treatmentDecision": "Mantener",
+        "adverseEvents": "Ninguno relevante",
+        "networkLearning": "Diagrama empírico de voriconazol validado en circuito urgente",
+        "summary": "Caso urgente resuelto en <24-48h: intensificación según diagrama empírico con consecución de objetivo de exposición, presentado después como caso de aprendizaje en la sesión de red."
+      },
+      "followUps": [
+        {
+          "label": "Control Cmin en estado estacionario",
+          "status": "Completado",
+          "dueDate": "2026-06-02",
+          "controlType": "Cmin voriconazol"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso docente de voriconazol del HUB (presentado en sesión como caso de aprendizaje del circuito urgente)"
+    },
+    {
+      "_id": "case-0018",
+      "caseId": "PKPD-2026-0018",
+      "demoSeedTag": "bellvitge-net-linezolid-mabscessus",
+      "demoLocked": true,
+      "deletable": false,
+      "title": "URGENTE — Linezolid en M. abscessus: escalada a 600 mg/8h con TDM programado",
+      "patientCode": "P-2018",
+      "programId": "prog-tdm-antibioticos",
+      "specialty": "Infecciosas",
+      "centerId": "ctr-camils",
+      "centerName": "Hospital Camils",
+      "requesterId": "pro-farm-005",
+      "requesterName": "Dra. Silvia Romero",
+      "assignedTo": "pro-farm-001",
+      "assignedName": "Dra. Laura Vidal",
+      "caseType": "Optimización de exposición",
+      "entrySource": "Correo electrónico",
+      "priority": "Urgente",
+      "pipelineStage": "Informe generado",
+      "nextAction": "TDM 3-4 días tras el cambio de dosis (Cmin linezolid)",
+      "createdAt": "2026-06-06T09:50:00+02:00",
+      "updatedAt": "2026-06-10T12:40:00+02:00",
+      "clinicalSummary": "Paciente ingresado con absceso glúteo infectado por Mycobacterium abscessus (en relación con hematoma tras caída, cirugía previa de pelvis). Sensibilidad: cefoxitina, imipenem, linezolid (S EI), amikacina; test de sinergias del Clinic con combinación oral eficaz BED+CLO+linezolid. Objetivos PK/PD para linezolid: %T>MIC >85% (Cmin 2–7 mg/L con MIC=1) y AUC24/MIC 80–120 mg·h/L. Sin evidencia en micobacteria no tuberculosa ni en combinación con fármacos de reserva multiR: se propone escalada a 600 mg/8h con TDM en 3-4 días.",
+      "patientProfile": {
+        "age": 69,
+        "sex": "Mujer",
+        "weightKg": 74,
+        "heightCm": 158,
+        "specialPopulation": []
+      },
+      "diseaseContext": {
+        "diagnosis": "Absceso glúteo infectado por Mycobacterium abscessus",
+        "phenotype": "Infección osteoarticular/compleja post-quirúrgica",
+        "activity": "Infección activa ingresada"
+      },
+      "therapyContext": {
+        "currentDrug": "Linezolid",
+        "currentDose": "600 mg",
+        "interval": "Cada 8 horas",
+        "route": "Oral",
+        "treatmentStartDate": "2026-06-05",
+        "regimenStartDate": "2026-06-09",
+        "lastAdministration": "2026-06-09T22:00:00+02:00",
+        "previousTherapies": [
+          "Linezolid 600 mg/12h"
+        ],
+        "adherence": "Administración hospitalaria"
+      },
+      "doses": [
+        {
+          "administeredAt": "2026-06-05T14:00:00+02:00",
+          "doseAmount": "600",
+          "unit": "mg",
+          "route": "Oral",
+          "weightKg": 74,
+          "phase": "Induccion",
+          "notes": "Pauta inicial 600 mg/12h"
+        },
+        {
+          "administeredAt": "2026-06-09T14:00:00+02:00",
+          "doseAmount": "600",
+          "unit": "mg",
+          "route": "Oral",
+          "weightKg": 74,
+          "phase": "Mantenimiento",
+          "notes": "Primera dosis tras escalada a 600 mg/8h"
+        }
+      ],
+      "labDeterminants": [
+        {
+          "label": "CIM de linezolid (M. abscessus)",
+          "value": 16,
+          "unit": "mg/L",
+          "status": "Confirmado",
+          "source": "Laboratorio (test de sinergias)",
+          "relationToDose": null,
+          "sampleDateTime": "2026-06-03T10:00:00+02:00",
+          "sampleType": null,
+          "interpretation": "Combinación BED+CLO+linezolid sensible (CIM 16 en combinación)"
+        },
+        {
+          "label": "Concentración valle de linezolid",
+          "value": null,
+          "unit": "mg/L",
+          "status": "Faltante",
+          "source": "Laboratorio",
+          "relationToDose": "Predosis programada",
+          "sampleDateTime": null,
+          "sampleType": "Predosis",
+          "interpretation": "TDM programado 3-4 días tras el cambio; objetivo Cmin 2-7 mg/L (MIC=1)"
+        }
+      ],
+      "gaps": [
+        {
+          "label": "Nivel valle de linezolid post-escalada (TDM 3-4 días)",
+          "severity": "Importante",
+          "status": "Pendiente"
+        }
+      ],
+      "tasks": [
+        {
+          "taskId": "tsk-0220",
+          "title": "Extraer Cmin de linezolid 3-4 días tras la escalada (predosis)",
+          "ownerRole": "Laboratorio",
+          "ownerId": null,
+          "priority": "Alta",
+          "status": "Pendiente",
+          "dueDate": "2026-06-13",
+          "createdBy": "Agente de gaps"
+        },
+        {
+          "taskId": "tsk-0221",
+          "title": "Vigilar toxicidad hematológica de linezolid (hemograma seriado)",
+          "ownerRole": "Farmacéutico de hospital",
+          "ownerId": "pro-farm-005",
+          "priority": "Alta",
+          "status": "En curso",
+          "dueDate": "2026-06-20",
+          "createdBy": "Agente PK/PD"
+        }
+      ],
+      "pkpdInterpretation": {
+        "pattern": "Optimización por PK/PD para micobacteria no tuberculosa",
+        "confidence": "Media",
+        "summary": "Objetivos PK/PD: %T>MIC >85% (Cmin 2–7 mg/L con MIC=1; Cmin 5–8 mg/L con MIC=2) y AUC24/MIC 80–120 mg·h/L. La pauta estándar 600 mg/12h puede no alcanzar %T>MIC>85% en infección por M. abscessus; la escalada a 600 mg/8h aumenta el tiempo sobre la MIC. No hay evidencia en NTM ni en combinaciones de reserva multiR: decisión consensuada con vigilancia estrecha de toxicidad (síndrome serotonérgico y mielosupresión) con TDM temprano."
+      },
+      "simulation": {
+        "currentScenario": "600 mg / 8 h (escalada)",
+        "preferredScenario": "600 mg / 8 h con TDM en 3-4 días",
+        "scenarios": [
+          "600 mg / 12 h — %T>MIC insuficiente",
+          "600 mg / 8 h — %T>MIC >85% objetivo (con TDM)"
+        ]
+      },
+      "recommendation": {
+        "status": "Editado por farmacia",
+        "text": "Escalada de linezolid a 600 mg/8h en combinación BED+CLO para alcanzar %T>MIC >85% (Cmin objetivo 2–7 mg/L con MIC=1; AUC24/MIC 80–120). TDM obligatorio en 3-4 días tras el cambio de dosis. Vigilancia de hematotoxicidad. Caso urgente resuelto bilateralmente HUB-centro en <48h; se presentará como caso de aprendizaje en la próxima sesión."
+      },
+      "clinicalNote": {
+        "status": "Pendiente de co-validación",
+        "text": "Circuito urgente: paciente ingresado con absceso por M. abscessus multiline-resistant, sensibilidad a linezolid confirmada por EI y sinergia BED+CLO+linezolid. Se escalza a 600 mg/8h para optimizar %T>MIC con TDM temprano y control de toxicidad."
+      },
+      "caseOutcome": null,
+      "followUps": [
+        {
+          "label": "TDM linezolid (3-4 días post-escalada)",
+          "status": "Programado",
+          "dueDate": "2026-06-13",
+          "controlType": "Cmin linezolid"
+        },
+        {
+          "label": "Hemograma de control (toxicidad)",
+          "status": "Programado",
+          "dueDate": "2026-06-16",
+          "controlType": "Hemograma"
+        }
+      ],
+      "demoNote": "Reconstrucción sintética del caso docente de linezolid (H. Igualada en la sesión; reasignado a centro de la red de la demo)"
+    }
+  ],
+  "tasks": [
+    {
+      "taskId": "tsk-0210",
+      "title": "Confirmar nivel predosis antes de la 3ª administración con la nueva pauta",
+      "ownerRole": "Farmacéutico de hospital",
+      "ownerId": "pro-farm-005",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-07-06",
+      "createdBy": "Agente PK/PD",
+      "_id": "tsk-0210",
+      "caseId": "PKPD-2026-0010"
+    },
+    {
+      "taskId": "tsk-0211",
+      "title": "Control en estado estacionario antes de la 3ª dosis (Cmin IFX, ATI, albúmina, CPF)",
+      "ownerRole": "Farmacéutico de hospital",
+      "ownerId": "pro-farm-003",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-06-24",
+      "createdBy": "Agente PK/PD",
+      "_id": "tsk-0211",
+      "caseId": "PKPD-2026-0011"
+    },
+    {
+      "taskId": "tsk-0212",
+      "title": "Presentar caso en la comisión de red para consenso de desintensificación",
+      "ownerRole": "Farmacéutico experto",
+      "ownerId": "pro-farm-001",
+      "priority": "Media",
+      "status": "En curso",
+      "dueDate": "2026-06-10",
+      "createdBy": "Agente de sesión",
+      "_id": "tsk-0212",
+      "caseId": "PKPD-2026-0012"
+    },
+    {
+      "taskId": "tsk-0213",
+      "title": "Control de nivel antes de la 4ª dosis SC con la nueva pauta",
+      "ownerRole": "Farmacéutico de hospital",
+      "ownerId": "pro-farm-002",
+      "priority": "Media",
+      "status": "Pendiente",
+      "dueDate": "2026-07-08",
+      "createdBy": "Agente PK/PD",
+      "_id": "tsk-0213",
+      "caseId": "PKPD-2026-0012"
+    },
+    {
+      "taskId": "tsk-0214",
+      "title": "Control enfermería reumatología a los 3 meses de la optimización",
+      "ownerRole": "Enfermería EII",
+      "ownerId": "pro-enf-001",
+      "priority": "Media",
+      "status": "Pendiente",
+      "dueDate": "2026-09-15",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0214",
+      "caseId": "PKPD-2026-0013"
+    },
+    {
+      "taskId": "tsk-0215",
+      "title": "Visita médica de control a los 6 meses",
+      "ownerRole": "Digestólogo",
+      "ownerId": "pro-dig-002",
+      "priority": "Baja",
+      "status": "Pendiente",
+      "dueDate": "2026-12-15",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0215",
+      "caseId": "PKPD-2026-0013"
+    },
+    {
+      "taskId": "tsk-0216",
+      "title": "Solicitar al centro origen fecha/hora de administración y tipo de muestra",
+      "ownerRole": "Farmacéutico experto",
+      "ownerId": "pro-farm-001",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-06-12",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0216",
+      "caseId": "PKPD-2026-0014"
+    },
+    {
+      "taskId": "tsk-0217",
+      "title": "Registrar extracción de nivel valle + ATI + CPF",
+      "ownerRole": "Enfermería EII",
+      "ownerId": "pro-enf-001",
+      "priority": "Alta",
+      "status": "En curso",
+      "dueDate": "2026-06-15",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0217",
+      "caseId": "PKPD-2026-0015"
+    },
+    {
+      "taskId": "tsk-0218",
+      "title": "Extraer nivel predosis la semana del 22-26/06 y administrar 10 mg/kg",
+      "ownerRole": "Farmacéutico de hospital",
+      "ownerId": "pro-farm-004",
+      "priority": "Media",
+      "status": "Pendiente",
+      "dueDate": "2026-06-26",
+      "createdBy": "Agente de sesión",
+      "_id": "tsk-0218",
+      "caseId": "PKPD-2026-0016"
+    },
+    {
+      "taskId": "tsk-0219",
+      "title": "Control de Cmin en estado estacionario con pauta 450 mg/12h",
+      "ownerRole": "Farmacéutico de hospital",
+      "ownerId": "pro-farm-004",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-06-09",
+      "createdBy": "Agente PK/PD",
+      "_id": "tsk-0219",
+      "caseId": "PKPD-2026-0017"
+    },
+    {
+      "taskId": "tsk-0220",
+      "title": "Extraer Cmin de linezolid 3-4 días tras la escalada (predosis)",
+      "ownerRole": "Laboratorio",
+      "ownerId": null,
+      "priority": "Alta",
+      "status": "Pendiente",
+      "dueDate": "2026-06-13",
+      "createdBy": "Agente de gaps",
+      "_id": "tsk-0220",
+      "caseId": "PKPD-2026-0018"
+    },
+    {
+      "taskId": "tsk-0221",
+      "title": "Vigilar toxicidad hematológica de linezolid (hemograma seriado)",
+      "ownerRole": "Farmacéutico de hospital",
+      "ownerId": "pro-farm-005",
+      "priority": "Alta",
+      "status": "En curso",
+      "dueDate": "2026-06-20",
+      "createdBy": "Agente PK/PD",
+      "_id": "tsk-0221",
+      "caseId": "PKPD-2026-0018"
+    }
+  ],
+  "caseEvents": [
+    {
+      "caseId": "PKPD-2026-0010",
+      "date": "2025-07-14",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de ustekinumab (inducción IV → SC)"
+    },
+    {
+      "caseId": "PKPD-2026-0010",
+      "date": "2025-11-24",
+      "lane": "Tratamiento",
+      "type": "Cambio de dosis",
+      "label": "Mantenimiento 90 mg SC cada 8 semanas"
+    },
+    {
+      "caseId": "PKPD-2026-0010",
+      "date": "2026-04-08",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Nivel ustekinumab 5,70 mg/L (mitja d'interval)"
+    },
+    {
+      "caseId": "PKPD-2026-0010",
+      "date": "2026-05-18",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "CPF 933 µg/g — actividad inflamatoria alta"
+    },
+    {
+      "caseId": "PKPD-2026-0010",
+      "date": "2026-06-10",
+      "lane": "Decisiones",
+      "type": "Análisis",
+      "label": "Análisis bayesiano: valle previsto 1,93 mg/L a 8 semanas — subóptimo"
+    },
+    {
+      "caseId": "PKPD-2026-0010",
+      "date": "2026-06-10",
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "Propuesta de intensificación a 90 mg cada 5 semanas"
+    },
+    {
+      "caseId": "PKPD-2026-0011",
+      "date": "2024-09-12",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de infliximab 5 mg/kg IV cada 8 semanas"
+    },
+    {
+      "caseId": "PKPD-2026-0011",
+      "date": "2025-09-03",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "IFX 5,2 mg/L / PCR 10,5 — exposición límite"
+    },
+    {
+      "caseId": "PKPD-2026-0011",
+      "date": "2025-10-16",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "CPF 848,9 µg/g"
+    },
+    {
+      "caseId": "PKPD-2026-0011",
+      "date": "2026-05-06",
+      "lane": "Decisiones",
+      "type": "Análisis",
+      "label": "Aclaramiento elevado (6,20 vs 5,42 mL/kg/día) en contexto de tirzepatida"
+    },
+    {
+      "caseId": "PKPD-2026-0011",
+      "date": "2026-05-06",
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "Rescate 10 mg/kg + mantenimiento 10 mg/kg/5s por AUC equivalente"
+    },
+    {
+      "caseId": "PKPD-2026-0011",
+      "date": "2026-05-12",
+      "lane": "Clínica",
+      "type": "Seguimiento",
+      "label": "Colonoscopia de control (12/05)"
+    },
+    {
+      "caseId": "PKPD-2026-0012",
+      "date": "2025-12-16",
+      "lane": "Tratamiento",
+      "type": "Cambio de dosis",
+      "label": "Cambio de IFX IV 10 mg/kg/6s a IFX SC 240 mg/14 días"
+    },
+    {
+      "caseId": "PKPD-2026-0012",
+      "date": "2026-05-15",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Nivel IFX SC 83,2 mg/L — sobreexposición crítica"
+    },
+    {
+      "caseId": "PKPD-2026-0012",
+      "date": "2026-05-18",
+      "lane": "Decisiones",
+      "type": "Alerta",
+      "label": "Correo urgente a Farmacia HUB para coordinar desintensificación"
+    },
+    {
+      "caseId": "PKPD-2026-0012",
+      "date": "2026-06-10",
+      "lane": "Decisiones",
+      "type": "Análisis",
+      "label": "Simulación bayesiana: 120 mg/10 días SC como desescalada segura"
+    },
+    {
+      "caseId": "PKPD-2026-0013",
+      "date": "2026-05-20",
+      "lane": "Clínica",
+      "type": "Evaluación",
+      "label": "Evaluación reumatológica: NAD 0 / NAT 0 / LEI 0"
+    },
+    {
+      "caseId": "PKPD-2026-0013",
+      "date": "2026-06-10",
+      "lane": "Decisiones",
+      "type": "Consenso",
+      "label": "Consenso interdisciplinar: REU/DERMA sin cambios; optimización IFX por digestivo"
+    },
+    {
+      "caseId": "PKPD-2026-0014",
+      "date": "2026-06-08",
+      "lane": "Decisiones",
+      "type": "Solicitud",
+      "label": "Solicitud compartida Vilafranca + HUB"
+    },
+    {
+      "caseId": "PKPD-2026-0014",
+      "date": "2026-06-09",
+      "lane": "Decisiones",
+      "type": "Gap detectado",
+      "label": "Faltan fecha/hora de administración y tipo de muestra"
+    },
+    {
+      "caseId": "PKPD-2026-0015",
+      "date": "2026-06-05",
+      "lane": "Decisiones",
+      "type": "Solicitud",
+      "label": "Solicitud de valoración por pérdida de respuesta parcial"
+    },
+    {
+      "caseId": "PKPD-2026-0015",
+      "date": "2026-06-06",
+      "lane": "Decisiones",
+      "type": "Marcado",
+      "label": "Marcado para la próxima sesión quincenal"
+    },
+    {
+      "caseId": "PKPD-2026-0016",
+      "date": "2026-05-20",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Inicio de inducción con infliximab 10 mg/kg semanal"
+    },
+    {
+      "caseId": "PKPD-2026-0016",
+      "date": "2026-06-10",
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "Recomendación validada: 10 mg/kg semana del 22-26/06 con nivel predosis"
+    },
+    {
+      "caseId": "PKPD-2026-0017",
+      "date": "2026-05-19",
+      "lane": "Tratamiento",
+      "type": "Inicio de tratamiento",
+      "label": "Voriconazol 660 mg/12h (carga) por infección de úlcera por Fusarium"
+    },
+    {
+      "caseId": "PKPD-2026-0017",
+      "date": "2026-05-22",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Cmin 0,9 µg/mL — subóptima (objetivo 1-5,5)"
+    },
+    {
+      "caseId": "PKPD-2026-0017",
+      "date": "2026-05-27",
+      "lane": "Tratamiento",
+      "type": "Cambio de dosis",
+      "label": "Intensificación a 450 mg/12h según diagrama empírico"
+    },
+    {
+      "caseId": "PKPD-2026-0017",
+      "date": "2026-06-02",
+      "lane": "Laboratorio",
+      "type": "Determinante recibido",
+      "label": "Cmin 3,2 µg/mL — en objetivo"
+    },
+    {
+      "caseId": "PKPD-2026-0017",
+      "date": "2026-06-02",
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "Circuito urgente resuelto en <24-48h; caso de aprendizaje para la sesión"
+    },
+    {
+      "caseId": "PKPD-2026-0018",
+      "date": "2026-06-03",
+      "lane": "Laboratorio",
+      "type": "Diagnóstico",
+      "label": "M. abscessus en absceso glúteo; sinergia BED+CLO+linezolid sensible"
+    },
+    {
+      "caseId": "PKPD-2026-0018",
+      "date": "2026-06-09",
+      "lane": "Tratamiento",
+      "type": "Cambio de dosis",
+      "label": "Escalada de linezolid a 600 mg/8h (%T>MIC >85%)"
+    },
+    {
+      "caseId": "PKPD-2026-0018",
+      "date": "2026-06-10",
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "TDM en 3-4 días; vigilancia de hematotoxicidad"
+    }
+  ],
+  "recommendations": [
+    {
+      "_id": "rec-0010",
+      "caseId": "PKPD-2026-0010",
+      "status": "Editado por farmacia",
+      "text": "Intensificar a ustekinumab 90 mg SC cada 5 semanas para asegurar una concentración valle objetivo predicha, alineada con los objetivos de inducción de remisión en enfermedad activa. Programar nuevo control de niveles predosis antes de la 3ª administración con la nueva pauta."
+    },
+    {
+      "_id": "rec-0011",
+      "caseId": "PKPD-2026-0011",
+      "status": "Editado por farmacia",
+      "text": "Rescate con 10 mg/kg y mantenimiento 10 mg/kg cada 5 semanas (AUC equivalente a 8 mg/kg/4s con mejor tolerabilidad). Control en estado estacionario antes de la 3ª dosis (Cmin, ATI, albúmina, CPF)."
+    },
+    {
+      "_id": "rec-0012",
+      "caseId": "PKPD-2026-0012",
+      "status": "Editado por farmacia",
+      "text": "Desintensificación progresiva a 120 mg cada 10 días SC ante remisión profunda y sobreexposición crítica (83,2 mg/L). Control de niveles antes de la 4ª dosis SC."
+    },
+    {
+      "_id": "rec-0013",
+      "caseId": "PKPD-2026-0013",
+      "status": "Editado por farmacia",
+      "text": "REU/DERMA sin cambios; validada la desintensificación de IFX por digestivo/farmacia. Controles: enfermería REU a 3 meses, visita médica a 6 meses."
+    },
+    {
+      "_id": "rec-0014",
+      "caseId": "PKPD-2026-0014",
+      "status": "Borrador IA",
+      "text": "Completar datos cinéticos críticos (fecha/hora de administración y tipo de muestra) antes del análisis PK/PD."
+    },
+    {
+      "_id": "rec-0015",
+      "caseId": "PKPD-2026-0015",
+      "status": "Borrador IA",
+      "text": "Esperar determinantes (nivel valle, ATI, CPF) para valorar optimización."
+    },
+    {
+      "_id": "rec-0016",
+      "caseId": "PKPD-2026-0016",
+      "status": "Validado",
+      "text": "Administrar la siguiente dosis a 10 mg/kg la semana del 22-26/06/2026 con niveles predosis para calcular la pauta de mantenimiento."
+    },
+    {
+      "_id": "rec-0017",
+      "caseId": "PKPD-2026-0017",
+      "status": "Validado",
+      "text": "Intensificación a 450 mg/12h según diagrama empírico (Cmin objetivo 1-5,5 mg/L); control en estado estacionario."
+    },
+    {
+      "_id": "rec-0018",
+      "caseId": "PKPD-2026-0018",
+      "status": "Editado por farmacia",
+      "text": "Escalada a 600 mg/8h para %T>MIC >85% (Cmin objetivo 2-7 mg/L, MIC=1). TDM en 3-4 días y vigilancia de toxicidad hematológica."
+    }
+  ],
+  "clinicalNotes": [
+    {
+      "_id": "note-0010",
+      "caseId": "PKPD-2026-0010",
+      "status": "Pendiente de co-validación",
+      "text": "Paciente con Crohn en ustekinumab 90 mg/8s con empeoramiento (CPF 933). CL individual 13% inferior a poblacional; valle previsto a 8 semanas 1,93 mg/L (subóptimo). Se propone intensificación a cada 5 semanas con control predosis antes de la 3ª dosis."
+    },
+    {
+      "_id": "note-0011",
+      "caseId": "PKPD-2026-0011",
+      "status": "Pendiente de co-validación",
+      "text": "Crohn pancolítico con pérdida de respuesta y aclaramiento elevado (tirzepatida). Rescate 10 mg/kg y mantenimiento 10 mg/kg/5s por AUC equivalente. Control antes de la 3ª dosis."
+    },
+    {
+      "_id": "note-0012",
+      "caseId": "PKPD-2026-0012",
+      "status": "Borrador",
+      "text": "Sobreexposición crítica de IFX SC (83,2 mg/L) con remisión profunda. Desintensificación a 120 mg/10 días SC con control antes de la 4ª dosis."
+    },
+    {
+      "_id": "note-0013",
+      "caseId": "PKPD-2026-0013",
+      "status": "Borrador",
+      "text": "Consenso interdisciplinar sobre caso compartido P-2012: sin cambios REU/DERMA; optimización de IFX por digestivo/farmacia."
+    },
+    {
+      "_id": "note-0014",
+      "caseId": "PKPD-2026-0014",
+      "status": "Borrador",
+      "text": "Caso compartido en curso de completado por el centro de origen."
+    },
+    {
+      "_id": "note-0015",
+      "caseId": "PKPD-2026-0015",
+      "status": "Borrador",
+      "text": "Caso marcado para sesión quincenal a la espera de determinantes."
+    },
+    {
+      "_id": "note-0016",
+      "caseId": "PKPD-2026-0016",
+      "status": "Registrado en HCE",
+      "text": "Recomendación registrada: siguiente dosis 10 mg/kg (semana 22-26/06/2026) con nivel predosis para cálculo de mantenimiento."
+    },
+    {
+      "_id": "note-0017",
+      "caseId": "PKPD-2026-0017",
+      "status": "Registrado en HCE",
+      "text": "Circuito urgente: intensificación de voriconazol a 450 mg/12h por Cmin subóptima; objetivo alcanzado (Cmin 3,2). Mantener con control programado."
+    },
+    {
+      "_id": "note-0018",
+      "caseId": "PKPD-2026-0018",
+      "status": "Pendiente de co-validación",
+      "text": "Escalada de linezolid a 600 mg/8h por %T>MIC insuficiente, con TDM temprano y control de toxicidad."
+    }
+  ],
+  "followUps": [
+    {
+      "_id": "fu-0010-01",
+      "caseId": "PKPD-2026-0010",
+      "label": "Control farmacocinético predosis (3ª dosis nueva pauta)",
+      "status": "Programado",
+      "dueDate": "2026-07-06",
+      "controlType": "Nivel predosis + CPF"
+    },
+    {
+      "_id": "fu-0011-01",
+      "caseId": "PKPD-2026-0011",
+      "label": "Control en estado estacionario antes de la 3ª dosis",
+      "status": "Programado",
+      "dueDate": "2026-06-24",
+      "controlType": "Cmin IFX + ATI + albúmina + CPF"
+    },
+    {
+      "_id": "fu-0012-01",
+      "caseId": "PKPD-2026-0012",
+      "label": "Control de nivel antes de la 4ª dosis SC",
+      "status": "Programado",
+      "dueDate": "2026-07-08",
+      "controlType": "Cmin IFX SC"
+    },
+    {
+      "_id": "fu-0013-01",
+      "caseId": "PKPD-2026-0013",
+      "label": "Control enfermería REU (3 meses)",
+      "status": "Programado",
+      "dueDate": "2026-09-15",
+      "controlType": "Evaluación sintomática"
+    },
+    {
+      "_id": "fu-0013-02",
+      "caseId": "PKPD-2026-0013",
+      "label": "Visita médica (6 meses)",
+      "status": "Programado",
+      "dueDate": "2026-12-15",
+      "controlType": "Visita médica"
+    },
+    {
+      "_id": "fu-0016-01",
+      "caseId": "PKPD-2026-0016",
+      "label": "Nivel predosis + administración 3ª dosis inducción",
+      "status": "Programado",
+      "dueDate": "2026-06-26",
+      "controlType": "Cmin IFX predosis"
+    },
+    {
+      "_id": "fu-0017-01",
+      "caseId": "PKPD-2026-0017",
+      "label": "Control Cmin en estado estacionario",
+      "status": "Completado",
+      "dueDate": "2026-06-02",
+      "controlType": "Cmin voriconazol"
+    },
+    {
+      "_id": "fu-0018-01",
+      "caseId": "PKPD-2026-0018",
+      "label": "TDM linezolid (3-4 días post-escalada)",
+      "status": "Programado",
+      "dueDate": "2026-06-13",
+      "controlType": "Cmin linezolid"
+    },
+    {
+      "_id": "fu-0018-02",
+      "caseId": "PKPD-2026-0018",
+      "label": "Hemograma de control (toxicidad)",
+      "status": "Programado",
+      "dueDate": "2026-06-16",
+      "controlType": "Hemograma"
+    }
+  ],
+  "agentRuns": [
+    {
+      "_id": "run-0210",
+      "caseId": "PKPD-2026-0010",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Estimación individualizada de aclaramiento y simulación de pautas de mantenimiento (4 escenarios)",
+      "timestamp": "2026-06-10T11:25:00+02:00"
+    },
+    {
+      "_id": "run-0210b",
+      "caseId": "PKPD-2026-0010",
+      "agent": "Agente de gaps",
+      "status": "Completado",
+      "message": "Sin gaps críticos: historial de dosis y muestras temporizadas completas",
+      "timestamp": "2026-05-19T09:20:00+02:00"
+    },
+    {
+      "_id": "run-0211",
+      "caseId": "PKPD-2026-0011",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Estimación bayesiana base y comparación de escenarios de mantenimiento por AUC",
+      "timestamp": "2026-06-10T11:40:00+02:00"
+    },
+    {
+      "_id": "run-0212",
+      "caseId": "PKPD-2026-0012",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Simulación bayesiana de 4 pautas SC de desintensificación",
+      "timestamp": "2026-06-10T11:55:00+02:00"
+    },
+    {
+      "_id": "run-0212b",
+      "caseId": "PKPD-2026-0012",
+      "agent": "Agente de ingesta",
+      "status": "Completado",
+      "message": "Email del centro de origen convertido en caso estructurado",
+      "timestamp": "2026-05-18T10:30:00+02:00"
+    },
+    {
+      "_id": "run-0213",
+      "caseId": "PKPD-2026-0013",
+      "agent": "Agente de sesión",
+      "status": "Completado",
+      "message": "Caso vinculado a la vista multidisciplinar del mismo paciente (P-2012)",
+      "timestamp": "2026-06-10T12:05:00+02:00"
+    },
+    {
+      "_id": "run-0214",
+      "caseId": "PKPD-2026-0014",
+      "agent": "Agente de gaps",
+      "status": "Completado",
+      "message": "Gaps críticos detectados: fecha/hora de administración y tipo de muestra ausentes",
+      "timestamp": "2026-06-09T08:00:00+02:00"
+    },
+    {
+      "_id": "run-0215",
+      "caseId": "PKPD-2026-0015",
+      "agent": "Agente de gaps",
+      "status": "Completado",
+      "message": "Determinantes pendientes de extracción programados antes de la sesión",
+      "timestamp": "2026-06-06T08:00:00+02:00"
+    },
+    {
+      "_id": "run-0217",
+      "caseId": "PKPD-2026-0017",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Diagrama empírico de voriconazol aplicado: intensificación 356→450 mg/12h",
+      "timestamp": "2026-05-27T15:00:00+02:00"
+    },
+    {
+      "_id": "run-0218",
+      "caseId": "PKPD-2026-0018",
+      "agent": "Agente PK/PD",
+      "status": "Completado",
+      "message": "Objetivos PK/PD evaluados: %T>MIC >85% y AUC24/MIC 80-120; escalada a 600 mg/8h",
+      "timestamp": "2026-06-10T12:35:00+02:00"
+    }
+  ]
+}

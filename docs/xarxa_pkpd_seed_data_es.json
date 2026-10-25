@@ -117,6 +117,16 @@
         "Ver casos docentes",
         "Participar en votaciones formativas"
       ]
+    },
+    {
+      "_id": "rol-farmaceutico-hospital",
+      "label": "Farmacéutico de hospital",
+      "scope": "Centro de origen",
+      "permissions": [
+        "crear_casos",
+        "completar_datos",
+        "consultar_casos_propios"
+      ]
     }
   ],
   "centers": [
@@ -215,6 +225,42 @@
         "prog-crohn-pkpd"
       ],
       "demoNote": "Unidad ficticia para simular expansión"
+    },
+    {
+      "_id": "ctr-vilafranca",
+      "name": "Hospital de Vilafranca",
+      "type": "Hospital de proximidad",
+      "territory": "Alt Penedès",
+      "city": "Vilafranca del Penedès",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd",
+        "prog-colitis-pkpd"
+      ]
+    },
+    {
+      "_id": "ctr-martorell",
+      "name": "Hospital de Martorell",
+      "type": "Hospital de proximidad",
+      "territory": "Baix Llobregat",
+      "city": "Martorell",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd",
+        "prog-tdm-antibioticos"
+      ]
+    },
+    {
+      "_id": "ctr-camils",
+      "name": "Hospital Camils",
+      "type": "Hospital de proximidad",
+      "territory": "Baix Llobregat",
+      "city": "Sant Boi de Llobregat",
+      "status": "Activo",
+      "programs": [
+        "prog-crohn-pkpd",
+        "prog-tdm-antibioticos"
+      ]
     }
   ],
   "professionals": [
@@ -398,6 +444,53 @@
       ],
       "status": "Activo",
       "avatarUrl": "/avatars/patricia-leon.jpg"
+    },
+    {
+      "_id": "pro-farm-003",
+      "name": "Dra. Nuria Campos",
+      "roleId": "rol-farmaceutico-hospital",
+      "roleLabel": "Farmacéutico de hospital",
+      "centerId": "ctr-vilafranca",
+      "specialties": [
+        "Farmacia Hospitalaria"
+      ],
+      "programs": [
+        "Crohn PK/PD"
+      ],
+      "status": "Activo",
+      "avatarUrl": "/avatars/nuria-campos.jpg"
+    },
+    {
+      "_id": "pro-farm-004",
+      "name": "Dr. Víctor Molina",
+      "roleId": "rol-farmaceutico-hospital",
+      "roleLabel": "Farmacéutico de hospital",
+      "centerId": "ctr-martorell",
+      "specialties": [
+        "Farmacia Hospitalaria"
+      ],
+      "programs": [
+        "Crohn PK/PD",
+        "TDM antibióticos"
+      ],
+      "status": "Activo",
+      "avatarUrl": "/avatars/victor-molina.jpg"
+    },
+    {
+      "_id": "pro-farm-005",
+      "name": "Dra. Silvia Romero",
+      "roleId": "rol-farmaceutico-hospital",
+      "roleLabel": "Farmacéutico de hospital",
+      "centerId": "ctr-camils",
+      "specialties": [
+        "Farmacia Hospitalaria"
+      ],
+      "programs": [
+        "Crohn PK/PD",
+        "TDM antibióticos"
+      ],
+      "status": "Activo",
+      "avatarUrl": "/avatars/silvia-romero.jpg"
     }
   ],
   "clinicalPrograms": [
@@ -501,7 +594,7 @@
       "_id": "prog-tdm-antibioticos",
       "label": "TDM antibióticos",
       "specialty": "Infecciosas",
-      "status": "Borrador",
+      "status": "Activo",
       "version": "v0.1"
     }
   ],
