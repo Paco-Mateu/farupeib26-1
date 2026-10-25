@@ -6,6 +6,7 @@ from typing import Any
 
 from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
+from backend.services.xarxa_terminology import list_xarxa_drug_panels, list_xarxa_pathology_scores
 from backend.services.xarxa_repository import (
     approve_xarxa_professional_request,
     bulk_act_on_xarxa_cases,
@@ -56,6 +57,16 @@ class PatientProfilePayload(BaseModel):
     specialPopulation: list[str] = []
 
 
+class DoseRecordPayload(BaseModel):
+    administeredAt: str | None = None  # ISO datetime of the administration
+    doseAmount: str | float | int | None = None
+    unit: str | None = None
+    route: str | None = None
+    weightKg: float | None = None  # patient weight at administration time
+    phase: str = "Mantenimiento"  # Induccion | Mantenimiento
+    notes: str | None = None
+
+
 class DeterminantPayload(BaseModel):
     label: str
     value: str | float | int | None = None
@@ -63,6 +74,8 @@ class DeterminantPayload(BaseModel):
     status: str = "Pendiente de validar"
     source: str = "Formulario"
     relationToDose: str | None = None
+    sampleDateTime: str | None = None  # exact extraction datetime
+    sampleType: str | None = None  # Predosí | Postdosis | Mitja d'interval | Infusió contínua
     interpretation: str | None = None
 
 
@@ -84,6 +97,7 @@ class CreateCaseRequest(BaseModel):
     patientProfile: PatientProfilePayload | None = None
     diseaseContext: dict[str, Any] = {}
     therapyContext: dict[str, Any] = {}
+    doses: list[DoseRecordPayload] = []
     labDeterminants: list[DeterminantPayload] = []
     recommendation: dict[str, Any] | None = None
     clinicalNote: dict[str, Any] | None = None
@@ -99,6 +113,7 @@ class UpdateCaseRequest(BaseModel):
     patientProfile: PatientProfilePayload | None = None
     diseaseContext: dict[str, Any] | None = None
     therapyContext: dict[str, Any] | None = None
+    doses: list[DoseRecordPayload] | None = None
     labDeterminants: list[DeterminantPayload] | None = None
     fieldReview: dict[str, Any] | None = None
     caseOutcome: dict[str, Any] | None = None
@@ -231,6 +246,18 @@ def _error_status(exc: ValueError) -> int:
 @router.post("/seed", dependencies=[Depends(require_admin_token)])
 async def seed_demo(force: bool = False):
     return seed_xarxa_demo(force=force)
+
+
+@router.get("/pathology-scores")
+async def read_pathology_scores():
+    items = list_xarxa_pathology_scores()
+    return {"items": items, "total": len(items)}
+
+
+@router.get("/drug-panels")
+async def read_drug_panels(substance: str | None = Query(default=None)):
+    items = list_xarxa_drug_panels(substance=substance)
+    return {"items": items, "total": len(items)}
 
 
 @router.get("/kpis")

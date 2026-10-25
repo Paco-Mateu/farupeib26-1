@@ -4,11 +4,22 @@ import { AlertCircle, Bot, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Flas
 import { useEffect, useMemo, useState } from 'react'
 
 import type { Center, PatientHistoryPayload, Professional, Program } from '@/components/pkpd/pro/xarxa-types'
+import { SAMPLE_TYPES } from '@/components/pkpd/pro/xarxa-types'
 import { WorkspaceErrorState, WorkspaceLoadingState } from '@/components/pkpd/pro/workspace-state'
 import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetch-json'
 
 type WizardStep = 'trigger' | 'patient' | 'therapy' | 'labs' | 'completeness' | 'submit'
+
+type DoseDraft = {
+  id: string
+  administeredAt: string
+  doseAmount: string
+  unit: string
+  route: string
+  weightKg: string
+  phase: string
+}
 
 type DeterminantDraft = {
   id: string
@@ -17,6 +28,8 @@ type DeterminantDraft = {
   unit: string
   relationToDose: string
   source: string
+  sampleDateTime: string
+  sampleType: string
   interpretation: string
 }
 
@@ -41,6 +54,9 @@ type FormState = {
   currentDose: string
   interval: string
   route: string
+  treatmentStartDate: string
+  regimenStartDate: string
+  doses: DoseDraft[]
   previousTherapies: string
   adherence: string
   caseMode: string
@@ -82,9 +98,25 @@ function createDeterminant(label = ''): DeterminantDraft {
     unit: '',
     relationToDose: '',
     source: 'Formulario',
+    sampleDateTime: '',
+    sampleType: '',
     interpretation: '',
   }
 }
+
+function createDose(): DoseDraft {
+  return {
+    id: `dose-${Math.random().toString(36).slice(2, 9)}`,
+    administeredAt: '',
+    doseAmount: '',
+    unit: '',
+    route: '',
+    weightKg: '',
+    phase: 'Mantenimiento',
+  }
+}
+
+const DOSE_PHASES = ['Induccion', 'Mantenimiento']
 
 function parseNumber(value: string) {
   const next = Number(value)
@@ -205,6 +237,9 @@ export function NuevoCasoWizard({
     currentDose: '',
     interval: '',
     route: '',
+    treatmentStartDate: '',
+    regimenStartDate: '',
+    doses: [],
     previousTherapies: '',
     adherence: '',
     caseMode: 'Nuevo caso',
@@ -269,6 +304,12 @@ export function NuevoCasoWizard({
     if (!form.weightKg.trim()) warnings.push('Falta peso actualizado')
     if (form.determinants.some((item) => item.label.trim() && !item.relationToDose.trim())) {
       warnings.push('Hay determinantes sin relación temporal con la dosis')
+    }
+    if (form.determinants.some((item) => item.label.trim() && item.value.trim() && !item.sampleDateTime.trim())) {
+      warnings.push('Hay determinantes sin fecha y hora exacta de extracción')
+    }
+    if (form.doses.length > 0 && form.doses.every((item) => !item.administeredAt.trim())) {
+      warnings.push('El historial de dosis administradas no tiene fechas')
     }
     if (!form.summary.trim()) warnings.push('Conviene resumir el motivo clínico de consulta')
 
@@ -399,6 +440,21 @@ export function NuevoCasoWizard({
     }))
   }
 
+  function setDose(id: string, field: keyof DoseDraft, value: string) {
+    setForm((current) => ({
+      ...current,
+      doses: current.doses.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+    }))
+  }
+
+  function addDose() {
+    setForm((current) => ({ ...current, doses: [...current.doses, createDose()] }))
+  }
+
+  function removeDose(id: string) {
+    setForm((current) => ({ ...current, doses: current.doses.filter((item) => item.id !== id) }))
+  }
+
   function applyDeterminantSuggestion(label: string) {
     if (form.determinants.some((item) => item.label.trim().toLowerCase() === label.toLowerCase())) return
     addDeterminant(label)
@@ -495,9 +551,21 @@ export function NuevoCasoWizard({
             currentDose: form.currentDose || null,
             interval: form.interval || null,
             route: form.route || null,
+            treatmentStartDate: form.treatmentStartDate || null,
+            regimenStartDate: form.regimenStartDate || null,
             previousTherapies: form.previousTherapies || null,
             adherence: form.adherence || null,
           },
+          doses: form.doses
+            .filter((item) => item.administeredAt.trim() || item.doseAmount.trim())
+            .map((item) => ({
+              administeredAt: item.administeredAt ? new Date(item.administeredAt).toISOString() : null,
+              doseAmount: item.doseAmount.trim() || null,
+              unit: item.unit.trim() || null,
+              route: item.route.trim() || null,
+              weightKg: parseNumber(item.weightKg) ?? null,
+              phase: item.phase,
+            })),
           labDeterminants: form.determinants
             .filter((item) => item.label.trim())
             .map((item) => ({
@@ -507,6 +575,8 @@ export function NuevoCasoWizard({
               status: item.value.trim() ? 'Pendiente de validar' : 'Faltante',
               source: item.source.trim() || 'Formulario',
               relationToDose: item.relationToDose.trim() || null,
+              sampleDateTime: item.sampleDateTime ? new Date(item.sampleDateTime).toISOString() : null,
+              sampleType: item.sampleType.trim() || null,
               interpretation: item.interpretation.trim() || null,
             })),
           recommendation: {
@@ -814,7 +884,69 @@ export function NuevoCasoWizard({
                   <Field label="Vía de administración">
                     <input className={inputCls} value={form.route} onChange={(event) => setField('route', event.target.value)} placeholder="Intravenosa" />
                   </Field>
+                  <Field label="Fecha de inicio del tratamiento">
+                    <input type="date" className={inputCls} value={form.treatmentStartDate} onChange={(event) => setField('treatmentStartDate', event.target.value)} />
+                  </Field>
+                  <Field label="Fecha de inicio de la pauta actual">
+                    <input type="date" className={inputCls} value={form.regimenStartDate} onChange={(event) => setField('regimenStartDate', event.target.value)} />
+                  </Field>
                 </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-[#152520]">Administraciones registradas</p>
+                      <p className="text-sm text-[#4a7068]">Últimas 4 en mantenimiento, o todas en inducción, con fecha, dosis y peso.</p>
+                    </div>
+                    <Button type="button" variant="outline" className="rounded-2xl text-sm" onClick={addDose}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Añadir administración
+                    </Button>
+                  </div>
+                  {form.doses.length === 0 ? (
+                    <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-6 text-center text-sm text-[#4a7068]">
+                      Sin administraciones registradas. Son necesarias para el análisis farmacocinético y la simulación.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {form.doses.map((dose, index) => (
+                        <div key={dose.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+                          <div className="mb-3 flex items-center justify-between">
+                            <p className="text-sm font-semibold text-[#152520]">Administración {index + 1}</p>
+                            <button type="button" onClick={() => removeDose(dose.id)} className="text-xs text-red-600 hover:text-red-700">
+                              Eliminar
+                            </button>
+                          </div>
+                          <div className="grid gap-3 md:grid-cols-3">
+                            <Field label="Fecha y hora">
+                              <input type="datetime-local" className={inputCls} value={dose.administeredAt} onChange={(event) => setDose(dose.id, 'administeredAt', event.target.value)} />
+                            </Field>
+                            <Field label="Dosis">
+                              <input className={inputCls} value={dose.doseAmount} onChange={(event) => setDose(dose.id, 'doseAmount', event.target.value)} placeholder="5 mg/kg" />
+                            </Field>
+                            <Field label="Unidad">
+                              <input className={inputCls} value={dose.unit} onChange={(event) => setDose(dose.id, 'unit', event.target.value)} placeholder="mg" />
+                            </Field>
+                            <Field label="Vía">
+                              <input className={inputCls} value={dose.route} onChange={(event) => setDose(dose.id, 'route', event.target.value)} placeholder="IV" />
+                            </Field>
+                            <Field label="Peso (kg)">
+                              <input className={inputCls} value={dose.weightKg} onChange={(event) => setDose(dose.id, 'weightKg', event.target.value)} placeholder="71" />
+                            </Field>
+                            <Field label="Fase">
+                              <select className={inputCls} value={dose.phase} onChange={(event) => setDose(dose.id, 'phase', event.target.value)}>
+                                {DOSE_PHASES.map((phase) => (
+                                  <option key={phase} value={phase}>{phase}</option>
+                                ))}
+                              </select>
+                            </Field>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <Field label="Tratamientos previos">
                   <textarea
                     className={textAreaCls}
@@ -890,6 +1022,17 @@ export function NuevoCasoWizard({
                         </Field>
                         <Field label="Relación con la dosis">
                           <input className={inputCls} value={determinant.relationToDose} onChange={(event) => setDeterminant(determinant.id, 'relationToDose', event.target.value)} placeholder="Valle confirmado" />
+                        </Field>
+                        <Field label="Fecha y hora de extracción">
+                          <input type="datetime-local" className={inputCls} value={determinant.sampleDateTime} onChange={(event) => setDeterminant(determinant.id, 'sampleDateTime', event.target.value)} />
+                        </Field>
+                        <Field label="Tipo de muestra">
+                          <select className={inputCls} value={determinant.sampleType} onChange={(event) => setDeterminant(determinant.id, 'sampleType', event.target.value)}>
+                            <option value="">Pendiente de indicar</option>
+                            {SAMPLE_TYPES.map((sampleType) => (
+                              <option key={sampleType} value={sampleType}>{sampleType}</option>
+                            ))}
+                          </select>
                         </Field>
                         <Field label="Fuente">
                           <input className={inputCls} value={determinant.source} onChange={(event) => setDeterminant(determinant.id, 'source', event.target.value)} placeholder="Laboratorio" />

@@ -1034,6 +1034,7 @@ def create_xarxa_case(data: dict) -> dict:
         "patientProfile": data.get("patientProfile", {}),
         "diseaseContext": data.get("diseaseContext", {}),
         "therapyContext": data.get("therapyContext", {}),
+        "doses": _normalize_doses(data.get("doses")),
         "labDeterminants": data.get("labDeterminants", []),
         "timeline": data.get("timeline", []),
         "pkpdInterpretation": data.get("pkpdInterpretation", {"pattern": "", "confidence": "", "summary": ""}),
@@ -1823,6 +1824,15 @@ def bulk_act_on_xarxa_cases(
     return updated_cases
 
 
+def _normalize_doses(doses: Any) -> list[dict[str, Any]]:
+    """Normalize the case dose history: sorted by administration datetime."""
+    if not doses:
+        return []
+    normalized = [dict(dose) for dose in doses if isinstance(dose, dict)]
+    normalized.sort(key=lambda dose: dose.get("administeredAt") or "")
+    return normalized
+
+
 def update_xarxa_case(case_id: str, patch: dict) -> dict:
     _ensure_xarxa_indexes()
     mutable_fields = {
@@ -1834,6 +1844,7 @@ def update_xarxa_case(case_id: str, patch: dict) -> dict:
         "caseType",
         "diseaseContext",
         "therapyContext",
+        "doses",
         "labDeterminants",
         "patientProfile",
         "caseOutcome",

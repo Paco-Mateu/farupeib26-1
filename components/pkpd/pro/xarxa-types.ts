@@ -36,8 +36,27 @@ export type LabDeterminant = {
   status: string
   source: string
   relationToDose?: string
+  sampleDateTime?: string | null
+  sampleType?: string | null
   interpretation?: string
 }
+
+export type DoseRecord = {
+  administeredAt?: string | null
+  doseAmount?: string | number | null
+  unit?: string | null
+  route?: string | null
+  weightKg?: number | null
+  phase?: 'Induccion' | 'Mantenimiento' | string
+  notes?: string | null
+}
+
+export const SAMPLE_TYPES = [
+  'Predosis',
+  'Postdosis',
+  "Mitja d'interval",
+  'Infusió contínua',
+] as const
 
 export type PatientProfile = {
   age?: number | null
@@ -119,6 +138,7 @@ export type CasoCompleto = CasoResumen & {
   patientProfile?: PatientProfile
   diseaseContext: Record<string, string>
   therapyContext: Record<string, string | null>
+  doses?: DoseRecord[]
   labDeterminants: LabDeterminant[]
   timeline: TimelineEvent[]
   pkpdInterpretation: { pattern: string; confidence: string; summary: string }

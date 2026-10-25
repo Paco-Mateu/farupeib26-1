@@ -1,0 +1,343 @@
+Codi Medicament;Codi Nacional;Descripció Medicament;Codi Prova Laboratori;Descripció Prova Laboratori;Nivell;Mostrar
+1141;8121076;inFLIXimab 100 mg vial (Remicade);H03472;Eritrosedimentació- long (Sang);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);H10172;San-Hemoglobina- c.massa;N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);H10872;San-Leucòcits- c.nom;N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);H11140;San-Limfòcits- c.nom;N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q45885;Proteïna C reactiva- c.massa;N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q46585;Proteïna- c.massa. (Sèrum);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);W01524;Calprotectina- fr.massa (Femta);N;N
+1141;8121076;inFLIXimab 100 mg vial (Remicade);W20885;Infliximab- c.massa(CLIA);S;S
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;H03472;Eritrosedimentació- long (Sang);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;H10172;San-Hemoglobina- c.massa;N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;H10872;San-Leucòcits- c.nom;N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;H10940;San-Neutròfils(segmentats)- c.nom;N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;H11140;San-Limfòcits- c.nom;N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q45885;Proteïna C reactiva- c.massa;N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q46585;Proteïna- c.massa. (Sèrum);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;W01524;Calprotectina- fr.massa (Femta);N;N
+15049;6657799;USTEKINUMAB 45 mg/0,5 ml xer;W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+19154;7028215;VEDOLIZUMAB 300 mg vial;H03472;Eritrosedimentació- long (Sang);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;H10172;San-Hemoglobina- c.massa;N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;H10872;San-Leucòcits- c.nom;N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;H10940;San-Neutròfils(segmentats)- c.nom;N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;H11140;San-Limfòcits- c.nom;N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q45885;Proteïna C reactiva- c.massa;N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q46585;Proteïna- c.massa. (Sèrum);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;W01524;Calprotectina- fr.massa (Femta);N;N
+19154;7028215;VEDOLIZUMAB 300 mg vial;W58785;Vedolizumab- c.massa(CLIA);S;S
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);H03472;Eritrosedimentació- long (Sang);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);H10172;San-Hemoglobina- c.massa;N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);H10872;San-Leucòcits- c.nom;N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);H11140;San-Limfòcits- c.nom;N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q45885;Proteïna C reactiva- c.massa;N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q46585;Proteïna- c.massa. (Sèrum);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);W01524;Calprotectina- fr.massa (Femta);N;N
+19214;7026945;inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima);W20885;Infliximab- c.massa(CLIA);S;S
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);A25485;Adalimumab- c.massa;S;S
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);H03472;Eritrosedimentació- long (Sang);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);H10172;San-Hemoglobina- c.massa;N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);H10872;San-Leucòcits- c.nom;N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);H11140;San-Limfòcits- c.nom;N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q45885;Proteïna C reactiva- c.massa;N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q46585;Proteïna- c.massa. (Sèrum);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+21079;7094524;ADALIMUMAB 40 mg/0,4 ml ploma (Humira);W01524;Calprotectina- fr.massa (Femta);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;H03472;Eritrosedimentació- long (Sang);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;H10172;San-Hemoglobina- c.massa;N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;H10872;San-Leucòcits- c.nom;N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;H10940;San-Neutròfils(segmentats)- c.nom;N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;H11140;San-Limfòcits- c.nom;N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q45885;Proteïna C reactiva- c.massa;N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q46585;Proteïna- c.massa. (Sèrum);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;W01524;Calprotectina- fr.massa (Femta);N;N
+21565;7139478;USTEKINUMAB 130 mg/26 ml vial;W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;H03472;Eritrosedimentació- long (Sang);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;H10172;San-Hemoglobina- c.massa;N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;H10872;San-Leucòcits- c.nom;N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;H10940;San-Neutròfils(segmentats)- c.nom;N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;H11140;San-Limfòcits- c.nom;N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q45885;Proteïna C reactiva- c.massa;N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q46585;Proteïna- c.massa. (Sèrum);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;W01524;Calprotectina- fr.massa (Femta);N;N
+21623;7134329;USTEKINUMAB 90 mg/1 ml xer;W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);A25485;Adalimumab- c.massa;S;S
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);H03472;Eritrosedimentació- long (Sang);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);H10172;San-Hemoglobina- c.massa;N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);H10872;San-Leucòcits- c.nom;N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);H11140;San-Limfòcits- c.nom;N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q45885;Proteïna C reactiva- c.massa;N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q46585;Proteïna- c.massa. (Sèrum);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+22030;7186960;ADALIMUMAB 80 mg/0,8 ml ploma (Humira);W01524;Calprotectina- fr.massa (Femta);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);A25485;Adalimumab- c.massa;S;S
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);H03472;Eritrosedimentació- long (Sang);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);H10172;San-Hemoglobina- c.massa;N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);H10872;San-Leucòcits- c.nom;N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);H11140;San-Limfòcits- c.nom;N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q45885;Proteïna C reactiva- c.massa;N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q46585;Proteïna- c.massa. (Sèrum);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+23887;7233428;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz);W01524;Calprotectina- fr.massa (Femta);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);H03472;Eritrosedimentació- long (Sang);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);H10172;San-Hemoglobina- c.massa;N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);H10872;San-Leucòcits- c.nom;N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);H11140;San-Limfòcits- c.nom;N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q45885;Proteïna C reactiva- c.massa;N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q46585;Proteïna- c.massa. (Sèrum);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);W01524;Calprotectina- fr.massa (Femta);N;N
+26716;7278719;inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima);W20885;Infliximab- c.massa(CLIA);S;S
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);A25485;Adalimumab- c.massa;S;S
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);H03472;Eritrosedimentació- long (Sang);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);H10172;San-Hemoglobina- c.massa;N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);H10872;San-Leucòcits- c.nom;N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);H11140;San-Limfòcits- c.nom;N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q45885;Proteïna C reactiva- c.massa;N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q46585;Proteïna- c.massa. (Sèrum);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+26994;7259640;ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio);W01524;Calprotectina- fr.massa (Femta);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;H03472;Eritrosedimentació- long (Sang);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;H10172;San-Hemoglobina- c.massa;N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;H10872;San-Leucòcits- c.nom;N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;H10940;San-Neutròfils(segmentats)- c.nom;N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;H11140;San-Limfòcits- c.nom;N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q45885;Proteïna C reactiva- c.massa;N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q46585;Proteïna- c.massa. (Sèrum);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;W01524;Calprotectina- fr.massa (Femta);N;N
+28217;7289319;VEDOLIZUMAB 108 mg/0,68 ml ploma precarg;W58785;Vedolizumab- c.massa(CLIA);S;S
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);A25485;Adalimumab- c.massa;S;S
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);H03472;Eritrosedimentació- long (Sang);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);H10172;San-Hemoglobina- c.massa;N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);H10872;San-Leucòcits- c.nom;N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);H11140;San-Limfòcits- c.nom;N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q45885;Proteïna C reactiva- c.massa;N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q46585;Proteïna- c.massa. (Sèrum);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+28943;7337584;ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma);W01524;Calprotectina- fr.massa (Femta);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);A25485;Adalimumab- c.massa;S;S
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);H03472;Eritrosedimentació- long (Sang);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);H10172;San-Hemoglobina- c.massa;N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);H10872;San-Leucòcits- c.nom;N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);H11140;San-Limfòcits- c.nom;N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q45885;Proteïna C reactiva- c.massa;N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q46585;Proteïna- c.massa. (Sèrum);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+29123;7306146;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma);W01524;Calprotectina- fr.massa (Femta);N;N
+30172;7594710;RISANKIZUMAB 360 mg/2,4 ml cartutx (Skyrizi);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+30172;7594710;RISANKIZUMAB 360 mg/2,4 ml cartutx (Skyrizi);Q45885;Proteïna C reactiva- c.massa;N;N
+30172;7594710;RISANKIZUMAB 360 mg/2,4 ml cartutx (Skyrizi);W01524;Calprotectina- fr.massa (Femta);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);A25485;Adalimumab- c.massa;S;S
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);H03472;Eritrosedimentació- long (Sang);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);H10172;San-Hemoglobina- c.massa;N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);H10872;San-Leucòcits- c.nom;N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);H11140;San-Limfòcits- c.nom;N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q45885;Proteïna C reactiva- c.massa;N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q46585;Proteïna- c.massa. (Sèrum);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+30607;7624769;ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz);W01524;Calprotectina- fr.massa (Femta);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);H03472;Eritrosedimentació- long (Sang);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);H10172;San-Hemoglobina- c.massa;N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);H10872;San-Leucòcits- c.nom;N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);H11140;San-Limfòcits- c.nom;N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q45885;Proteïna C reactiva- c.massa;N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q46585;Proteïna- c.massa. (Sèrum);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);W01524;Calprotectina- fr.massa (Femta);N;N
+31459;7648284;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);H03472;Eritrosedimentació- long (Sang);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);H10172;San-Hemoglobina- c.massa;N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);H10872;San-Leucòcits- c.nom;N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);H11140;San-Limfòcits- c.nom;N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q45885;Proteïna C reactiva- c.massa;N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q46585;Proteïna- c.massa. (Sèrum);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);W01524;Calprotectina- fr.massa (Femta);N;N
+31464;7648277;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);H03472;Eritrosedimentació- long (Sang);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);H10172;San-Hemoglobina- c.massa;N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);H10872;San-Leucòcits- c.nom;N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);H11140;San-Limfòcits- c.nom;N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q45885;Proteïna C reactiva- c.massa;N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q46585;Proteïna- c.massa. (Sèrum);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);W01524;Calprotectina- fr.massa (Femta);N;N
+31971;7134329;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);H03472;Eritrosedimentació- long (Sang);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);H10172;San-Hemoglobina- c.massa;N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);H10872;San-Leucòcits- c.nom;N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);H11140;San-Limfòcits- c.nom;N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q45885;Proteïna C reactiva- c.massa;N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q46585;Proteïna- c.massa. (Sèrum);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);W01524;Calprotectina- fr.massa (Femta);N;N
+31972;7134329;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);H03472;Eritrosedimentació- long (Sang);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);H10172;San-Hemoglobina- c.massa;N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);H10872;San-Leucòcits- c.nom;N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);H11140;San-Limfòcits- c.nom;N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q45885;Proteïna C reactiva- c.massa;N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q46585;Proteïna- c.massa. (Sèrum);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);W01524;Calprotectina- fr.massa (Femta);N;N
+31975;7134329;USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+32421;7655213;RISANKIZUMAB 180 mg/1,2 ml cartutx (Skyrizi);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+32421;7655213;RISANKIZUMAB 180 mg/1,2 ml cartutx (Skyrizi);Q45885;Proteïna C reactiva- c.massa;N;N
+32421;7655213;RISANKIZUMAB 180 mg/1,2 ml cartutx (Skyrizi);W01524;Calprotectina- fr.massa (Femta);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);H03472;Eritrosedimentació- long (Sang);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);H10172;San-Hemoglobina- c.massa;N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);H10872;San-Leucòcits- c.nom;N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);H11140;San-Limfòcits- c.nom;N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q45885;Proteïna C reactiva- c.massa;N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q46585;Proteïna- c.massa. (Sèrum);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);W01524;Calprotectina- fr.massa (Femta);N;N
+32904;7669746;USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);H03472;Eritrosedimentació- long (Sang);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);H10172;San-Hemoglobina- c.massa;N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);H10872;San-Leucòcits- c.nom;N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);H11140;San-Limfòcits- c.nom;N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q45885;Proteïna C reactiva- c.massa;N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q46585;Proteïna- c.massa. (Sèrum);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);W01524;Calprotectina- fr.massa (Femta);N;N
+32905;7669753;USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva);W58885;Ustekinumab- c.massa(CLIA)(Sèrum);S;S
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);H03472;Eritrosedimentació- long (Sang);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);H10172;San-Hemoglobina- c.massa;N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);H10872;San-Leucòcits- c.nom;N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);H11140;San-Limfòcits- c.nom;N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q45885;Proteïna C reactiva- c.massa;N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q46585;Proteïna- c.massa. (Sèrum);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);W01524;Calprotectina- fr.massa (Femta);N;N
+34679;7702740;inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima);W20885;Infliximab- c.massa(CLIA);S;S
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);H03472;Eritrosedimentació- long (Sang);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);H10172;San-Hemoglobina- c.massa;N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);H10872;San-Leucòcits- c.nom;N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);H10940;San-Neutròfils(segmentats)- c.nom;N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);H11140;San-Limfòcits- c.nom;N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q02258;Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q02485;Albúmina- c.massa(CRM 470) (Sèrum);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q268O24;Proteïna- cabal massa (Orina 24 h);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q45885;Proteïna C reactiva- c.massa;N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q46585;Proteïna- c.massa. (Sèrum);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q80085;Proteïna C reactivac.massa (CRM 470-"factor de risc coronari") (Sèrum);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);Q97558;Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);W01524;Calprotectina- fr.massa (Femta);N;N
+34680;7702733;inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima);W20885;Infliximab- c.massa(CLIA);S;S
