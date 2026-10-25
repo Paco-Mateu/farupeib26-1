@@ -122,6 +122,9 @@ export type CasoResumen = {
   caseType: string
   entrySource: string
   priority: string
+  urgencyTrack?: 'Ordinario' | 'Urgente' | string
+  urgencyContext?: string | null
+  responseDeadline?: string | null
   pipelineStage: string
   nextAction: string
   createdAt: string

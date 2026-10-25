@@ -41,6 +41,10 @@ from backend.services.xarxa_repository import (
     save_xarxa_note,
     save_xarxa_recommendation,
     transition_xarxa_case,
+    add_cases_to_xarxa_session,
+    save_xarxa_session_consensus,
+    save_xarxa_session_minutes,
+    generate_xarxa_session_minutes,
     update_xarxa_professional,
     update_xarxa_program,
     update_xarxa_session_status,
@@ -89,6 +93,9 @@ class CreateCaseRequest(BaseModel):
     specialty: str = "Digestivo"
     caseType: str
     priority: str = "Media"
+    urgencyTrack: str | None = None  # Ordinario | Urgente (default: Urgente si priority=Urgente)
+    urgencyContext: str | None = None  # Ingresado | Ambulatorio
+    responseDeadline: str | None = None
     entrySource: str = "Formulario web"
     clinicalContext: str = ""
     programId: str = "prog-crohn-pkpd"
@@ -109,6 +116,9 @@ class UpdateCaseRequest(BaseModel):
     nextAction: str | None = None
     pipelineStage: str | None = None
     priority: str | None = None
+    urgencyTrack: str | None = None
+    urgencyContext: str | None = None
+    responseDeadline: str | None = None
     caseType: str | None = None
     patientProfile: PatientProfilePayload | None = None
     diseaseContext: dict[str, Any] | None = None
@@ -196,6 +206,30 @@ class FollowUpUpdateRequest(BaseModel):
 class CreateSessionRequest(BaseModel):
     title: str | None = None
     date: str | None = None
+
+
+class SessionAgendaRequest(BaseModel):
+    caseIds: list[str]
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+
+
+class SessionMinutesRequest(BaseModel):
+    minutes: str
+    actorName: str | None = None
+    actorRole: str | None = None
+
+
+class SessionConsensusRequest(BaseModel):
+    decision: str
+    dose: str | None = None
+    interval: str | None = None
+    nextControl: str | None = None
+    notes: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
 
 
 class BulkCaseActionRequest(BaseModel):
@@ -573,3 +607,52 @@ async def post_complete_session(session_id: str):
         return update_xarxa_session_status(session_id, "done")
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/sessions/{session_id}/agenda")
+async def post_session_agenda(session_id: str, body: SessionAgendaRequest):
+    try:
+        return add_cases_to_xarxa_session(
+            session_id,
+            body.caseIds,
+            actor={
+                "name": body.actorName,
+                "role": body.actorRole,
+                "center": body.actorCenter,
+            },
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.put("/sessions/{session_id}/minutes")
+async def put_session_minutes(session_id: str, body: SessionMinutesRequest):
+    try:
+        return save_xarxa_session_minutes(
+            session_id,
+            body.minutes,
+            actor={"name": body.actorName, "role": body.actorRole},
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/sessions/{session_id}/minutes/generate")
+async def post_generate_session_minutes(session_id: str):
+    try:
+        return generate_xarxa_session_minutes(session_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.put("/sessions/{session_id}/consensus/{case_id}")
+async def put_session_consensus(session_id: str, case_id: str, body: SessionConsensusRequest):
+    try:
+        return save_xarxa_session_consensus(
+            session_id,
+            case_id,
+            body.model_dump(exclude_none=True),
+            actor={"name": body.actorName, "role": body.actorRole, "center": body.actorCenter},
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc

@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, Calendar, ChevronRight, Clock, FlaskConical, Info, Loader2, Mic, Monitor, Sparkles, Users, Video, VideoOff, X } from 'lucide-react'
+import { Bot, Calendar, ChevronRight, ClipboardEdit, Clock, FlaskConical, Loader2, Mic, Monitor, Save, Sparkles, Users, Video, VideoOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -11,12 +11,29 @@ import {
 } from '@/components/pkpd/pro/workspace-state'
 import { fetchJson } from '@/lib/fetch-json'
 
+const DEMO_ACTOR = {
+  name: 'Farmacéutico referente',
+  role: 'Farmacéutico experto',
+  center: 'H.U. Bellvitge',
+  type: 'human',
+}
+
 type SessionCase = {
   caseId: string
   title: string
   centerName: string
   priority: string
   pipelineStage: string
+}
+
+type SessionConsensus = {
+  decision: string
+  dose?: string | null
+  interval?: string | null
+  nextControl?: string | null
+  notes?: string | null
+  agreedBy?: string
+  agreedAt?: string
 }
 
 type SessionItem = {
@@ -30,6 +47,9 @@ type SessionItem = {
   caseIds?: string[]
   cases?: SessionCase[]
   minutes?: string
+  minutesEditedBy?: string | null
+  minutesEditedAt?: string | null
+  consensus?: Record<string, SessionConsensus>
   proposalReason?: string
   inviteDraft?: string
   agendaHighlights?: string[]
@@ -194,6 +214,8 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [focusSessionId, setFocusSessionId] = useState<string | null>(null)
+  const [minutesDrafts, setMinutesDrafts] = useState<Record<string, string>>({})
+  const [consensusDrafts, setConsensusDrafts] = useState<Record<string, { decision: string; dose: string; interval: string; nextControl: string; notes: string }>>({})
 
   async function loadSessions() {
     setLoading(true)
@@ -281,6 +303,97 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       await loadSessions()
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : 'No se ha podido actualizar la sesión.')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  function consensusKey(sessionId: string, caseId: string) {
+    return `${sessionId}:${caseId}`
+  }
+
+  function consensusDraftFor(sessionId: string, caseId: string) {
+    const key = consensusKey(sessionId, caseId)
+    return (
+      consensusDrafts[key] ?? {
+        decision: '',
+        dose: '',
+        interval: '',
+        nextControl: '',
+        notes: '',
+      }
+    )
+  }
+
+  function setConsensusDraft(sessionId: string, caseId: string, field: string, value: string) {
+    const key = consensusKey(sessionId, caseId)
+    setConsensusDrafts((current) => ({
+      ...current,
+      [key]: { ...consensusDraftFor(sessionId, caseId), [field]: value },
+    }))
+  }
+
+  async function saveConsensus(sessionId: string, caseId: string) {
+    setBusyKey(`consensus:${sessionId}:${caseId}`)
+    setError(null)
+    setNotice(null)
+    try {
+      const draft = consensusDraftFor(sessionId, caseId)
+      await fetchJson<SessionItem>(
+        `/api/xarxa/sessions/${encodeURIComponent(sessionId)}/consensus/${encodeURIComponent(caseId)}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...DEMO_ACTOR, ...draft, decision: draft.decision || 'Consenso alcanzado' }),
+        }
+      )
+      await loadSessions()
+      setNotice(`Consenso registrado para ${caseId} y notificado en el expediente del caso.`)
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No se ha podido registrar el consenso.')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function generateMinutes(sessionId: string) {
+    setBusyKey(`acta:${sessionId}`)
+    setError(null)
+    setNotice(null)
+    try {
+      const session = await fetchJson<SessionItem>(
+        `/api/xarxa/sessions/${encodeURIComponent(sessionId)}/minutes/generate`,
+        { method: 'POST' }
+      )
+      await loadSessions()
+      setMinutesDrafts((current) => ({ ...current, [sessionId]: session.minutes ?? '' }))
+      setFocusSessionId(sessionId)
+      setNotice('Borrador de acta generado a partir de la agenda y los consensos. Requiere revisión humana.')
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No se ha podido generar el acta.')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function saveMinutes(sessionId: string) {
+    setBusyKey(`minutes:${sessionId}`)
+    setError(null)
+    setNotice(null)
+    try {
+      const minutes = minutesDrafts[sessionId] ?? ''
+      await fetchJson<SessionItem>(
+        `/api/xarxa/sessions/${encodeURIComponent(sessionId)}/minutes`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...DEMO_ACTOR, minutes }),
+        }
+      )
+      await loadSessions()
+      setNotice('Acta validada y registrada por el profesional.')
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No se ha podido guardar el acta.')
     } finally {
       setBusyKey(null)
     }
@@ -599,30 +712,102 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                       Casos en agenda
                     </p>
                     <div className="space-y-2">
-                      {(session.cases ?? []).map((caso) => (
-                        <div
-                          key={caso.caseId}
-                          className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#152520]">{caso.caseId}</p>
-                            <p className="truncate text-xs text-[#4a7068]">{caso.title}</p>
-                            <p className="text-[10px] text-[#4a7068]">
-                              {caso.centerName} · {caso.pipelineStage}
-                            </p>
+                      {(session.cases ?? []).map((caso) => {
+                        const savedConsensus = session.consensus?.[caso.caseId]
+                        const draft = consensusDraftFor(session.sessionId, caso.caseId)
+                        const consensusBusy = busyKey === `consensus:${session.sessionId}:${caso.caseId}`
+                        return (
+                          <div
+                            key={caso.caseId}
+                            className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-[#152520]">{caso.caseId}</p>
+                                <p className="truncate text-xs text-[#4a7068]">{caso.title}</p>
+                                <p className="text-[10px] text-[#4a7068]">
+                                  {caso.centerName} · {caso.pipelineStage}
+                                </p>
+                              </div>
+                              <div className="flex shrink-0 items-center gap-1.5">
+                                {onOpenCaso ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="rounded-xl text-xs"
+                                    onClick={() => onOpenCaso(caso.caseId)}
+                                  >
+                                    Abrir caso
+                                  </Button>
+                                ) : null}
+                              </div>
+                            </div>
+
+                            {savedConsensus ? (
+                              <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-800">
+                                <span className="font-semibold">Consenso:</span> {savedConsensus.decision}
+                                {savedConsensus.dose ? ` · Pauta: ${savedConsensus.dose}` : ''}
+                                {savedConsensus.interval ? ` · Intervalo: ${savedConsensus.interval}` : ''}
+                                {savedConsensus.nextControl ? ` · Próximo control: ${savedConsensus.nextControl}` : ''}
+                                {savedConsensus.agreedBy ? ` — ${savedConsensus.agreedBy}` : ''}
+                              </div>
+                            ) : session.status !== 'done' ? (
+                              <div className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+                                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
+                                  Registrar consenso de la comisión (UC-05)
+                                </p>
+                                <div className="grid gap-2 md:grid-cols-2">
+                                  <input
+                                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
+                                    placeholder="Decisión (p. ej. Intensificar a q5 semanas)"
+                                    value={draft.decision}
+                                    onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'decision', event.target.value)}
+                                  />
+                                  <input
+                                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
+                                    placeholder="Pauta (p. ej. 90 mg)"
+                                    value={draft.dose}
+                                    onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'dose', event.target.value)}
+                                  />
+                                  <input
+                                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
+                                    placeholder="Intervalo (p. ej. cada 5 semanas)"
+                                    value={draft.interval}
+                                    onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'interval', event.target.value)}
+                                  />
+                                  <input
+                                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
+                                    placeholder="Próximo control"
+                                    value={draft.nextControl}
+                                    onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'nextControl', event.target.value)}
+                                  />
+                                </div>
+                                <div className="mt-2 flex items-center justify-between gap-2">
+                                  <input
+                                    className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
+                                    placeholder="Notas del debate (opcional)"
+                                    value={draft.notes}
+                                    onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'notes', event.target.value)}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    className="ml-2 shrink-0 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
+                                    onClick={() => void saveConsensus(session.sessionId, caso.caseId)}
+                                    disabled={!!busyKey || !draft.decision.trim()}
+                                  >
+                                    {consensusBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ClipboardEdit className="h-3.5 w-3.5" />}
+                                    Registrar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-2 rounded-lg bg-slate-100 px-3 py-2 text-[11px] text-slate-500">
+                                Sin consenso registrado en el acta.
+                              </div>
+                            )}
                           </div>
-                          {onOpenCaso ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="shrink-0 rounded-xl text-xs"
-                              onClick={() => onOpenCaso(caso.caseId)}
-                            >
-                              Abrir caso
-                            </Button>
-                          ) : null}
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )}
@@ -643,13 +828,57 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                   </div>
                 ) : null}
 
-                {/* Done session: minutes */}
-                {session.status === 'done' && session.minutes && (
+                {/* Acta: draft with agents, editable by humans */}
+                {session.status !== 'scheduled' && (
                   <div className="border-t border-slate-100 px-5 pb-4 pt-3">
-                    <div className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
-                      <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#4a7068]" />
-                      <p className="text-xs text-[#4a7068]">{session.minutes}</p>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
+                        Acta de la sesión {session.minutesEditedBy ? '· validada por humanos' : session.minutes ? '· borrador pendiente de validación' : ''}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl text-xs"
+                          onClick={() => void generateMinutes(session.sessionId)}
+                          disabled={!!busyKey}
+                        >
+                          {busyKey === `acta:${session.sessionId}` ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Bot className="h-3.5 w-3.5" />
+                          )}
+                          Borrador con Agentes
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
+                          onClick={() => void saveMinutes(session.sessionId)}
+                          disabled={!!busyKey || !(minutesDrafts[session.sessionId] ?? session.minutes ?? '').trim()}
+                        >
+                          {busyKey === `minutes:${session.sessionId}` ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Save className="h-3.5 w-3.5" />
+                          )}
+                          Validar acta
+                        </Button>
+                      </div>
                     </div>
+                    <textarea
+                      className="min-h-[180px] w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 font-mono text-xs leading-6 text-[#152520] outline-none transition focus:border-[#7b3fa0]"
+                      placeholder="El acta se generará a partir de la agenda y los consensos registrados. También puede redactarse a mano."
+                      value={minutesDrafts[session.sessionId] ?? session.minutes ?? ''}
+                      onChange={(event) =>
+                        setMinutesDrafts((current) => ({ ...current, [session.sessionId]: event.target.value }))
+                      }
+                    />
+                    {session.minutesEditedBy ? (
+                      <p className="mt-1.5 text-[10px] text-[#4a7068]">
+                        Acta editada por {session.minutesEditedBy}
+                        {session.minutesEditedAt ? ` · ${new Date(session.minutesEditedAt).toLocaleString('es-ES')}` : ''}
+                      </p>
+                    ) : null}
                   </div>
                 )}
               </div>

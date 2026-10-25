@@ -39,6 +39,8 @@ type FormState = {
   requesterId: string
   caseType: string
   priority: string
+  urgencyContext: string
+  responseDeadline: string
   entrySource: string
   patientCode: string
   age: string
@@ -222,6 +224,8 @@ export function NuevoCasoWizard({
     requesterId: '',
     caseType: '',
     priority: 'Media',
+    urgencyContext: 'Ingresado',
+    responseDeadline: '',
     entrySource: 'Formulario normalizado',
     patientCode: '',
     age: '',
@@ -526,6 +530,12 @@ export function NuevoCasoWizard({
           specialty: activeProgram?.specialty ?? 'Digestivo',
           caseType: form.caseType,
           priority: form.priority,
+          urgencyTrack: form.priority === 'Urgente' ? 'Urgente' : 'Ordinario',
+          urgencyContext: form.priority === 'Urgente' ? form.urgencyContext : null,
+          responseDeadline:
+            form.priority === 'Urgente' && form.responseDeadline
+              ? new Date(form.responseDeadline).toISOString()
+              : null,
           entrySource: form.entrySource,
           clinicalContext:
             form.summary.trim() ||
@@ -754,6 +764,26 @@ export function NuevoCasoWizard({
                     </select>
                   </Field>
                 </div>
+
+                {form.priority === 'Urgente' ? (
+                  <div className="rounded-3xl border border-red-200 bg-red-50/70 p-5">
+                    <p className="text-sm font-semibold text-red-800">Circuito urgente de la red (UC-07)</p>
+                    <p className="mt-1 text-sm text-red-700">
+                      Los casos urgentes se resuelven de forma bilateral en menos de 24-48 h, sin esperar la sesión quincenal.
+                    </p>
+                    <div className="mt-3 grid gap-4 md:grid-cols-2">
+                      <Field label="Situación del paciente">
+                        <select className={inputCls} value={form.urgencyContext} onChange={(event) => setField('urgencyContext', event.target.value)}>
+                          <option value="Ingresado">Ingresado</option>
+                          <option value="Ambulatorio">Ambulatorio con fecha límite de tratamiento</option>
+                        </select>
+                      </Field>
+                      <Field label="Fecha límite de respuesta">
+                        <input type="datetime-local" className={inputCls} value={form.responseDeadline} onChange={(event) => setField('responseDeadline', event.target.value)} />
+                      </Field>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 

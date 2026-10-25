@@ -46,6 +46,15 @@ DEFAULT_DEMO_ACTOR = {
     "type": "human",
 }
 
+# Stages from which a case no longer counts against the urgent-circuit SLA (UC-07)
+RESOLVED_SLA_STAGES = {
+    "Informe validado",
+    "Registrado en HCE",
+    "Seguimiento 4 semanas",
+    "Seguimiento 8 semanas",
+    "Cerrado con resultado",
+}
+
 ALLOWED_STAGE_TRANSITIONS: dict[str, set[str]] = {
     "Solicitud recibida": {"Caso creado por IA", "Datos incompletos", "Pendiente de determinantes", "Determinantes recibidos"},
     "Caso creado por IA": {"Datos incompletos", "Pendiente de determinantes", "Determinantes recibidos"},
@@ -956,6 +965,9 @@ def list_xarxa_cases(
         "caseType": 1,
         "entrySource": 1,
         "priority": 1,
+        "urgencyTrack": 1,
+        "urgencyContext": 1,
+        "responseDeadline": 1,
         "pipelineStage": 1,
         "nextAction": 1,
         "createdAt": 1,
@@ -1020,6 +1032,10 @@ def create_xarxa_case(data: dict) -> dict:
         "caseType": data["caseType"],
         "entrySource": data.get("entrySource", "Formulario web"),
         "priority": data.get("priority", "Media"),
+        "urgencyTrack": _resolve_urgency_track(data),
+        "urgencyContext": data.get("urgencyContext"),
+        "responseDeadline": data.get("responseDeadline")
+        or (_default_urgent_deadline() if _resolve_urgency_track(data) == "Urgente" else None),
         "pipelineStage": data.get("pipelineStage", "Solicitud recibida"),
         "nextAction": next_action,
         "createdAt": now,
@@ -1753,6 +1769,174 @@ def update_xarxa_session_status(session_id: str, status: str) -> dict:
     return result | {"cases": []}
 
 
+def add_cases_to_xarxa_session(session_id: str, case_ids: list[str], actor: dict | None = None) -> dict:
+    """UC-05: build the session agenda by marking cases for discussion."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    session = _col("xarxa_sessions").find_one({"$or": [{"_id": session_id}, {"id": session_id}]})
+    if not session:
+        raise ValueError(f"Session not found: {session_id}")
+
+    valid_cases = {
+        case["caseId"]
+        for case in _col("xarxa_cases").find({"caseId": {"$in": case_ids}}, {"_id": 0, "caseId": 1})
+    }
+    merged = list(dict.fromkeys([*session.get("caseIds", []), *valid_cases]))
+    if merged == session.get("caseIds", []):
+        return _get_refreshed_session(session_id)
+
+    _col("xarxa_sessions").update_one(
+        {"_id": session["_id"]},
+        {"$set": {"caseIds": merged, "casesCount": len(merged), "updatedAt": _now_iso()}},
+    )
+    for case_id in valid_cases:
+        _append_event(
+            case_id,
+            "Decisiones",
+            "Sesión",
+            f"El caso se ha añadido a la agenda de {session['title']}",
+            actor=_extract_actor(actor),
+        )
+    _cache_invalidate("sessions", "cases", "case", "kpis")
+    return _get_refreshed_session(session_id)
+
+
+def save_xarxa_session_consensus(session_id: str, case_id: str, payload: dict, actor: dict | None = None) -> dict:
+    """UC-05: capture the committee's consensus for one agenda case
+    (pauta, intervalo, próximo control) as a structured document."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    session = _col("xarxa_sessions").find_one({"$or": [{"_id": session_id}, {"id": session_id}]})
+    if not session:
+        raise ValueError(f"Session not found: {session_id}")
+    case = _col("xarxa_cases").find_one(_case_query(case_id), {"_id": 0, "caseId": 1, "title": 1})
+    if not case:
+        raise ValueError(f"Case not found: {case_id}")
+
+    resolved_case_id = case["caseId"]
+    consensus_entry = {
+        "decision": payload.get("decision") or "Consenso alcanzado",
+        "dose": payload.get("dose"),
+        "interval": payload.get("interval"),
+        "nextControl": payload.get("nextControl"),
+        "notes": payload.get("notes"),
+        "agreedBy": (actor or {}).get("name") or DEFAULT_DEMO_ACTOR["name"],
+        "agreedAt": _now_iso(),
+    }
+    _col("xarxa_sessions").update_one(
+        {"_id": session["_id"]},
+        {
+            "$set": {
+                f"consensus.{resolved_case_id}": consensus_entry,
+                "updatedAt": _now_iso(),
+            }
+        },
+    )
+    _append_event(
+        resolved_case_id,
+        "Decisiones",
+        "Consenso de red",
+        f"Consenso registrado en {session['title']}: {consensus_entry['decision']}",
+        actor=_extract_actor(actor),
+    )
+    _cache_invalidate("sessions", "case", "cases")
+    return _get_refreshed_session(session_id)
+
+
+def save_xarxa_session_minutes(session_id: str, minutes: str, actor: dict | None = None) -> dict:
+    """UC-05: store the edited session minutes (acta)."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    result = _col("xarxa_sessions").find_one_and_update(
+        {"$or": [{"_id": session_id}, {"id": session_id}]},
+        {
+            "$set": {
+                "minutes": minutes,
+                "minutesEditedBy": (actor or {}).get("name") or DEFAULT_DEMO_ACTOR["name"],
+                "minutesEditedAt": _now_iso(),
+                "automationSource": "Edición humana",
+                "automationUpdatedAt": _now_iso(),
+            }
+        },
+        return_document=ReturnDocument.AFTER,
+        projection={"_id": 0},
+    )
+    if not result:
+        raise ValueError(f"Session not found: {session_id}")
+    _cache_invalidate("sessions")
+    return _get_refreshed_session(session_id)
+
+
+def generate_xarxa_session_minutes(session_id: str) -> dict:
+    """UC-05: draft the acta from the agenda cases and their consensus."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    session = _get_refreshed_session(session_id)
+    cases = session.get("cases", [])
+    consensus = session.get("consensus", {})
+
+    lines = [
+        f"ACTA · {session.get('title', 'Sesión de red')}",
+        f"Fecha: {session.get('date', '')} · Duración: {session.get('duration', '60 min')}",
+        f"Participantes: {', '.join(session.get('participants', [])) or 'Red PK/PD'}",
+        "",
+        "Casos presentados:",
+    ]
+    for index, case in enumerate(cases, start=1):
+        case_consensus = consensus.get(case.get("caseId"), {})
+        lines.append(
+            f"{index}. {case.get('caseId')} · {case.get('title')} ({case.get('centerName', '')})"
+        )
+        if case_consensus:
+            detail = "; ".join(
+                f"{label}: {value}"
+                for label, value in (
+                    ("Decisión", case_consensus.get("decision")),
+                    ("Pauta", case_consensus.get("dose")),
+                    ("Intervalo", case_consensus.get("interval")),
+                    ("Próximo control", case_consensus.get("nextControl")),
+                )
+                if value
+            )
+            lines.append(f"   Consenso: {detail or case_consensus.get('decision', 'Pendiente de registro')}")
+            if case_consensus.get("notes"):
+                lines.append(f"   Notas: {case_consensus['notes']}")
+        else:
+            lines.append("   Consenso: pendiente de registro")
+    lines += [
+        "",
+        "Acuerdos de la comisión: revisar los controles programados y registrar los informes en la HCE de origen.",
+        "",
+        "Borrador generado automáticamente por la plataforma. Requiere revisión y aprobación humana.",
+    ]
+
+    minutes_draft = "\n".join(lines)
+    _col("xarxa_sessions").update_one(
+        {"_id": session_id},
+        {
+            "$set": {
+                "minutes": minutes_draft,
+                "minutesEditedBy": None,
+                "minutesEditedAt": None,
+                "automationSource": "Agente de sesión (borrador)",
+                "automationUpdatedAt": _now_iso(),
+            }
+        },
+    )
+    for case in cases:
+        _append_agent_run(case.get("caseId", ""), "Agente de sesión", f"Borrador de acta generado para {session.get('title')}.")
+    _cache_invalidate("sessions", "agents", "case", "cases")
+    return _get_refreshed_session(session_id)
+
+
+def _get_refreshed_session(session_id: str) -> dict:
+    refreshed = list_xarxa_sessions()
+    for session in refreshed:
+        if session.get("sessionId") == session_id:
+            return session
+    raise ValueError(f"Session not found: {session_id}")
+
+
 def bulk_act_on_xarxa_cases(
     case_ids: list[str],
     action: str,
@@ -1833,6 +2017,19 @@ def _normalize_doses(doses: Any) -> list[dict[str, Any]]:
     return normalized
 
 
+def _resolve_urgency_track(data: dict[str, Any]) -> str:
+    """Resolve the network urgency track (UC-01): Ordinario goes to the next
+    fortnightly session; Urgente activates the fast circuit with a deadline."""
+    track = data.get("urgencyTrack")
+    if track in ("Ordinario", "Urgente"):
+        return track
+    return "Urgente" if data.get("priority") == "Urgente" else "Ordinario"
+
+
+def _default_urgent_deadline() -> str:
+    return (datetime.now(UTC) + timedelta(hours=48)).isoformat()
+
+
 def update_xarxa_case(case_id: str, patch: dict) -> dict:
     _ensure_xarxa_indexes()
     mutable_fields = {
@@ -1841,6 +2038,9 @@ def update_xarxa_case(case_id: str, patch: dict) -> dict:
         "fieldReview",
         "nextAction",
         "priority",
+        "urgencyTrack",
+        "urgencyContext",
+        "responseDeadline",
         "caseType",
         "diseaseContext",
         "therapyContext",
@@ -2387,6 +2587,21 @@ def get_xarxa_kpis(
     overdue_followups_result = list(_col("xarxa_followups").aggregate(overdue_followups_pipeline))
     overdue_followups = overdue_followups_result[0]["total"] if overdue_followups_result else 0
 
+    # Urgent circuit SLA (UC-07): urgent-track cases whose <24-48h deadline
+    # has passed without reaching a resolved stage
+    now_iso = _now_iso()
+    urgent_breaches = sum(
+        1
+        for case in _col("xarxa_cases").find(
+            {
+                "urgencyTrack": "Urgente",
+                "responseDeadline": {"$ne": None, "$lt": now_iso},
+                "pipelineStage": {"$nin": list(RESOLVED_SLA_STAGES)},
+            },
+            {"_id": 0},
+        )
+    )
+
     live_kpis = [
         {"label": "Casos activos", "value": active_cases},
         {"label": "Nuevos hoy", "value": new_today},
@@ -2394,6 +2609,7 @@ def get_xarxa_kpis(
         {"label": "Listos para revisión", "value": ready_for_review},
         {"label": "Con gaps críticos", "value": critical_gap_cases},
         {"label": "Seguimiento vencido", "value": overdue_followups},
+        {"label": "Urgentes fuera de plazo", "value": urgent_breaches},
     ]
 
     top_gaps = list(

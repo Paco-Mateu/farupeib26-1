@@ -308,6 +308,42 @@ function pkpdStatus(pattern: string): PkpdStatus {
   return { label: pattern || '—', color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400' }
 }
 
+function UrgentSlaChip({ caso }: { caso: CasoCompleto }) {
+  const resolved = ['Informe validado', 'Registrado en HCE', 'Seguimiento 4 semanas', 'Seguimiento 8 semanas', 'Cerrado con resultado']
+    .includes(caso.pipelineStage)
+  if (resolved) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5">
+        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        <span className="text-xs font-semibold text-emerald-700">Circuito urgente resuelto</span>
+        {caso.urgencyContext ? <span className="text-[10px] text-slate-400">· {caso.urgencyContext}</span> : null}
+      </div>
+    )
+  }
+  if (!caso.responseDeadline) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5">
+        <span className="h-2 w-2 rounded-full bg-red-500" />
+        <span className="text-xs font-semibold text-red-700">Circuito urgente · sin fecha límite registrada</span>
+      </div>
+    )
+  }
+  const deadline = new Date(caso.responseDeadline)
+  const hoursLeft = (deadline.getTime() - Date.now()) / 3_600_000
+  const breached = hoursLeft <= 0
+  return (
+    <div className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 ${breached ? 'border-red-300 bg-red-100' : 'border-amber-200 bg-amber-50'}`}>
+      <span className={`h-2 w-2 rounded-full ${breached ? 'bg-red-600' : 'bg-amber-500'}`} />
+      <span className={`text-xs font-semibold ${breached ? 'text-red-800' : 'text-amber-800'}`}>
+        {breached
+          ? 'Fuera de plazo del circuito urgente (<24-48 h)'
+          : `Circuito urgente · respuesta en ${hoursLeft < 1 ? `${Math.max(0, Math.round(hoursLeft * 60))} min` : `${Math.round(hoursLeft)} h`}`}
+      </span>
+      {caso.urgencyContext ? <span className="text-[10px] text-slate-500">· {caso.urgencyContext}</span> : null}
+    </div>
+  )
+}
+
 function ClinicalIdentityBar({ caso }: { caso: CasoCompleto }) {
   const drugLine = deriveDrugLine(caso)
   const trough = deriveTrough(caso)
@@ -351,6 +387,11 @@ function ClinicalIdentityBar({ caso }: { caso: CasoCompleto }) {
             <span className="ml-1 text-[10px] text-slate-400">· Confianza {caso.pkpdInterpretation.confidence}</span>
           )}
         </div>
+
+        {/* Urgent circuit SLA (UC-07) */}
+        {caso.urgencyTrack === 'Urgente' ? (
+          <UrgentSlaChip caso={caso} />
+        ) : null}
 
         {/* Patient quick info */}
         {caso.patientProfile && (
