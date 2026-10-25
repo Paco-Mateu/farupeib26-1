@@ -18,7 +18,7 @@ import { PkpdSimulationChart } from '@/components/pkpd/pro/charts/pkpd-simulatio
 import { TimelineLaneOverview } from '@/components/pkpd/pro/charts/timeline-lane-overview'
 import { deriveProtocolSemanticFrame, formatProtocolReviewDate, getProgramProtocol } from '@/components/pkpd/pro/protocol-guidance'
 import type { CasoCompleto, FieldReviewMeta, FollowUpPlan, Program } from '@/components/pkpd/pro/xarxa-types'
-import { PIPELINE_STAGES, PRIORITY_STYLE, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
+import { PIPELINE_STAGES, PRIORITY_STYLE, SAMPLE_TYPES, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
 import { PersonAvatar } from '@/components/pkpd/pro/person-avatar'
 import { ActionConfirmDialog } from '@/components/ui/action-confirm-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -510,6 +510,8 @@ export function CaseCockpit({
             status: item.status,
             source: item.source,
             relationToDose: item.relationToDose || null,
+            sampleDateTime: item.sampleDateTime ? new Date(item.sampleDateTime).toISOString() : null,
+            sampleType: item.sampleType || null,
             interpretation: item.interpretation || null,
           })),
         }),
@@ -2224,6 +2226,44 @@ function TabDatos({
         </div>
       </Section>
 
+      {/* Dose administrations (timed schema) */}
+      {(caso.doses?.length ?? 0) > 0 ? (
+        <Section title="Administraciones registradas" icon={Pill}>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.08em] text-[#4a7068]">
+                  <th className="px-4 py-2.5 font-semibold">Fecha y hora</th>
+                  <th className="px-4 py-2.5 font-semibold">Dosis</th>
+                  <th className="px-4 py-2.5 font-semibold">Vía</th>
+                  <th className="px-4 py-2.5 font-semibold">Peso</th>
+                  <th className="px-4 py-2.5 font-semibold">Fase</th>
+                  <th className="px-4 py-2.5 font-semibold">Notas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {caso.doses!.map((dose, index) => (
+                  <tr key={index} className="border-b border-slate-100 last:border-b-0">
+                    <td className="px-4 py-2.5 font-medium text-[#152520]">
+                      {dose.administeredAt ? formatSampleDateTime(dose.administeredAt) : 'Pendiente de fecha'}
+                    </td>
+                    <td className="px-4 py-2.5 text-[#152520]">{dose.doseAmount ?? '—'} {dose.unit ?? ''}</td>
+                    <td className="px-4 py-2.5 text-slate-600">{dose.route ?? '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-600">{dose.weightKg != null ? `${dose.weightKg} kg` : '—'}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${dose.phase === 'Induccion' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
+                        {dose.phase === 'Induccion' ? 'Inducción' : 'Mantenimiento'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-slate-600">{dose.notes ?? ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      ) : null}
+
       {/* Lab determinants */}
       <Section title="Determinantes PK/PD" icon={FlaskConical}>
         <div className="grid gap-3 lg:grid-cols-2">
@@ -2276,6 +2316,20 @@ function TabDatos({
               )}
               {det.relationToDose && (
                 <p className="mt-1 text-xs text-[#7b3fa0]">{det.relationToDose}</p>
+              )}
+              {(det.sampleDateTime || det.sampleType) && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {det.sampleDateTime && (
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
+                      Extracción: {formatSampleDateTime(det.sampleDateTime)}
+                    </span>
+                  )}
+                  {det.sampleType && (
+                    <span className="rounded-full bg-[#7b3fa0]/10 px-2 py-1 text-[10px] font-medium text-[#7b3fa0]">
+                      Muestra: {det.sampleType}
+                    </span>
+                  )}
+                </div>
               )}
               <div className="mt-2 space-y-1">
                 <p className="text-[10px] text-slate-500">
@@ -3901,6 +3955,8 @@ type CaseEditorDraft = {
     status: string
     source: string
     relationToDose: string
+    sampleDateTime: string
+    sampleType: string
     interpretation: string
   }>
 }
@@ -3939,9 +3995,26 @@ function buildEditorDraft(caso: CasoCompleto): CaseEditorDraft {
       status: item.status ?? 'Pendiente de validar',
       source: item.source ?? 'Formulario',
       relationToDose: item.relationToDose ?? '',
+      sampleDateTime: toDatetimeLocalInput(item.sampleDateTime ?? null),
+      sampleType: item.sampleType ?? '',
       interpretation: item.interpretation ?? '',
     })),
   }
+}
+
+function toDatetimeLocalInput(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`
+}
+
+function formatSampleDateTime(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return String(iso)
+  return parsed.toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function parseCommaList(value: string) {
@@ -4163,6 +4236,8 @@ function CaseEditorSheet({
           status: 'Pendiente de validar',
           source: 'Formulario',
           relationToDose: '',
+          sampleDateTime: '',
+          sampleType: '',
           interpretation: '',
         },
       ],
@@ -4352,6 +4427,28 @@ function CaseEditorSheet({
                       <LabeledInput label="Estado" value={item.status} onChange={(value) => updateDeterminant(item.id, 'status', value, `labDeterminants.${index}`)} />
                       <LabeledInput label="Fuente" value={item.source} onChange={(value) => updateDeterminant(item.id, 'source', value, `labDeterminants.${index}`)} />
                       <LabeledInput label="Relación con la dosis" value={item.relationToDose} onChange={(value) => updateDeterminant(item.id, 'relationToDose', value, `labDeterminants.${index}`)} />
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#4a7068]">Fecha y hora de extracción</label>
+                        <input
+                          type="datetime-local"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]"
+                          value={item.sampleDateTime}
+                          onChange={(event) => updateDeterminant(item.id, 'sampleDateTime', event.target.value, `labDeterminants.${index}`)}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#4a7068]">Tipo de muestra</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]"
+                          value={item.sampleType}
+                          onChange={(event) => updateDeterminant(item.id, 'sampleType', event.target.value, `labDeterminants.${index}`)}
+                        >
+                          <option value="">Pendiente de indicar</option>
+                          {SAMPLE_TYPES.map((sampleType) => (
+                            <option key={sampleType} value={sampleType}>{sampleType}</option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="sm:col-span-2">
                         <LabeledInput label="Interpretación" value={item.interpretation} onChange={(value) => updateDeterminant(item.id, 'interpretation', value, `labDeterminants.${index}`)} />
                       </div>
