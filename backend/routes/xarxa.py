@@ -40,6 +40,7 @@ from backend.services.xarxa_repository import (
     save_xarxa_followup,
     save_xarxa_note,
     save_xarxa_recommendation,
+    run_xarxa_bayes,
     run_xarxa_pkpd_rules,
     transition_xarxa_case,
     add_cases_to_xarxa_session,
@@ -392,6 +393,14 @@ async def transition_case(case_id: str, body: TransitionCaseRequest):
 async def post_run_pkpd_rules(case_id: str):
     try:
         return run_xarxa_pkpd_rules(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/cases/{case_id}/run-bayes")
+async def post_run_bayes(case_id: str):
+    try:
+        return run_xarxa_bayes(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 

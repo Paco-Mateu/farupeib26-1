@@ -2017,6 +2017,46 @@ def _normalize_doses(doses: Any) -> list[dict[str, Any]]:
     return normalized
 
 
+def run_xarxa_bayes(case_id: str) -> dict:
+    """Prototype Bayesian MAP (MIPD) evaluation: individual CL estimate plus a
+    regimen-comparison table, recorded on the case as decision support."""
+    from backend.services.pkpd_bayes import run_bayes_evaluation
+
+    _ensure_xarxa_indexes()
+    case = get_xarxa_case(case_id)
+    evaluation = run_bayes_evaluation(case)
+    if evaluation is None:
+        raise ValueError("No hay modelo poblacional de prototipo para el fármaco de este caso.")
+
+    if evaluation.get("status") == "estimated":
+        clearance = evaluation["clearance"]
+        summary = (
+            f"Estimación MAP (prototipo {evaluation['engine']}): aclaramiento individual "
+            f"{clearance['estimatedLPerDay']:.4f} L/día ({clearance['relativeToPopulation']*100:.0f}% del poblacional) "
+            f"con {evaluation['levelsUsed']} nivel(es) y {evaluation['dosesUsed']} dosis temporizadas. "
+            f"Comparación de {len(evaluation['regimenComparison'])} pautas de mantenimiento por Cmin y AUC."
+        )
+        interpretation = {
+            "pattern": f"MIPD prototipo: CL {clearance['estimatedLPerDay']:.4f} L/día ({clearance['relativeToPopulation']*100:.0f}% poblacional)",
+            "confidence": "Media (prototipo no validado)",
+            "summary": summary,
+            "bayesEvaluation": evaluation,
+        }
+        _touch_case(case_id, {"pkpdInterpretation": interpretation})
+        _append_event(
+            case_id,
+            "Decisiones",
+            "Análisis",
+            f"Estimación bayesiana MAP (prototipo) ejecutada: CL {clearance['estimatedLPerDay']:.4f} L/día ({clearance['relativeToPopulation']*100:.0f}% poblacional)",
+            actor=SYSTEM_ACTOR,
+        )
+        _append_agent_run(case_id, "Agente PK/PD", summary + " Requiere validación humana y contraste con la herramienta MIPD de la red.")
+        _cache_invalidate("case", "cases", "kpis", "agents")
+        return {"case": get_xarxa_case(case_id), "evaluation": evaluation}
+
+    return {"case": case, "evaluation": evaluation}
+
+
 def run_xarxa_pkpd_rules(case_id: str) -> dict:
     """Run the deterministic PK/PD rules engine on a case and record the
     explainable assessment (interpretation update + event + agent run)."""

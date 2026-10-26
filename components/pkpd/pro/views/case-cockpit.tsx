@@ -422,6 +422,151 @@ function PkpdRulesCard({
   )
 }
 
+type BayesEvaluation = {
+  engine: string
+  note: string
+  drug: string
+  status: 'estimated' | 'insufficient-data' | string
+  detail?: string
+  weightKg?: number
+  clearance?: { estimatedLPerDay: number; populationLPerDay: number; relativeToPopulation: number }
+  levelsUsed?: number
+  dosesUsed?: number
+  regimenComparison?: Array<{
+    label: string
+    doseMg: number
+    intervalDays: number
+    route: string
+    cminMgPerL: number
+    aucMgHPerL: number
+    aucWeeklyMgHPerL: number
+  }>
+  sourceNote?: string
+}
+
+function BayesMipdCard({
+  caso,
+  onCaseUpdated,
+}: {
+  caso: CasoCompleto
+  onCaseUpdated?: (updated: CasoCompleto) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [evaluation, setEvaluation] = useState<BayesEvaluation | null>(
+    (caso.pkpdInterpretation as Record<string, any>)?.bayesEvaluation ?? null,
+  )
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    try {
+      const payload = await fetchJson<{ case: CasoCompleto; evaluation: BayesEvaluation }>(
+        `/api/xarxa/cases/${caso.caseId}/run-bayes`,
+        { method: 'POST' },
+      )
+      setEvaluation(payload.evaluation)
+      onCaseUpdated?.(payload.case)
+    } catch (runError) {
+      setError(runError instanceof Error ? runError.message : 'No se ha podido ejecutar la estimación bayesiana.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const equivalenceGroups = new Map<number, string[]>()
+  for (const regimen of evaluation?.regimenComparison ?? []) {
+    const rounded = Math.round(regimen.aucWeeklyMgHPerL)
+    equivalenceGroups.set(rounded, [...(equivalenceGroups.get(rounded) ?? []), regimen.label])
+  }
+  const equivalenceNotes = Array.from(equivalenceGroups.entries())
+    .filter(([, labels]) => labels.length > 1)
+    .map(([auc, labels]) => `Exposición semanal equivalente (${auc} mg·h/L): ${labels.join(' ≡ ')}`)
+
+  return (
+    <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600/10">
+            <TrendingUp className="h-4 w-4 text-blue-700" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">MIPD · estimación bayesiana MAP (prototipo)</p>
+            <p className="text-sm font-semibold text-[#152520]">Aclaramiento individual y comparación de pautas</p>
+          </div>
+        </div>
+        <Button size="sm" className="rounded-xl bg-blue-700 text-xs text-white hover:bg-blue-800" onClick={() => void run()} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <TrendingUp className="mr-1.5 h-3.5 w-3.5" />}
+          Ejecutar estimación
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>
+      ) : null}
+
+      {evaluation?.status === 'insufficient-data' ? (
+        <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-[#152520] ring-1 ring-slate-200">{evaluation.detail}</p>
+      ) : null}
+
+      {evaluation?.status === 'estimated' && evaluation.clearance ? (
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+              CL individual: {evaluation.clearance.estimatedLPerDay.toFixed(4)} L/día
+            </span>
+            <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${evaluation.clearance.relativeToPopulation < 0.9 ? 'bg-amber-100 text-amber-900' : evaluation.clearance.relativeToPopulation > 1.1 ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}`}>
+              {Math.round(evaluation.clearance.relativeToPopulation * 100)}% del poblacional ({evaluation.clearance.populationLPerDay.toFixed(4)} L/día)
+            </span>
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] text-[#4a7068] ring-1 ring-slate-200">
+              {evaluation.levelsUsed} nivel(es) · {evaluation.dosesUsed} dosis temporizadas
+            </span>
+          </div>
+
+          {evaluation.regimenComparison?.length ? (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              <table className="w-full min-w-[620px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.08em] text-[#4a7068]">
+                    <th className="px-4 py-2.5 font-semibold">Pauta de mantenimiento</th>
+                    <th className="px-4 py-2.5 font-semibold">Cmin previsto</th>
+                    <th className="px-4 py-2.5 font-semibold">AUC semanal (mg·h/L)</th>
+                    <th className="px-4 py-2.5 font-semibold">Vía</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluation.regimenComparison.map((regimen) => (
+                    <tr key={regimen.label} className="border-b border-slate-100 last:border-b-0">
+                      <td className="px-4 py-2.5 font-medium text-[#152520]">{regimen.label}</td>
+                      <td className="px-4 py-2.5 text-[#152520]">{regimen.cminMgPerL.toFixed(2)} mg/L</td>
+                      <td className="px-4 py-2.5 text-slate-600">{Math.round(regimen.aucWeeklyMgHPerL)}</td>
+                      <td className="px-4 py-2.5 text-slate-600">{regimen.route}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
+          {equivalenceNotes.length > 0 ? (
+            <div className="space-y-1">
+              {equivalenceNotes.map((note) => (
+                <p key={note} className="rounded-lg bg-white px-3 py-2 text-[11px] text-[#152520] ring-1 ring-slate-200">
+                  <span className="font-semibold text-blue-700">Equivalencia:</span> {note}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          <p className="text-[10px] leading-5 text-slate-500">
+            {evaluation.note} · La decisión final corresponde al comité clínico.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function UrgentSlaChip({ caso }: { caso: CasoCompleto }) {
   const resolved = ['Informe validado', 'Registrado en HCE', 'Seguimiento 4 semanas', 'Seguimiento 8 semanas', 'Cerrado con resultado']
     .includes(caso.pipelineStage)
@@ -1185,6 +1330,8 @@ export function CaseCockpit({
               {activeTab === 'analisis' && (
                 <>
                   <PkpdRulesCard caso={currentCase} onCaseUpdated={setCurrentCase} />
+                  <div className="my-6 border-t border-slate-100" />
+                  <BayesMipdCard caso={currentCase} onCaseUpdated={setCurrentCase} />
                   <div className="my-6 border-t border-slate-100" />
                   <TabAnalisis caso={currentCase} program={program} />
                   <div className="my-6 border-t border-slate-100" />
