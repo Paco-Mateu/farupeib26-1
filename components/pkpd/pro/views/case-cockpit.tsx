@@ -308,6 +308,120 @@ function pkpdStatus(pattern: string): PkpdStatus {
   return { label: pattern || '—', color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400' }
 }
 
+type PkpdEvaluation = {
+  engine: string
+  drug: string
+  targetRange: [number, number]
+  unit: string
+  source: string
+  observed: { value: number; mic?: number; sampleDateTime?: string | null; sampleType?: string | null } | null
+  inTarget: boolean | null
+  firedRules: Array<{ id: string; condition: string; action: string }>
+  recommendationDraft: string
+  note: string
+}
+
+function PkpdRulesCard({
+  caso,
+  onCaseUpdated,
+}: {
+  caso: CasoCompleto
+  onCaseUpdated?: (updated: CasoCompleto) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [evaluation, setEvaluation] = useState<PkpdEvaluation | null>(
+    (caso.pkpdInterpretation as Record<string, any>)?.engineEvaluation ?? null,
+  )
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    try {
+      const payload = await fetchJson<{ case: CasoCompleto; evaluation: PkpdEvaluation }>(
+        `/api/xarxa/cases/${caso.caseId}/run-pkpd`,
+        { method: 'POST' },
+      )
+      setEvaluation(payload.evaluation)
+      onCaseUpdated?.(payload.case)
+    } catch (runError) {
+      setError(runError instanceof Error ? runError.message : 'No se han podido ejecutar las reglas PK/PD.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-[#7b3fa0]/25 bg-[#faf6fd] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
+            <Zap className="h-4 w-4 text-[#7b3fa0]" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Motor de reglas empíricas de la red</p>
+            <p className="text-sm font-semibold text-[#152520]">Evaluación determinista de exposición (soporte a la decisión)</p>
+          </div>
+        </div>
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={() => void run()} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-1.5 h-3.5 w-3.5" />}
+          Ejecutar reglas PK/PD
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>
+      ) : null}
+
+      {evaluation ? (
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+              Fármaco: {evaluation.drug}
+            </span>
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+              Objetivo: {evaluation.targetRange[0]}–{evaluation.targetRange[1]} {evaluation.unit}
+            </span>
+            {evaluation.observed ? (
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+                Observado: {evaluation.observed.value} {evaluation.unit}
+                {evaluation.observed.sampleDateTime ? ` · ${formatSampleDateTime(evaluation.observed.sampleDateTime)}` : ''}
+              </span>
+            ) : null}
+            {evaluation.inTarget !== null ? (
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${evaluation.inTarget ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}`}>
+                {evaluation.inTarget ? 'En objetivo' : 'Fuera de objetivo'}
+              </span>
+            ) : null}
+          </div>
+
+          {evaluation.firedRules.length > 0 ? (
+            <div className="space-y-1.5">
+              {evaluation.firedRules.map((rule) => (
+                <div key={rule.id} className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs">
+                  <span className="font-bold text-[#7b3fa0]">{rule.id}</span>
+                  <span className="text-[#4a7068]"> · {rule.condition}</span>
+                  <p className="mt-0.5 font-medium text-[#152520]">→ {rule.action}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {evaluation.recommendationDraft ? (
+            <p className="rounded-lg bg-white px-3 py-2 text-xs leading-6 text-[#152520] ring-1 ring-slate-200">
+              <span className="font-semibold text-[#7b3fa0]">Borrador para el profesional:</span> {evaluation.recommendationDraft}
+            </p>
+          ) : null}
+
+          <p className="text-[10px] leading-5 text-slate-500">
+            {evaluation.note} · Fuente: {evaluation.source}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function UrgentSlaChip({ caso }: { caso: CasoCompleto }) {
   const resolved = ['Informe validado', 'Registrado en HCE', 'Seguimiento 4 semanas', 'Seguimiento 8 semanas', 'Cerrado con resultado']
     .includes(caso.pipelineStage)
@@ -1070,6 +1184,8 @@ export function CaseCockpit({
               )}
               {activeTab === 'analisis' && (
                 <>
+                  <PkpdRulesCard caso={currentCase} onCaseUpdated={setCurrentCase} />
+                  <div className="my-6 border-t border-slate-100" />
                   <TabAnalisis caso={currentCase} program={program} />
                   <div className="my-6 border-t border-slate-100" />
                   <TabSimulacion caso={currentCase} program={program} />

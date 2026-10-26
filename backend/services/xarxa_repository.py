@@ -2017,6 +2017,49 @@ def _normalize_doses(doses: Any) -> list[dict[str, Any]]:
     return normalized
 
 
+def run_xarxa_pkpd_rules(case_id: str) -> dict:
+    """Run the deterministic PK/PD rules engine on a case and record the
+    explainable assessment (interpretation update + event + agent run)."""
+    from backend.services.pkpd_rules import evaluate_pkpd_rules
+
+    _ensure_xarxa_indexes()
+    case = get_xarxa_case(case_id)
+    evaluation = evaluate_pkpd_rules(case)
+    if evaluation is None:
+        raise ValueError("No hay reglas PK/PD aplicables a los fármacos de este caso.")
+
+    fired = evaluation.get("firedRules", [])
+    trace = "; ".join(f"{rule['id']}: {rule['action']}" for rule in fired) if fired else "Sin reglas activadas"
+    fired_ids = [rule["id"] for rule in fired] or ["en-objetivo"]
+
+    interpretation = {
+        "pattern": evaluation.get("recommendationDraft", "")[:140],
+        "confidence": "Media (reglas empíricas)",
+        "summary": (
+            f"Motor de reglas ({evaluation['engine']}): {evaluation.get('drug', '')} "
+            f"— objetivo {evaluation.get('targetRange')} {evaluation.get('unit')}. "
+            f"Reglas activadas: {trace}. {evaluation.get('note', '')}"
+        ),
+        "ruleTrace": fired_ids,
+        "engineEvaluation": evaluation,
+    }
+    _touch_case(case_id, {"pkpdInterpretation": interpretation})
+    _append_event(
+        case_id,
+        "Decisiones",
+        "Análisis",
+        f"Reglas PK/PD ejecutadas ({evaluation['engine']}): {trace}",
+        actor=SYSTEM_ACTOR,
+    )
+    _append_agent_run(
+        case_id,
+        "Agente PK/PD",
+        f"Reglas empíricas evaluadas. {'Reglas activadas: ' + ', '.join(fired_ids) if fired else 'Exposición en objetivo.'} Requiere validación humana.",
+    )
+    _cache_invalidate("case", "cases", "kpis", "agents")
+    return {"case": get_xarxa_case(case_id), "evaluation": evaluation}
+
+
 def _resolve_urgency_track(data: dict[str, Any]) -> str:
     """Resolve the network urgency track (UC-01): Ordinario goes to the next
     fortnightly session; Urgente activates the fast circuit with a deadline."""

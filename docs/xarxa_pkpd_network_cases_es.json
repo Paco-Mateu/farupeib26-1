@@ -1287,7 +1287,7 @@
       ],
       "labDeterminants": [
         {
-          "label": "CIM de linezolid (M. abscessus)",
+          "label": "CIM de la combinación BED+CLO+linezolid (M. abscessus)",
           "value": 16,
           "unit": "mg/L",
           "status": "Confirmado",
@@ -1295,7 +1295,7 @@
           "relationToDose": null,
           "sampleDateTime": "2026-06-03T10:00:00+02:00",
           "sampleType": null,
-          "interpretation": "Combinación BED+CLO+linezolid sensible (CIM 16 en combinación)"
+          "interpretation": "Combinación sensible (CIM 16 en combinación); linezolid S por EI"
         },
         {
           "label": "Concentración valle de linezolid",
