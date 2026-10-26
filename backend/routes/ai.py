@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from backend.auth.admin_token import require_admin_token
 from backend.providers import (
     OpenAIConfigurationError,
     OpenAIPlatformClient,
@@ -8,7 +9,7 @@ from backend.providers import (
 )
 from backend.schemas.ai import ChatRequest, EmbeddingRequest, RerankRequest
 
-router = APIRouter(prefix="/api/ai", tags=["ai"])
+router = APIRouter(prefix="/api/ai", tags=["ai"], dependencies=[Depends(require_admin_token)])
 
 
 @router.post("/chat")

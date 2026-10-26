@@ -18,7 +18,7 @@ import { PkpdSimulationChart } from '@/components/pkpd/pro/charts/pkpd-simulatio
 import { TimelineLaneOverview } from '@/components/pkpd/pro/charts/timeline-lane-overview'
 import { deriveProtocolSemanticFrame, formatProtocolReviewDate, getProgramProtocol } from '@/components/pkpd/pro/protocol-guidance'
 import type { CasoCompleto, FieldReviewMeta, FollowUpPlan, Program } from '@/components/pkpd/pro/xarxa-types'
-import { PIPELINE_STAGES, PRIORITY_STYLE, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
+import { PIPELINE_STAGES, PRIORITY_STYLE, SAMPLE_TYPES, SEVERITY_STYLE, STAGE_STYLE } from '@/components/pkpd/pro/xarxa-types'
 import { PersonAvatar } from '@/components/pkpd/pro/person-avatar'
 import { ActionConfirmDialog } from '@/components/ui/action-confirm-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -308,6 +308,390 @@ function pkpdStatus(pattern: string): PkpdStatus {
   return { label: pattern || '—', color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400' }
 }
 
+type PkpdEvaluation = {
+  engine: string
+  drug: string
+  targetRange: [number, number]
+  unit: string
+  source: string
+  observed: { value: number; mic?: number; sampleDateTime?: string | null; sampleType?: string | null } | null
+  inTarget: boolean | null
+  firedRules: Array<{ id: string; condition: string; action: string }>
+  recommendationDraft: string
+  note: string
+}
+
+function PkpdRulesCard({
+  caso,
+  onCaseUpdated,
+}: {
+  caso: CasoCompleto
+  onCaseUpdated?: (updated: CasoCompleto) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [evaluation, setEvaluation] = useState<PkpdEvaluation | null>(
+    (caso.pkpdInterpretation as Record<string, any>)?.engineEvaluation ?? null,
+  )
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    try {
+      const payload = await fetchJson<{ case: CasoCompleto; evaluation: PkpdEvaluation }>(
+        `/api/xarxa/cases/${caso.caseId}/run-pkpd`,
+        { method: 'POST' },
+      )
+      setEvaluation(payload.evaluation)
+      onCaseUpdated?.(payload.case)
+    } catch (runError) {
+      setError(runError instanceof Error ? runError.message : 'No se han podido ejecutar las reglas PK/PD.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-[#7b3fa0]/25 bg-[#faf6fd] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#7b3fa0]/10">
+            <Zap className="h-4 w-4 text-[#7b3fa0]" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Motor de reglas empíricas de la red</p>
+            <p className="text-sm font-semibold text-[#152520]">Evaluación determinista de exposición (soporte a la decisión)</p>
+          </div>
+        </div>
+        <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={() => void run()} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-1.5 h-3.5 w-3.5" />}
+          Ejecutar reglas PK/PD
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>
+      ) : null}
+
+      {evaluation ? (
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+              Fármaco: {evaluation.drug}
+            </span>
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+              Objetivo: {evaluation.targetRange[0]}–{evaluation.targetRange[1]} {evaluation.unit}
+            </span>
+            {evaluation.observed ? (
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+                Observado: {evaluation.observed.value} {evaluation.unit}
+                {evaluation.observed.sampleDateTime ? ` · ${formatSampleDateTime(evaluation.observed.sampleDateTime)}` : ''}
+              </span>
+            ) : null}
+            {evaluation.inTarget !== null ? (
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${evaluation.inTarget ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}`}>
+                {evaluation.inTarget ? 'En objetivo' : 'Fuera de objetivo'}
+              </span>
+            ) : null}
+          </div>
+
+          {evaluation.firedRules.length > 0 ? (
+            <div className="space-y-1.5">
+              {evaluation.firedRules.map((rule) => (
+                <div key={rule.id} className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs">
+                  <span className="font-bold text-[#7b3fa0]">{rule.id}</span>
+                  <span className="text-[#4a7068]"> · {rule.condition}</span>
+                  <p className="mt-0.5 font-medium text-[#152520]">→ {rule.action}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {evaluation.recommendationDraft ? (
+            <p className="rounded-lg bg-white px-3 py-2 text-xs leading-6 text-[#152520] ring-1 ring-slate-200">
+              <span className="font-semibold text-[#7b3fa0]">Borrador para el profesional:</span> {evaluation.recommendationDraft}
+            </p>
+          ) : null}
+
+          <p className="text-[10px] leading-5 text-slate-500">
+            {evaluation.note} · Fuente: {evaluation.source}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+type BayesEvaluation = {
+  engine: string
+  note: string
+  drug: string
+  status: 'estimated' | 'insufficient-data' | string
+  detail?: string
+  weightKg?: number
+  clearance?: { estimatedLPerDay: number; populationLPerDay: number; relativeToPopulation: number }
+  levelsUsed?: number
+  dosesUsed?: number
+  regimenComparison?: Array<{
+    label: string
+    doseMg: number
+    intervalDays: number
+    route: string
+    cminMgPerL: number
+    aucMgHPerL: number
+    aucWeeklyMgHPerL: number
+  }>
+  sourceNote?: string
+}
+
+function BayesMipdCard({
+  caso,
+  onCaseUpdated,
+}: {
+  caso: CasoCompleto
+  onCaseUpdated?: (updated: CasoCompleto) => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [evaluation, setEvaluation] = useState<BayesEvaluation | null>(
+    (caso.pkpdInterpretation as Record<string, any>)?.bayesEvaluation ?? null,
+  )
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    try {
+      const payload = await fetchJson<{ case: CasoCompleto; evaluation: BayesEvaluation }>(
+        `/api/xarxa/cases/${caso.caseId}/run-bayes`,
+        { method: 'POST' },
+      )
+      setEvaluation(payload.evaluation)
+      onCaseUpdated?.(payload.case)
+    } catch (runError) {
+      setError(runError instanceof Error ? runError.message : 'No se ha podido ejecutar la estimación bayesiana.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const equivalenceGroups = new Map<number, string[]>()
+  for (const regimen of evaluation?.regimenComparison ?? []) {
+    const rounded = Math.round(regimen.aucWeeklyMgHPerL)
+    equivalenceGroups.set(rounded, [...(equivalenceGroups.get(rounded) ?? []), regimen.label])
+  }
+  const equivalenceNotes = Array.from(equivalenceGroups.entries())
+    .filter(([, labels]) => labels.length > 1)
+    .map(([auc, labels]) => `Exposición semanal equivalente (${auc} mg·h/L): ${labels.join(' ≡ ')}`)
+
+  return (
+    <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600/10">
+            <TrendingUp className="h-4 w-4 text-blue-700" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">MIPD · estimación bayesiana MAP (prototipo)</p>
+            <p className="text-sm font-semibold text-[#152520]">Aclaramiento individual y comparación de pautas</p>
+          </div>
+        </div>
+        <Button size="sm" className="rounded-xl bg-blue-700 text-xs text-white hover:bg-blue-800" onClick={() => void run()} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <TrendingUp className="mr-1.5 h-3.5 w-3.5" />}
+          Ejecutar estimación
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>
+      ) : null}
+
+      {evaluation?.status === 'insufficient-data' ? (
+        <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-[#152520] ring-1 ring-slate-200">{evaluation.detail}</p>
+      ) : null}
+
+      {evaluation?.status === 'estimated' && evaluation.clearance ? (
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#152520] ring-1 ring-slate-200">
+              CL individual: {evaluation.clearance.estimatedLPerDay.toFixed(4)} L/día
+            </span>
+            <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${evaluation.clearance.relativeToPopulation < 0.9 ? 'bg-amber-100 text-amber-900' : evaluation.clearance.relativeToPopulation > 1.1 ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}`}>
+              {Math.round(evaluation.clearance.relativeToPopulation * 100)}% del poblacional ({evaluation.clearance.populationLPerDay.toFixed(4)} L/día)
+            </span>
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] text-[#4a7068] ring-1 ring-slate-200">
+              {evaluation.levelsUsed} nivel(es) · {evaluation.dosesUsed} dosis temporizadas
+            </span>
+          </div>
+
+          {evaluation.regimenComparison?.length ? (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              <table className="w-full min-w-[620px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.08em] text-[#4a7068]">
+                    <th className="px-4 py-2.5 font-semibold">Pauta de mantenimiento</th>
+                    <th className="px-4 py-2.5 font-semibold">Cmin previsto</th>
+                    <th className="px-4 py-2.5 font-semibold">AUC semanal (mg·h/L)</th>
+                    <th className="px-4 py-2.5 font-semibold">Vía</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluation.regimenComparison.map((regimen) => (
+                    <tr key={regimen.label} className="border-b border-slate-100 last:border-b-0">
+                      <td className="px-4 py-2.5 font-medium text-[#152520]">{regimen.label}</td>
+                      <td className="px-4 py-2.5 text-[#152520]">{regimen.cminMgPerL.toFixed(2)} mg/L</td>
+                      <td className="px-4 py-2.5 text-slate-600">{Math.round(regimen.aucWeeklyMgHPerL)}</td>
+                      <td className="px-4 py-2.5 text-slate-600">{regimen.route}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
+          {equivalenceNotes.length > 0 ? (
+            <div className="space-y-1">
+              {equivalenceNotes.map((note) => (
+                <p key={note} className="rounded-lg bg-white px-3 py-2 text-[11px] text-[#152520] ring-1 ring-slate-200">
+                  <span className="font-semibold text-blue-700">Equivalencia:</span> {note}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          <p className="text-[10px] leading-5 text-slate-500">
+            {evaluation.note} · La decisión final corresponde al comité clínico.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+type SimilarCaseItem = {
+  caseId: string
+  title: string
+  centerName: string
+  caseType: string
+  pipelineStage: string
+  patientCode: string
+  recommendation?: { text?: string; status?: string }
+  score: number
+}
+
+function SimilarCasesCard({ caso }: { caso: CasoCompleto }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [items, setItems] = useState<SimilarCaseItem[] | null>(null)
+  const [note, setNote] = useState<string | null>(null)
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    setNote(null)
+    try {
+      const payload = await fetchJson<{ caseId: string; items: SimilarCaseItem[]; total: number; note: string }>(
+        `/api/xarxa/cases/${caso.caseId}/similar-cases`,
+        { method: 'POST' },
+      )
+      setItems(payload.items)
+      setNote(payload.note)
+    } catch (runError) {
+      setError(runError instanceof Error ? runError.message : 'No se han podido buscar casos similares.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100">
+            <Layers className="h-4 w-4 text-slate-600" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Memoria de la red · Atlas Vector Search</p>
+            <p className="text-sm font-semibold text-[#152520]">Casos similares resueltos por la red</p>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => void run()} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+          Buscar casos similares
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>
+      ) : null}
+
+      {items && items.length === 0 ? (
+        <p className="mt-3 text-xs text-[#4a7068]">No hay casos lo bastante parecidos en la memoria de la red.</p>
+      ) : null}
+
+      {items && items.length > 0 ? (
+        <div className="mt-3 space-y-2">
+          {items.map((item) => (
+            <div key={item.caseId} className="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-[#152520]">
+                  {item.caseId} · {item.title}
+                </p>
+                <span className="rounded-full bg-[#7b3fa0]/10 px-2 py-0.5 text-[10px] font-semibold text-[#7b3fa0]">
+                  similitud {item.score.toFixed(3)}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] text-[#4a7068]">
+                {item.centerName} · {item.caseType} · {item.pipelineStage}
+              </p>
+              {item.recommendation?.text ? (
+                <p className="mt-1 line-clamp-2 text-[11px] text-slate-600">Decisión de la red: {item.recommendation.text}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {note ? <p className="mt-2 text-[10px] text-slate-500">{note}</p> : null}
+    </div>
+  )
+}
+
+function UrgentSlaChip({ caso }: { caso: CasoCompleto }) {
+  const resolved = ['Informe validado', 'Registrado en HCE', 'Seguimiento 4 semanas', 'Seguimiento 8 semanas', 'Cerrado con resultado']
+    .includes(caso.pipelineStage)
+  if (resolved) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5">
+        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        <span className="text-xs font-semibold text-emerald-700">Circuito urgente resuelto</span>
+        {caso.urgencyContext ? <span className="text-[10px] text-slate-400">· {caso.urgencyContext}</span> : null}
+      </div>
+    )
+  }
+  if (!caso.responseDeadline) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5">
+        <span className="h-2 w-2 rounded-full bg-red-500" />
+        <span className="text-xs font-semibold text-red-700">Circuito urgente · sin fecha límite registrada</span>
+      </div>
+    )
+  }
+  const deadline = new Date(caso.responseDeadline)
+  const hoursLeft = (deadline.getTime() - Date.now()) / 3_600_000
+  const breached = hoursLeft <= 0
+  return (
+    <div className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 ${breached ? 'border-red-300 bg-red-100' : 'border-amber-200 bg-amber-50'}`}>
+      <span className={`h-2 w-2 rounded-full ${breached ? 'bg-red-600' : 'bg-amber-500'}`} />
+      <span className={`text-xs font-semibold ${breached ? 'text-red-800' : 'text-amber-800'}`}>
+        {breached
+          ? 'Fuera de plazo del circuito urgente (<24-48 h)'
+          : `Circuito urgente · respuesta en ${hoursLeft < 1 ? `${Math.max(0, Math.round(hoursLeft * 60))} min` : `${Math.round(hoursLeft)} h`}`}
+      </span>
+      {caso.urgencyContext ? <span className="text-[10px] text-slate-500">· {caso.urgencyContext}</span> : null}
+    </div>
+  )
+}
+
 function ClinicalIdentityBar({ caso }: { caso: CasoCompleto }) {
   const drugLine = deriveDrugLine(caso)
   const trough = deriveTrough(caso)
@@ -351,6 +735,11 @@ function ClinicalIdentityBar({ caso }: { caso: CasoCompleto }) {
             <span className="ml-1 text-[10px] text-slate-400">· Confianza {caso.pkpdInterpretation.confidence}</span>
           )}
         </div>
+
+        {/* Urgent circuit SLA (UC-07) */}
+        {caso.urgencyTrack === 'Urgente' ? (
+          <UrgentSlaChip caso={caso} />
+        ) : null}
 
         {/* Patient quick info */}
         {caso.patientProfile && (
@@ -510,6 +899,8 @@ export function CaseCockpit({
             status: item.status,
             source: item.source,
             relationToDose: item.relationToDose || null,
+            sampleDateTime: item.sampleDateTime ? new Date(item.sampleDateTime).toISOString() : null,
+            sampleType: item.sampleType || null,
             interpretation: item.interpretation || null,
           })),
         }),
@@ -1027,6 +1418,12 @@ export function CaseCockpit({
               )}
               {activeTab === 'analisis' && (
                 <>
+                  <PkpdRulesCard caso={currentCase} onCaseUpdated={setCurrentCase} />
+                  <div className="my-6 border-t border-slate-100" />
+                  <BayesMipdCard caso={currentCase} onCaseUpdated={setCurrentCase} />
+                  <div className="my-6 border-t border-slate-100" />
+                  <SimilarCasesCard caso={currentCase} />
+                  <div className="my-6 border-t border-slate-100" />
                   <TabAnalisis caso={currentCase} program={program} />
                   <div className="my-6 border-t border-slate-100" />
                   <TabSimulacion caso={currentCase} program={program} />
@@ -2224,6 +2621,44 @@ function TabDatos({
         </div>
       </Section>
 
+      {/* Dose administrations (timed schema) */}
+      {(caso.doses?.length ?? 0) > 0 ? (
+        <Section title="Administraciones registradas" icon={Pill}>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.08em] text-[#4a7068]">
+                  <th className="px-4 py-2.5 font-semibold">Fecha y hora</th>
+                  <th className="px-4 py-2.5 font-semibold">Dosis</th>
+                  <th className="px-4 py-2.5 font-semibold">Vía</th>
+                  <th className="px-4 py-2.5 font-semibold">Peso</th>
+                  <th className="px-4 py-2.5 font-semibold">Fase</th>
+                  <th className="px-4 py-2.5 font-semibold">Notas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {caso.doses!.map((dose, index) => (
+                  <tr key={index} className="border-b border-slate-100 last:border-b-0">
+                    <td className="px-4 py-2.5 font-medium text-[#152520]">
+                      {dose.administeredAt ? formatSampleDateTime(dose.administeredAt) : 'Pendiente de fecha'}
+                    </td>
+                    <td className="px-4 py-2.5 text-[#152520]">{dose.doseAmount ?? '—'} {dose.unit ?? ''}</td>
+                    <td className="px-4 py-2.5 text-slate-600">{dose.route ?? '—'}</td>
+                    <td className="px-4 py-2.5 text-slate-600">{dose.weightKg != null ? `${dose.weightKg} kg` : '—'}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${dose.phase === 'Induccion' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
+                        {dose.phase === 'Induccion' ? 'Inducción' : 'Mantenimiento'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-slate-600">{dose.notes ?? ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      ) : null}
+
       {/* Lab determinants */}
       <Section title="Determinantes PK/PD" icon={FlaskConical}>
         <div className="grid gap-3 lg:grid-cols-2">
@@ -2276,6 +2711,20 @@ function TabDatos({
               )}
               {det.relationToDose && (
                 <p className="mt-1 text-xs text-[#7b3fa0]">{det.relationToDose}</p>
+              )}
+              {(det.sampleDateTime || det.sampleType) && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {det.sampleDateTime && (
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700">
+                      Extracción: {formatSampleDateTime(det.sampleDateTime)}
+                    </span>
+                  )}
+                  {det.sampleType && (
+                    <span className="rounded-full bg-[#7b3fa0]/10 px-2 py-1 text-[10px] font-medium text-[#7b3fa0]">
+                      Muestra: {det.sampleType}
+                    </span>
+                  )}
+                </div>
               )}
               <div className="mt-2 space-y-1">
                 <p className="text-[10px] text-slate-500">
@@ -3901,6 +4350,8 @@ type CaseEditorDraft = {
     status: string
     source: string
     relationToDose: string
+    sampleDateTime: string
+    sampleType: string
     interpretation: string
   }>
 }
@@ -3939,9 +4390,26 @@ function buildEditorDraft(caso: CasoCompleto): CaseEditorDraft {
       status: item.status ?? 'Pendiente de validar',
       source: item.source ?? 'Formulario',
       relationToDose: item.relationToDose ?? '',
+      sampleDateTime: toDatetimeLocalInput(item.sampleDateTime ?? null),
+      sampleType: item.sampleType ?? '',
       interpretation: item.interpretation ?? '',
     })),
   }
+}
+
+function toDatetimeLocalInput(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`
+}
+
+function formatSampleDateTime(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return String(iso)
+  return parsed.toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function parseCommaList(value: string) {
@@ -4163,6 +4631,8 @@ function CaseEditorSheet({
           status: 'Pendiente de validar',
           source: 'Formulario',
           relationToDose: '',
+          sampleDateTime: '',
+          sampleType: '',
           interpretation: '',
         },
       ],
@@ -4352,6 +4822,28 @@ function CaseEditorSheet({
                       <LabeledInput label="Estado" value={item.status} onChange={(value) => updateDeterminant(item.id, 'status', value, `labDeterminants.${index}`)} />
                       <LabeledInput label="Fuente" value={item.source} onChange={(value) => updateDeterminant(item.id, 'source', value, `labDeterminants.${index}`)} />
                       <LabeledInput label="Relación con la dosis" value={item.relationToDose} onChange={(value) => updateDeterminant(item.id, 'relationToDose', value, `labDeterminants.${index}`)} />
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#4a7068]">Fecha y hora de extracción</label>
+                        <input
+                          type="datetime-local"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]"
+                          value={item.sampleDateTime}
+                          onChange={(event) => updateDeterminant(item.id, 'sampleDateTime', event.target.value, `labDeterminants.${index}`)}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-[#4a7068]">Tipo de muestra</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-[#152520] outline-none focus:border-[#7b3fa0]"
+                          value={item.sampleType}
+                          onChange={(event) => updateDeterminant(item.id, 'sampleType', event.target.value, `labDeterminants.${index}`)}
+                        >
+                          <option value="">Pendiente de indicar</option>
+                          {SAMPLE_TYPES.map((sampleType) => (
+                            <option key={sampleType} value={sampleType}>{sampleType}</option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="sm:col-span-2">
                         <LabeledInput label="Interpretación" value={item.interpretation} onChange={(value) => updateDeterminant(item.id, 'interpretation', value, `labDeterminants.${index}`)} />
                       </div>

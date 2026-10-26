@@ -1,10 +1,24 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Any
 
+from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
+from backend.services.xarxa_terminology import list_xarxa_drug_panels, list_xarxa_pathology_scores
+from backend.services.xarxa_fhir import export_xarxa_case_fhir
+from backend.services.xarxa_similarity import find_similar_cases
+from backend.services.xarxa_surveillance import (
+    list_xarxa_surveillance_alerts,
+    resolve_xarxa_surveillance_alert,
+    run_xarxa_surveillance,
+)
+from backend.services.xarxa_training import (
+    create_xarxa_training_request,
+    list_xarxa_training_requests,
+    update_xarxa_training_request,
+)
 from backend.services.xarxa_repository import (
     approve_xarxa_professional_request,
     bulk_act_on_xarxa_cases,
@@ -38,7 +52,13 @@ from backend.services.xarxa_repository import (
     save_xarxa_followup,
     save_xarxa_note,
     save_xarxa_recommendation,
+    run_xarxa_bayes,
+    run_xarxa_pkpd_rules,
     transition_xarxa_case,
+    add_cases_to_xarxa_session,
+    save_xarxa_session_consensus,
+    save_xarxa_session_minutes,
+    generate_xarxa_session_minutes,
     update_xarxa_professional,
     update_xarxa_program,
     update_xarxa_session_status,
@@ -55,6 +75,16 @@ class PatientProfilePayload(BaseModel):
     specialPopulation: list[str] = []
 
 
+class DoseRecordPayload(BaseModel):
+    administeredAt: str | None = None  # ISO datetime of the administration
+    doseAmount: str | float | int | None = None
+    unit: str | None = None
+    route: str | None = None
+    weightKg: float | None = None  # patient weight at administration time
+    phase: str = "Mantenimiento"  # Induccion | Mantenimiento
+    notes: str | None = None
+
+
 class DeterminantPayload(BaseModel):
     label: str
     value: str | float | int | None = None
@@ -62,6 +92,8 @@ class DeterminantPayload(BaseModel):
     status: str = "Pendiente de validar"
     source: str = "Formulario"
     relationToDose: str | None = None
+    sampleDateTime: str | None = None  # exact extraction datetime
+    sampleType: str | None = None  # Predosí | Postdosis | Mitja d'interval | Infusió contínua
     interpretation: str | None = None
 
 
@@ -75,14 +107,18 @@ class CreateCaseRequest(BaseModel):
     specialty: str = "Digestivo"
     caseType: str
     priority: str = "Media"
+    urgencyTrack: str | None = None  # Ordinario | Urgente (default: Urgente si priority=Urgente)
+    urgencyContext: str | None = None  # Ingresado | Ambulatorio
+    responseDeadline: str | None = None
     entrySource: str = "Formulario web"
     clinicalContext: str = ""
-    programId: str = "prog-crohn"
+    programId: str = "prog-crohn-pkpd"
     pipelineStage: str = "Solicitud recibida"
     nextAction: str | None = None
     patientProfile: PatientProfilePayload | None = None
     diseaseContext: dict[str, Any] = {}
     therapyContext: dict[str, Any] = {}
+    doses: list[DoseRecordPayload] = []
     labDeterminants: list[DeterminantPayload] = []
     recommendation: dict[str, Any] | None = None
     clinicalNote: dict[str, Any] | None = None
@@ -94,10 +130,14 @@ class UpdateCaseRequest(BaseModel):
     nextAction: str | None = None
     pipelineStage: str | None = None
     priority: str | None = None
+    urgencyTrack: str | None = None
+    urgencyContext: str | None = None
+    responseDeadline: str | None = None
     caseType: str | None = None
     patientProfile: PatientProfilePayload | None = None
     diseaseContext: dict[str, Any] | None = None
     therapyContext: dict[str, Any] | None = None
+    doses: list[DoseRecordPayload] | None = None
     labDeterminants: list[DeterminantPayload] | None = None
     fieldReview: dict[str, Any] | None = None
     caseOutcome: dict[str, Any] | None = None
@@ -182,6 +222,54 @@ class CreateSessionRequest(BaseModel):
     date: str | None = None
 
 
+class SessionAgendaRequest(BaseModel):
+    caseIds: list[str]
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+
+
+class SessionMinutesRequest(BaseModel):
+    minutes: str
+    actorName: str | None = None
+    actorRole: str | None = None
+
+
+class SessionConsensusRequest(BaseModel):
+    decision: str
+    dose: str | None = None
+    interval: str | None = None
+    nextControl: str | None = None
+    notes: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+
+
+class TrainingRequestPayload(BaseModel):
+    title: str
+    type: str = "Formación"
+    drugDisease: str | None = None
+    justification: str
+    currentSituation: str | None = None
+    expectedImpact: str | None = None
+    bibliography: str | None = None
+    proposedDate: str | None = None
+    requesterName: str | None = None
+    requesterCollegiate: str | None = None
+    centerId: str | None = None
+    centerName: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+
+
+class TrainingRequestUpdateRequest(BaseModel):
+    status: str | None = None
+    scheduledDate: str | None = None
+    sessionTitle: str | None = None
+
+
 class BulkCaseActionRequest(BaseModel):
     caseIds: list[str]
     action: str
@@ -227,9 +315,21 @@ def _error_status(exc: ValueError) -> int:
     return 400
 
 
-@router.post("/seed")
+@router.post("/seed", dependencies=[Depends(require_admin_token)])
 async def seed_demo(force: bool = False):
     return seed_xarxa_demo(force=force)
+
+
+@router.get("/pathology-scores")
+async def read_pathology_scores():
+    items = list_xarxa_pathology_scores()
+    return {"items": items, "total": len(items)}
+
+
+@router.get("/drug-panels")
+async def read_drug_panels(substance: str | None = Query(default=None)):
+    items = list_xarxa_drug_panels(substance=substance)
+    return {"items": items, "total": len(items)}
 
 
 @router.get("/kpis")
@@ -301,6 +401,15 @@ async def read_case(case_id: str):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@router.get("/cases/{case_id}/fhir")
+async def read_case_fhir(case_id: str):
+    """FHIR R4 Bundle export of the case (toward the hospital EHR/HCE)."""
+    try:
+        return export_xarxa_case_fhir(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @router.delete("/cases/{case_id}")
 async def remove_case(case_id: str):
     try:
@@ -323,6 +432,52 @@ async def transition_case(case_id: str, body: TransitionCaseRequest):
         return transition_xarxa_case(case_id, body.model_dump(exclude_none=True))
     except ValueError as exc:
         raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/cases/{case_id}/run-pkpd")
+async def post_run_pkpd_rules(case_id: str):
+    try:
+        return run_xarxa_pkpd_rules(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/cases/{case_id}/run-bayes")
+async def post_run_bayes(case_id: str):
+    try:
+        return run_xarxa_bayes(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.get("/surveillance")
+async def read_surveillance(status: str = Query(default="Activa")):
+    items = list_xarxa_surveillance_alerts(status=status)
+    return {"items": items, "total": len(items)}
+
+
+@router.post("/surveillance/scan")
+async def post_surveillance_scan():
+    return run_xarxa_surveillance()
+
+
+@router.post("/surveillance/{alert_id}/resolve")
+async def post_resolve_alert(alert_id: str):
+    try:
+        return resolve_xarxa_surveillance_alert(alert_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/cases/{case_id}/similar-cases")
+async def post_similar_cases(case_id: str):
+    try:
+        return find_similar_cases(case_id)
+    except ValueError as exc:
+        status = 503 if "vectorial" in str(exc) or "Vector Search" in str(exc) else _error_status(exc)
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+    except OpenAIConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/cases/{case_id}/orchestrate")
@@ -504,6 +659,28 @@ async def read_roles():
     return {"items": list_xarxa_roles()}
 
 
+@router.get("/training-requests")
+async def read_training_requests(status: str | None = Query(default=None)):
+    items = list_xarxa_training_requests(status=status)
+    return {"items": items, "total": len(items)}
+
+
+@router.post("/training-requests")
+async def post_training_request(body: TrainingRequestPayload):
+    try:
+        return create_xarxa_training_request(body.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.patch("/training-requests/{request_id}")
+async def patch_training_request(request_id: str, body: TrainingRequestUpdateRequest):
+    try:
+        return update_xarxa_training_request(request_id, body.model_dump(exclude_none=True))
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
 @router.get("/sessions")
 async def read_sessions():
     items = list_xarxa_sessions()
@@ -545,3 +722,52 @@ async def post_complete_session(session_id: str):
         return update_xarxa_session_status(session_id, "done")
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/sessions/{session_id}/agenda")
+async def post_session_agenda(session_id: str, body: SessionAgendaRequest):
+    try:
+        return add_cases_to_xarxa_session(
+            session_id,
+            body.caseIds,
+            actor={
+                "name": body.actorName,
+                "role": body.actorRole,
+                "center": body.actorCenter,
+            },
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.put("/sessions/{session_id}/minutes")
+async def put_session_minutes(session_id: str, body: SessionMinutesRequest):
+    try:
+        return save_xarxa_session_minutes(
+            session_id,
+            body.minutes,
+            actor={"name": body.actorName, "role": body.actorRole},
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/sessions/{session_id}/minutes/generate")
+async def post_generate_session_minutes(session_id: str):
+    try:
+        return generate_xarxa_session_minutes(session_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.put("/sessions/{session_id}/consensus/{case_id}")
+async def put_session_consensus(session_id: str, case_id: str, body: SessionConsensusRequest):
+    try:
+        return save_xarxa_session_consensus(
+            session_id,
+            case_id,
+            body.model_dump(exclude_none=True),
+            actor={"name": body.actorName, "role": body.actorRole, "center": body.actorCenter},
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc

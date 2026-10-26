@@ -8,7 +8,7 @@ import { WorkspaceEmptyState, WorkspaceErrorState, WorkspaceLoadingState } from 
 import type { ReportingData } from '@/components/pkpd/pro/xarxa-types'
 import { fetchJson } from '@/lib/fetch-json'
 
-type KpiCard = { label: string; value: number; unit?: string; trend?: string; up?: boolean }
+type KpiCard = { label: string; value: number; unit?: string; detail?: string; trend?: string; up?: boolean }
 
 export function Reporting({
   centerId = '',
@@ -196,6 +196,7 @@ export function Reporting({
                 {k.value}
                 {k.unit && <span className="ml-1 text-sm font-normal text-[#4a7068]">{k.unit}</span>}
               </p>
+              {k.detail && <p className="mt-1 text-[10px] leading-tight text-slate-400">{k.detail}</p>}
               {k.trend && (
                 <div className="mt-1.5 flex items-center gap-1">
                   {k.up !== undefined && (

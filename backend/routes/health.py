@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from backend.config import settings
 from backend.db import ping_database
-from backend.db.mongo import get_database, ping_synthea_fhir_database
+from backend.db.mongo import get_database
 from backend.providers import (
     OpenAIConfigurationError,
     OpenAIPlatformClient,
@@ -58,12 +58,6 @@ async def health():
                 "configured": settings.has_mongo,
                 "connected": mongo_connected,
                 "database": settings.resolved_database_name,
-            },
-            "syntheaFhir": {
-                "configured": settings.has_synthea_fhir,
-                "connected": ping_synthea_fhir_database() if settings.has_synthea_fhir else False,
-                "database": settings.synthea_breast_cancer_fhir_mongodb_db,
-                "collection": settings.synthea_breast_cancer_fhir_resources_collection,
             },
             "openai": {
                 "configured": openai["configured"],

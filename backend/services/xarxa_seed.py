@@ -7,6 +7,8 @@ from pathlib import Path
 
 from backend.db.mongo import get_database
 from backend.services.xarxa_repository import reset_xarxa_runtime_state
+from backend.services.xarxa_seed_network import network_demo_payload
+from backend.services.xarxa_terminology import ensure_xarxa_terminology
 
 _SEED_FILE = Path(__file__).resolve().parents[2] / "docs" / "xarxa_pkpd_seed_data_es.json"
 
@@ -30,6 +32,9 @@ _XARXA_COLLECTIONS = [
     "xarxa_professional_requests",
     "xarxa_counters",
     "xarxa_reporting",
+    "xarxa_pathology_scores",
+    "xarxa_drug_lab_panels",
+    "xarxa_training_requests",
 ]
 
 # Old collections from previous prototype — dropped on reseed
@@ -714,7 +719,7 @@ def _curated_demo_payload() -> dict[str, list[dict]]:
         {"_id": "run-0109", "caseId": "PKPD-2026-0009", "agent": "Agente de informe HCE", "status": "Completado", "message": "Informe validado para mantener pauta actual y seguimiento programado", "timestamp": "2026-05-16T09:40:00+02:00"},
     ]
 
-    return {
+    merged = {
         "cases": cases,
         "tasks": tasks,
         "caseEvents": case_events,
@@ -722,7 +727,15 @@ def _curated_demo_payload() -> dict[str, list[dict]]:
         "clinicalNotes": notes,
         "followUps": followups,
         "agentRuns": agent_runs,
+        "trainingRequests": [],
     }
+
+    # Network demo cases rebuilt from the anonymized Bellvitge PK/PD material
+    network = network_demo_payload()
+    for key in merged:
+        merged[key] = [*merged[key], *network.get(key, [])]
+
+    return merged
 
 
 def ensure_curated_demo_cases() -> dict[str, object]:
@@ -911,6 +924,7 @@ def seed_xarxa_demo(force: bool = False) -> dict:
     _insert("xarxa_notes", data.get("clinicalNotes", []))
     _insert("xarxa_followups", data.get("followUps", []))
     _insert("xarxa_agent_runs", data.get("agentRuns", []))
+    _insert("xarxa_training_requests", data.get("trainingRequests", []))
 
     # Store reporting seed as a single doc
     reporting = data.get("reportingSeed")
@@ -918,6 +932,8 @@ def seed_xarxa_demo(force: bool = False) -> dict:
         db["xarxa_reporting"].drop()
         db["xarxa_reporting"].insert_one(reporting)
         inserted["xarxa_reporting"] = 1
+
+    inserted.update({f"terminology::{key}": value for key, value in ensure_xarxa_terminology(force=True).items()})
 
     _seeded = True
     return {"status": "seeded", "inserted": inserted}

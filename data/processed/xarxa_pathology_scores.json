@@ -1,0 +1,399 @@
+[
+  {
+    "code": "APS",
+    "disease": "Artritis psoriàsica",
+    "diseaseEn": "Psoriatic arthritis",
+    "variables": [
+      {
+        "order": 1,
+        "code": "DAPSA",
+        "sourceCode": "DAPSA",
+        "description": "Si predomini perifèric. Número",
+        "valueType": "text",
+        "notes": "Si predomini perifèric. NúrmerO"
+      },
+      {
+        "order": 2,
+        "code": "ASDAS-CRP",
+        "sourceCode": "ASDAS-PCR",
+        "description": "Si predomini axial. Número. Número",
+        "valueType": "text",
+        "notes": "Si predomini axial. Número. Número"
+      },
+      {
+        "order": 3,
+        "code": "PASI",
+        "sourceCode": "PASI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      }
+    ]
+  },
+  {
+    "code": "ARE",
+    "disease": "Artritis reumatoide",
+    "diseaseEn": "Rheumatoid arthritis",
+    "variables": [
+      {
+        "order": 1,
+        "code": "NAD",
+        "sourceCode": "NAD",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 2,
+        "code": "NAT",
+        "sourceCode": "NAT",
+        "description": "Núrero",
+        "valueType": "text",
+        "notes": "Núrero"
+      },
+      {
+        "order": 3,
+        "code": "DAS28-ESR",
+        "sourceCode": "DAS28-VSG",
+        "description": "Núrmero (decimals)",
+        "valueType": "text",
+        "notes": "Núrmero (decimals)"
+      }
+    ]
+  },
+  {
+    "code": "COU",
+    "disease": "Colitis ulcerosa",
+    "diseaseEn": "Ulcerative colitis",
+    "variables": [
+      {
+        "order": 1,
+        "code": "Depos (3 dies)",
+        "sourceCode": "Depos (3 dies)",
+        "description": "",
+        "valueType": "text",
+        "notes": ""
+      },
+      {
+        "order": 2,
+        "code": "Sagnat (3 dies)",
+        "sourceCode": "Sagnat (3 dies)",
+        "description": "",
+        "valueType": "text",
+        "notes": ""
+      },
+      {
+        "order": 3,
+        "code": "PGA",
+        "sourceCode": "PGA",
+        "description": "normal, lleu, moderada, greu",
+        "valueType": "enum",
+        "options": [
+          "normal",
+          "lleu",
+          "moderada",
+          "greu"
+        ],
+        "notes": "normal, lleu, moderada, greu"
+      }
+    ]
+  },
+  {
+    "code": "EAN",
+    "disease": "Espondilitis anquilosant",
+    "diseaseEn": "Ankylosing spondylitis",
+    "variables": [
+      {
+        "order": 1,
+        "code": "BASDAI",
+        "sourceCode": "BASDAI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 2,
+        "code": "ASDAS-CRP",
+        "sourceCode": "ASDAS-PCR",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 3,
+        "code": "BASFI",
+        "sourceCode": "BASFI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 4,
+        "code": "BASMI",
+        "sourceCode": "BASMI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      }
+    ]
+  },
+  {
+    "code": "EAX",
+    "disease": "Espondiloatropatia axial",
+    "diseaseEn": "Axial spondyloarthropathy",
+    "variables": [
+      {
+        "order": 1,
+        "code": "BASDAI",
+        "sourceCode": "BASDAI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 2,
+        "code": "BASFI",
+        "sourceCode": "BASFI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 3,
+        "code": "BASMI",
+        "sourceCode": "BASMI",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 4,
+        "code": "ASDAS-CRP",
+        "sourceCode": "ASDAS-PCR",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      }
+    ]
+  },
+  {
+    "code": "HSU",
+    "disease": "Hidrosadenitis supurativa",
+    "diseaseEn": "Hidradenitis suppurativa",
+    "variables": [
+      {
+        "order": 1,
+        "code": "Hurley",
+        "sourceCode": "Hurley",
+        "description": "pot ser I, II o III",
+        "valueType": "enum",
+        "options": [
+          "I",
+          "II",
+          "III"
+        ],
+        "notes": "pot ser I, II o III"
+      },
+      {
+        "order": 2,
+        "code": "IHS4",
+        "sourceCode": "ISH4",
+        "description": "lleu (<=3), moderada (4-10), greu (>=11)",
+        "valueType": "enum",
+        "options": [
+          "lleu (<=3)",
+          "moderada (4-10)",
+          "greu (>=11)"
+        ],
+        "notes": "lleu (<=3), moderarda (4-10), gru (>=11)"
+      },
+      {
+        "order": 3,
+        "code": "Nòduls",
+        "sourceCode": "Nòduls",
+        "description": "Nombre de nòduls (màxim 3 car)",
+        "valueType": "count",
+        "notes": "Nombre de nòduls (màxim 3 car)"
+      },
+      {
+        "order": 4,
+        "code": "Abscessos",
+        "sourceCode": "Abscessos",
+        "description": "Nombre d'Abscessos (màxim 3 car)",
+        "valueType": "count",
+        "notes": "Nombre d'Abscessos (màxim 3 car)"
+      },
+      {
+        "order": 5,
+        "code": "Fístules",
+        "sourceCode": "Fístules",
+        "description": "Nombre de Fístules (màximn 3 car)",
+        "valueType": "count",
+        "notes": "Nombre de Fístules (màximn 3 car)"
+      },
+      {
+        "order": 6,
+        "code": "DLQI",
+        "sourceCode": "DLQI",
+        "description": "Número entre 0 i 30",
+        "valueType": "number",
+        "range": [
+          0,
+          30
+        ],
+        "notes": "Número entre 0 i 30"
+      }
+    ]
+  },
+  {
+    "code": "MDB",
+    "disease": "Malaltia de Behçet",
+    "diseaseEn": "Behçet's disease",
+    "variables": [
+      {
+        "order": 1,
+        "code": "Aftes",
+        "sourceCode": "Aftes",
+        "description": "Nombre i localització",
+        "valueType": "count",
+        "notes": "Nombre i localització"
+      },
+      {
+        "order": 2,
+        "code": "Dolor",
+        "sourceCode": "Dolor",
+        "description": "",
+        "valueType": "text",
+        "notes": ""
+      },
+      {
+        "order": 3,
+        "code": "Foliculitis",
+        "sourceCode": "Foliculitis",
+        "description": "Sí/No",
+        "valueType": "boolean",
+        "options": [
+          "Sí",
+          "No"
+        ],
+        "notes": "Sí/No"
+      },
+      {
+        "order": 4,
+        "code": "Afectació ocular",
+        "sourceCode": "Afectació ocular",
+        "description": "Sí/No",
+        "valueType": "boolean",
+        "options": [
+          "Sí",
+          "No"
+        ],
+        "notes": "Sí/No"
+      }
+    ]
+  },
+  {
+    "code": "MDC",
+    "disease": "Malaltia de Crohn",
+    "diseaseEn": "Crohn's disease",
+    "variables": [
+      {
+        "order": 1,
+        "code": "Estat actual",
+        "sourceCode": "Estat actual",
+        "description": "Bé, regular, malament, molt malament, fatal",
+        "valueType": "enum",
+        "options": [
+          "Bé",
+          "regular",
+          "malament",
+          "molt malament",
+          "fatal"
+        ],
+        "notes": "Bé, regular, malament, molt malament, fatal"
+      },
+      {
+        "order": 2,
+        "code": "Dolor abdominal",
+        "sourceCode": "Dolor abdominal",
+        "description": "no, lleu, moderat, greu",
+        "valueType": "enum",
+        "options": [
+          "no",
+          "lleu",
+          "moderat",
+          "greu"
+        ],
+        "notes": "no, lleu, moderat, greu"
+      },
+      {
+        "order": 3,
+        "code": "Depos liq/tov",
+        "sourceCode": "Depos liq/tov",
+        "description": "Número",
+        "valueType": "number",
+        "notes": "Número"
+      },
+      {
+        "order": 4,
+        "code": "Massa abdominal",
+        "sourceCode": "Massa abdominal",
+        "description": "no, dubtós, si, sí amb dolor",
+        "valueType": "enum",
+        "options": [
+          "no",
+          "dubtós",
+          "si",
+          "sí amb dolor"
+        ],
+        "notes": "no, dubtós, si, sí amb dolor"
+      },
+      {
+        "order": 5,
+        "code": "Complicacions",
+        "sourceCode": "Complicacions",
+        "description": "artràlgia, uveítis, eritema, ulceres, pioderma..",
+        "valueType": "enum",
+        "options": [
+          "artràlgia",
+          "uveítis",
+          "eritema",
+          "ulceres",
+          "pioderma.."
+        ],
+        "notes": "artràlgia, ueveitis, eritema, ulceres, pioderma.."
+      }
+    ]
+  },
+  {
+    "code": "PSO",
+    "disease": "Psoriasi",
+    "diseaseEn": "Psoriasis",
+    "variables": [
+      {
+        "order": 1,
+        "code": "PASI",
+        "sourceCode": "PASI",
+        "description": "Número entre 0 i 72",
+        "valueType": "number",
+        "range": [
+          0,
+          72
+        ],
+        "notes": "Número entre 0 i 72"
+      },
+      {
+        "order": 2,
+        "code": "DLQI",
+        "sourceCode": "DLQI",
+        "description": "Número entre 0 i 30",
+        "valueType": "number",
+        "range": [
+          0,
+          30
+        ],
+        "notes": "Número entre 0 i 30"
+      }
+    ]
+  }
+]

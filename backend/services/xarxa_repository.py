@@ -46,6 +46,15 @@ DEFAULT_DEMO_ACTOR = {
     "type": "human",
 }
 
+# Stages from which a case no longer counts against the urgent-circuit SLA (UC-07)
+RESOLVED_SLA_STAGES = {
+    "Informe validado",
+    "Registrado en HCE",
+    "Seguimiento 4 semanas",
+    "Seguimiento 8 semanas",
+    "Cerrado con resultado",
+}
+
 ALLOWED_STAGE_TRANSITIONS: dict[str, set[str]] = {
     "Solicitud recibida": {"Caso creado por IA", "Datos incompletos", "Pendiente de determinantes", "Determinantes recibidos"},
     "Caso creado por IA": {"Datos incompletos", "Pendiente de determinantes", "Determinantes recibidos"},
@@ -926,14 +935,15 @@ def list_xarxa_cases(
     if program:
         query["programId"] = program
     if search:
+        escaped = re.escape(search)
         query["$or"] = [
-            {"caseId": {"$regex": search, "$options": "i"}},
-            {"title": {"$regex": search, "$options": "i"}},
-            {"patientCode": {"$regex": search, "$options": "i"}},
-            {"centerName": {"$regex": search, "$options": "i"}},
-            {"requesterName": {"$regex": search, "$options": "i"}},
-            {"caseType": {"$regex": search, "$options": "i"}},
-            {"pipelineStage": {"$regex": search, "$options": "i"}},
+            {"caseId": {"$regex": escaped, "$options": "i"}},
+            {"title": {"$regex": escaped, "$options": "i"}},
+            {"patientCode": {"$regex": escaped, "$options": "i"}},
+            {"centerName": {"$regex": escaped, "$options": "i"}},
+            {"requesterName": {"$regex": escaped, "$options": "i"}},
+            {"caseType": {"$regex": escaped, "$options": "i"}},
+            {"pipelineStage": {"$regex": escaped, "$options": "i"}},
         ]
 
     projection = {
@@ -955,6 +965,9 @@ def list_xarxa_cases(
         "caseType": 1,
         "entrySource": 1,
         "priority": 1,
+        "urgencyTrack": 1,
+        "urgencyContext": 1,
+        "responseDeadline": 1,
         "pipelineStage": 1,
         "nextAction": 1,
         "createdAt": 1,
@@ -1008,7 +1021,7 @@ def create_xarxa_case(data: dict) -> dict:
         "caseId": case_id,
         "title": title,
         "patientCode": data["patientCode"],
-        "programId": data.get("programId", "prog-crohn"),
+        "programId": data.get("programId", "prog-crohn-pkpd"),
         "specialty": data.get("specialty", "Digestivo"),
         "centerId": data["centerId"],
         "centerName": data["centerName"],
@@ -1019,6 +1032,10 @@ def create_xarxa_case(data: dict) -> dict:
         "caseType": data["caseType"],
         "entrySource": data.get("entrySource", "Formulario web"),
         "priority": data.get("priority", "Media"),
+        "urgencyTrack": _resolve_urgency_track(data),
+        "urgencyContext": data.get("urgencyContext"),
+        "responseDeadline": data.get("responseDeadline")
+        or (_default_urgent_deadline() if _resolve_urgency_track(data) == "Urgente" else None),
         "pipelineStage": data.get("pipelineStage", "Solicitud recibida"),
         "nextAction": next_action,
         "createdAt": now,
@@ -1033,6 +1050,7 @@ def create_xarxa_case(data: dict) -> dict:
         "patientProfile": data.get("patientProfile", {}),
         "diseaseContext": data.get("diseaseContext", {}),
         "therapyContext": data.get("therapyContext", {}),
+        "doses": _normalize_doses(data.get("doses")),
         "labDeterminants": data.get("labDeterminants", []),
         "timeline": data.get("timeline", []),
         "pkpdInterpretation": data.get("pkpdInterpretation", {"pattern": "", "confidence": "", "summary": ""}),
@@ -1200,6 +1218,49 @@ def delete_xarxa_case(case_id: str) -> dict[str, Any]:
     return {"caseId": cid, "title": case.get("title", ""), "deleted": True}
 
 
+_LLM_EXTRACTION_PROMPT = (
+    "Eres el agente de ingesta de la Xarxa PK/PD (red hospitalaria de farmacia). "
+    "Extrae los datos estructurados del siguiente correo de solicitud de revisión PK/PD. "
+    "Responde SOLO con un objeto JSON válido con exactamente estas claves (null si el dato no aparece): "
+    "patientCode, drug, indication, weight, recentDose, levelResult, requestType, currentDose, "
+    "interval, route, crp, calprotectin, antibodies, phenotype, activity, sex, age. "
+    "requestType debe ser uno de: Debutante, Pérdida de respuesta, Cambio de medicación, "
+    "Desintensificación, Seguimiento PK/PD, Optimización de exposición."
+)
+
+
+def _llm_extract_email(body: str, fallback: dict[str, Any]) -> dict[str, Any]:
+    """Real LLM extraction from the email body; falls back to the template
+    extraction when OpenAI is not configured or the call fails."""
+    try:
+        from backend.providers import OpenAIPlatformClient
+
+        if not OpenAIPlatformClient.chat_is_configured():
+            return fallback
+        response = OpenAIPlatformClient().chat(
+            messages=[{"role": "user", "content": body}],
+            system_prompt=_LLM_EXTRACTION_PROMPT,
+            max_tokens=700,
+            temperature=0.0,
+        )
+        raw = str(response.get("text", "")).strip()
+        match = re.search(r"\{.*\}", raw, re.S)
+        if not match:
+            return fallback
+        parsed = json.loads(match.group(0))
+        if not isinstance(parsed, dict):
+            return fallback
+        # Keep only known keys; empty strings become None
+        merged = dict(fallback)
+        for key in list(fallback.keys()):
+            if key in parsed:
+                value = parsed[key]
+                merged[key] = value if value not in ("", None) else None
+        return merged
+    except Exception:  # noqa: BLE001 - extraction degrades gracefully to template
+        return fallback
+
+
 def process_xarxa_inbox_item(item_id: str) -> dict:
     _ensure_xarxa_indexes()
     item = _col("xarxa_inbox_requests").find_one({"_id": item_id})
@@ -1208,6 +1269,9 @@ def process_xarxa_inbox_item(item_id: str) -> dict:
     if item.get("agentStatus") in {"ready", "created"}:
         return item
 
+    extraction = _llm_extract_email(item.get("body") or "", item.get("extraction") or {})
+    extraction_clean = {key: value for key, value in extraction.items() if value not in ("", None)}
+
     processed = _col("xarxa_inbox_requests").find_one_and_update(
         {"_id": item_id},
         {
@@ -1215,7 +1279,11 @@ def process_xarxa_inbox_item(item_id: str) -> dict:
                 "agentStatus": "ready",
                 "agentSteps": _build_inbox_steps("ready"),
                 "processedAt": _now_iso(),
-                "confidence": item.get("confidence") or random.randint(80, 96),
+                "extraction": extraction_clean,
+                "fieldReview": {
+                    **{f"extraction.{key}": {"origin": "llm", "state": "pending", "sourceLabel": "Extraído del email (LLM)"} for key in extraction_clean},
+                },
+                "confidence": random.randint(80, 96) if extraction_clean else item.get("confidence") or random.randint(80, 96),
             }
         },
         return_document=ReturnDocument.AFTER,
@@ -1312,7 +1380,7 @@ def create_xarxa_case_from_inbox(item_id: str) -> dict:
             "entrySource": "Email",
             "clinicalContext": clinical_summary,
             "fieldReview": initial_field_review,
-            "programId": "prog-crohn",
+            "programId": "prog-crohn-pkpd",
             "pipelineStage": "Caso creado por IA",
             "nextAction": "Validar extracción estructurada y lanzar revisión de completitud",
             "patientProfile": {
@@ -1751,6 +1819,174 @@ def update_xarxa_session_status(session_id: str, status: str) -> dict:
     return result | {"cases": []}
 
 
+def add_cases_to_xarxa_session(session_id: str, case_ids: list[str], actor: dict | None = None) -> dict:
+    """UC-05: build the session agenda by marking cases for discussion."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    session = _col("xarxa_sessions").find_one({"$or": [{"_id": session_id}, {"id": session_id}]})
+    if not session:
+        raise ValueError(f"Session not found: {session_id}")
+
+    valid_cases = {
+        case["caseId"]
+        for case in _col("xarxa_cases").find({"caseId": {"$in": case_ids}}, {"_id": 0, "caseId": 1})
+    }
+    merged = list(dict.fromkeys([*session.get("caseIds", []), *valid_cases]))
+    if merged == session.get("caseIds", []):
+        return _get_refreshed_session(session_id)
+
+    _col("xarxa_sessions").update_one(
+        {"_id": session["_id"]},
+        {"$set": {"caseIds": merged, "casesCount": len(merged), "updatedAt": _now_iso()}},
+    )
+    for case_id in valid_cases:
+        _append_event(
+            case_id,
+            "Decisiones",
+            "Sesión",
+            f"El caso se ha añadido a la agenda de {session['title']}",
+            actor=_extract_actor(actor),
+        )
+    _cache_invalidate("sessions", "cases", "case", "kpis")
+    return _get_refreshed_session(session_id)
+
+
+def save_xarxa_session_consensus(session_id: str, case_id: str, payload: dict, actor: dict | None = None) -> dict:
+    """UC-05: capture the committee's consensus for one agenda case
+    (pauta, intervalo, próximo control) as a structured document."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    session = _col("xarxa_sessions").find_one({"$or": [{"_id": session_id}, {"id": session_id}]})
+    if not session:
+        raise ValueError(f"Session not found: {session_id}")
+    case = _col("xarxa_cases").find_one(_case_query(case_id), {"_id": 0, "caseId": 1, "title": 1})
+    if not case:
+        raise ValueError(f"Case not found: {case_id}")
+
+    resolved_case_id = case["caseId"]
+    consensus_entry = {
+        "decision": payload.get("decision") or "Consenso alcanzado",
+        "dose": payload.get("dose"),
+        "interval": payload.get("interval"),
+        "nextControl": payload.get("nextControl"),
+        "notes": payload.get("notes"),
+        "agreedBy": (actor or {}).get("name") or DEFAULT_DEMO_ACTOR["name"],
+        "agreedAt": _now_iso(),
+    }
+    _col("xarxa_sessions").update_one(
+        {"_id": session["_id"]},
+        {
+            "$set": {
+                f"consensus.{resolved_case_id}": consensus_entry,
+                "updatedAt": _now_iso(),
+            }
+        },
+    )
+    _append_event(
+        resolved_case_id,
+        "Decisiones",
+        "Consenso de red",
+        f"Consenso registrado en {session['title']}: {consensus_entry['decision']}",
+        actor=_extract_actor(actor),
+    )
+    _cache_invalidate("sessions", "case", "cases")
+    return _get_refreshed_session(session_id)
+
+
+def save_xarxa_session_minutes(session_id: str, minutes: str, actor: dict | None = None) -> dict:
+    """UC-05: store the edited session minutes (acta)."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    result = _col("xarxa_sessions").find_one_and_update(
+        {"$or": [{"_id": session_id}, {"id": session_id}]},
+        {
+            "$set": {
+                "minutes": minutes,
+                "minutesEditedBy": (actor or {}).get("name") or DEFAULT_DEMO_ACTOR["name"],
+                "minutesEditedAt": _now_iso(),
+                "automationSource": "Edición humana",
+                "automationUpdatedAt": _now_iso(),
+            }
+        },
+        return_document=ReturnDocument.AFTER,
+        projection={"_id": 0},
+    )
+    if not result:
+        raise ValueError(f"Session not found: {session_id}")
+    _cache_invalidate("sessions")
+    return _get_refreshed_session(session_id)
+
+
+def generate_xarxa_session_minutes(session_id: str) -> dict:
+    """UC-05: draft the acta from the agenda cases and their consensus."""
+    _ensure_xarxa_indexes()
+    _seed_xarxa_sessions_if_empty()
+    session = _get_refreshed_session(session_id)
+    cases = session.get("cases", [])
+    consensus = session.get("consensus", {})
+
+    lines = [
+        f"ACTA · {session.get('title', 'Sesión de red')}",
+        f"Fecha: {session.get('date', '')} · Duración: {session.get('duration', '60 min')}",
+        f"Participantes: {', '.join(session.get('participants', [])) or 'Red PK/PD'}",
+        "",
+        "Casos presentados:",
+    ]
+    for index, case in enumerate(cases, start=1):
+        case_consensus = consensus.get(case.get("caseId"), {})
+        lines.append(
+            f"{index}. {case.get('caseId')} · {case.get('title')} ({case.get('centerName', '')})"
+        )
+        if case_consensus:
+            detail = "; ".join(
+                f"{label}: {value}"
+                for label, value in (
+                    ("Decisión", case_consensus.get("decision")),
+                    ("Pauta", case_consensus.get("dose")),
+                    ("Intervalo", case_consensus.get("interval")),
+                    ("Próximo control", case_consensus.get("nextControl")),
+                )
+                if value
+            )
+            lines.append(f"   Consenso: {detail or case_consensus.get('decision', 'Pendiente de registro')}")
+            if case_consensus.get("notes"):
+                lines.append(f"   Notas: {case_consensus['notes']}")
+        else:
+            lines.append("   Consenso: pendiente de registro")
+    lines += [
+        "",
+        "Acuerdos de la comisión: revisar los controles programados y registrar los informes en la HCE de origen.",
+        "",
+        "Borrador generado automáticamente por la plataforma. Requiere revisión y aprobación humana.",
+    ]
+
+    minutes_draft = "\n".join(lines)
+    _col("xarxa_sessions").update_one(
+        {"_id": session_id},
+        {
+            "$set": {
+                "minutes": minutes_draft,
+                "minutesEditedBy": None,
+                "minutesEditedAt": None,
+                "automationSource": "Agente de sesión (borrador)",
+                "automationUpdatedAt": _now_iso(),
+            }
+        },
+    )
+    for case in cases:
+        _append_agent_run(case.get("caseId", ""), "Agente de sesión", f"Borrador de acta generado para {session.get('title')}.")
+    _cache_invalidate("sessions", "agents", "case", "cases")
+    return _get_refreshed_session(session_id)
+
+
+def _get_refreshed_session(session_id: str) -> dict:
+    refreshed = list_xarxa_sessions()
+    for session in refreshed:
+        if session.get("sessionId") == session_id:
+            return session
+    raise ValueError(f"Session not found: {session_id}")
+
+
 def bulk_act_on_xarxa_cases(
     case_ids: list[str],
     action: str,
@@ -1822,6 +2058,111 @@ def bulk_act_on_xarxa_cases(
     return updated_cases
 
 
+def _normalize_doses(doses: Any) -> list[dict[str, Any]]:
+    """Normalize the case dose history: sorted by administration datetime."""
+    if not doses:
+        return []
+    normalized = [dict(dose) for dose in doses if isinstance(dose, dict)]
+    normalized.sort(key=lambda dose: dose.get("administeredAt") or "")
+    return normalized
+
+
+def run_xarxa_bayes(case_id: str) -> dict:
+    """Prototype Bayesian MAP (MIPD) evaluation: individual CL estimate plus a
+    regimen-comparison table, recorded on the case as decision support."""
+    from backend.services.pkpd_bayes import run_bayes_evaluation
+
+    _ensure_xarxa_indexes()
+    case = get_xarxa_case(case_id)
+    evaluation = run_bayes_evaluation(case)
+    if evaluation is None:
+        raise ValueError("No hay modelo poblacional de prototipo para el fármaco de este caso.")
+
+    if evaluation.get("status") == "estimated":
+        clearance = evaluation["clearance"]
+        summary = (
+            f"Estimación MAP (prototipo {evaluation['engine']}): aclaramiento individual "
+            f"{clearance['estimatedLPerDay']:.4f} L/día ({clearance['relativeToPopulation']*100:.0f}% del poblacional) "
+            f"con {evaluation['levelsUsed']} nivel(es) y {evaluation['dosesUsed']} dosis temporizadas. "
+            f"Comparación de {len(evaluation['regimenComparison'])} pautas de mantenimiento por Cmin y AUC."
+        )
+        interpretation = {
+            "pattern": f"MIPD prototipo: CL {clearance['estimatedLPerDay']:.4f} L/día ({clearance['relativeToPopulation']*100:.0f}% poblacional)",
+            "confidence": "Media (prototipo no validado)",
+            "summary": summary,
+            "bayesEvaluation": evaluation,
+        }
+        _touch_case(case_id, {"pkpdInterpretation": interpretation})
+        _append_event(
+            case_id,
+            "Decisiones",
+            "Análisis",
+            f"Estimación bayesiana MAP (prototipo) ejecutada: CL {clearance['estimatedLPerDay']:.4f} L/día ({clearance['relativeToPopulation']*100:.0f}% poblacional)",
+            actor=SYSTEM_ACTOR,
+        )
+        _append_agent_run(case_id, "Agente PK/PD", summary + " Requiere validación humana y contraste con la herramienta MIPD de la red.")
+        _cache_invalidate("case", "cases", "kpis", "agents")
+        return {"case": get_xarxa_case(case_id), "evaluation": evaluation}
+
+    return {"case": case, "evaluation": evaluation}
+
+
+def run_xarxa_pkpd_rules(case_id: str) -> dict:
+    """Run the deterministic PK/PD rules engine on a case and record the
+    explainable assessment (interpretation update + event + agent run)."""
+    from backend.services.pkpd_rules import evaluate_pkpd_rules
+
+    _ensure_xarxa_indexes()
+    case = get_xarxa_case(case_id)
+    evaluation = evaluate_pkpd_rules(case)
+    if evaluation is None:
+        raise ValueError("No hay reglas PK/PD aplicables a los fármacos de este caso.")
+
+    fired = evaluation.get("firedRules", [])
+    trace = "; ".join(f"{rule['id']}: {rule['action']}" for rule in fired) if fired else "Sin reglas activadas"
+    fired_ids = [rule["id"] for rule in fired] or ["en-objetivo"]
+
+    interpretation = {
+        "pattern": evaluation.get("recommendationDraft", "")[:140],
+        "confidence": "Media (reglas empíricas)",
+        "summary": (
+            f"Motor de reglas ({evaluation['engine']}): {evaluation.get('drug', '')} "
+            f"— objetivo {evaluation.get('targetRange')} {evaluation.get('unit')}. "
+            f"Reglas activadas: {trace}. {evaluation.get('note', '')}"
+        ),
+        "ruleTrace": fired_ids,
+        "engineEvaluation": evaluation,
+    }
+    _touch_case(case_id, {"pkpdInterpretation": interpretation})
+    _append_event(
+        case_id,
+        "Decisiones",
+        "Análisis",
+        f"Reglas PK/PD ejecutadas ({evaluation['engine']}): {trace}",
+        actor=SYSTEM_ACTOR,
+    )
+    _append_agent_run(
+        case_id,
+        "Agente PK/PD",
+        f"Reglas empíricas evaluadas. {'Reglas activadas: ' + ', '.join(fired_ids) if fired else 'Exposición en objetivo.'} Requiere validación humana.",
+    )
+    _cache_invalidate("case", "cases", "kpis", "agents")
+    return {"case": get_xarxa_case(case_id), "evaluation": evaluation}
+
+
+def _resolve_urgency_track(data: dict[str, Any]) -> str:
+    """Resolve the network urgency track (UC-01): Ordinario goes to the next
+    fortnightly session; Urgente activates the fast circuit with a deadline."""
+    track = data.get("urgencyTrack")
+    if track in ("Ordinario", "Urgente"):
+        return track
+    return "Urgente" if data.get("priority") == "Urgente" else "Ordinario"
+
+
+def _default_urgent_deadline() -> str:
+    return (datetime.now(UTC) + timedelta(hours=48)).isoformat()
+
+
 def update_xarxa_case(case_id: str, patch: dict) -> dict:
     _ensure_xarxa_indexes()
     mutable_fields = {
@@ -1830,9 +2171,13 @@ def update_xarxa_case(case_id: str, patch: dict) -> dict:
         "fieldReview",
         "nextAction",
         "priority",
+        "urgencyTrack",
+        "urgencyContext",
+        "responseDeadline",
         "caseType",
         "diseaseContext",
         "therapyContext",
+        "doses",
         "labDeterminants",
         "patientProfile",
         "caseOutcome",
@@ -2297,6 +2642,84 @@ def save_xarxa_followup(case_id: str, payload: dict) -> dict:
 
 # ── kpis ──────────────────────────────────────────────────────────────────────
 
+def _compute_clinical_kpis(cases_col, case_match: dict[str, Any]) -> list[dict[str, Any]]:
+    """Clinical outcome KPIs from the network's own goals and the NHS RFI
+    measures: exposure in target, request-to-recommendation time, urgent
+    SLA compliance and asynchronous resolution."""
+    from backend.services.pkpd_rules import evaluate_pkpd_rules
+
+    cases = list(cases_col.find(case_match, {"_id": 0}))
+
+    in_target = 0
+    with_level = 0
+    turnarounds: list[float] = []
+    urgent_resolved_in_time = 0
+    urgent_total = 0
+    async_resolved = 0
+    resolved_total = 0
+
+    case_ids = [case.get("caseId") for case in cases]
+    events_by_case: dict[str, list[dict]] = {}
+    if case_ids:
+        for event in _col("xarxa_events").find(
+            {"caseId": {"$in": case_ids}, "lane": "Decisiones"},
+            {"_id": 0, "caseId": 1, "type": 1, "date": 1},
+        ):
+            events_by_case.setdefault(event["caseId"], []).append(event)
+
+    for case in cases:
+        evaluation = evaluate_pkpd_rules(case)
+        if evaluation and evaluation.get("inTarget") is not None:
+            with_level += 1
+            in_target += 1 if evaluation["inTarget"] else 0
+
+        created = _parse_datetime(case.get("createdAt"))
+        events = events_by_case.get(case.get("caseId", ""), [])
+        decision_events = [event for event in events if event.get("type") in ("Recomendación", "Análisis", "Consenso de red")]
+        if created and decision_events:
+            first_decision = min((_parse_datetime(event.get("date")) for event in decision_events), default=None)
+            if first_decision and first_decision >= created:
+                turnarounds.append((first_decision - created).total_seconds() / 3600.0)
+
+        if case.get("urgencyTrack") == "Urgente" or case.get("priority") == "Urgente":
+            urgent_total += 1
+            if created and decision_events:
+                first_decision = min((_parse_datetime(event.get("date")) for event in decision_events), default=None)
+                if first_decision and (first_decision - created).total_seconds() <= 48 * 3600:
+                    urgent_resolved_in_time += 1
+
+        stage = case.get("pipelineStage", "")
+        if stage in RESOLVED_SLA_STAGES:
+            resolved_total += 1
+            if not any(event.get("type") == "Sesión" for event in events):
+                async_resolved += 1
+
+    kpis: list[dict[str, Any]] = []
+    if with_level:
+        kpis.append({"label": "Exposición en objetivo", "value": round(in_target / with_level * 100), "unit": "%", "detail": f"{in_target}/{with_level} casos con nivel evaluado"})
+    if turnarounds:
+        turnarounds.sort()
+        median_hours = turnarounds[len(turnarounds) // 2]
+        kpis.append({"label": "Solicitud→recomendación (mediana)", "value": round(median_hours), "unit": "h", "detail": f"{len(turnarounds)} casos con recomendación"})
+    if urgent_total:
+        kpis.append({"label": "Urgentes <48 h", "value": round(urgent_resolved_in_time / urgent_total * 100), "unit": "%", "detail": f"{urgent_resolved_in_time}/{urgent_total} casos urgentes"})
+    if resolved_total:
+        kpis.append({"label": "Resueltos sin sesión (asíncronos)", "value": round(async_resolved / resolved_total * 100), "unit": "%", "detail": f"{async_resolved}/{resolved_total} casos cerrados"})
+    return kpis
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
+
+
 def get_xarxa_kpis(
     center_id: str | None = None,
     program_id: str | None = None,
@@ -2375,6 +2798,21 @@ def get_xarxa_kpis(
     overdue_followups_result = list(_col("xarxa_followups").aggregate(overdue_followups_pipeline))
     overdue_followups = overdue_followups_result[0]["total"] if overdue_followups_result else 0
 
+    # Urgent circuit SLA (UC-07): urgent-track cases whose <24-48h deadline
+    # has passed without reaching a resolved stage
+    now_iso = _now_iso()
+    urgent_breaches = sum(
+        1
+        for case in _col("xarxa_cases").find(
+            {
+                "urgencyTrack": "Urgente",
+                "responseDeadline": {"$ne": None, "$lt": now_iso},
+                "pipelineStage": {"$nin": list(RESOLVED_SLA_STAGES)},
+            },
+            {"_id": 0},
+        )
+    )
+
     live_kpis = [
         {"label": "Casos activos", "value": active_cases},
         {"label": "Nuevos hoy", "value": new_today},
@@ -2382,6 +2820,8 @@ def get_xarxa_kpis(
         {"label": "Listos para revisión", "value": ready_for_review},
         {"label": "Con gaps críticos", "value": critical_gap_cases},
         {"label": "Seguimiento vencido", "value": overdue_followups},
+        {"label": "Urgentes fuera de plazo", "value": urgent_breaches},
+        *_compute_clinical_kpis(cases_col, case_match),
     ]
 
     top_gaps = list(

@@ -1,0 +1,35 @@
+Codi Diagnòstic;Descripció Diagnòstic;Número de Variable;Codi de Variable;Descripció de la Variable
+APS;Artritis psoriàsica;1;DAPSA;Si predomini perifèric. NúrmerO
+APS;Artritis psoriàsica;2;ASDAS-PCR;Si predomini axial. Número. Número
+APS;Artritis psoriàsica;3;PASI;Número
+ARE;Artritis reumatoide;1;NAD;Número
+ARE;Artritis reumatoide;2;NAT;Núrero
+ARE;Artritis reumatoide;3;DAS28-VSG;Núrmero (decimals)
+COU;Colitis ulcerosa;1;Depos (3 dies);
+COU;Colitis ulcerosa;2;Sagnat (3 dies);
+COU;Colitis ulcerosa;3;PGA;normal, lleu, moderada, greu
+EAN;Espondilitis anquilosant;1;BASDAI;Número
+EAN;Espondilitis anquilosant;2;ASDAS-PCR;Número
+EAN;Espondilitis anquilosant;3;BASFI;Número
+EAN;Espondilitis anquilosant;4;BASMI;Número
+EAX;Espondiloatropatia axial;1;BASDAI;Número
+EAX;Espondiloatropatia axial;2;BASFI;Número
+EAX;Espondiloatropatia axial;3;BASMI;Número
+EAX;Espondiloatropatia axial;4;ASDAS-PCR;Número
+HSU;Hidrosadenitis supurativa;1;Hurley;pot ser I, II o III
+HSU;Hidrosadenitis supurativa;2;ISH4;lleu (<=3), moderarda (4-10), gru (>=11)
+HSU;Hidrosadenitis supurativa;3;Nòduls;Nombre de nòduls (màxim 3 car)
+HSU;Hidrosadenitis supurativa;4;Abscessos;Nombre d'Abscessos (màxim 3 car)
+HSU;Hidrosadenitis supurativa;5;Fístules;Nombre de Fístules (màximn 3 car)
+HSU;Hidrosadenitis supurativa;6;DLQI;Número entre 0 i 30
+MDB;Malaltia de Behçet;1;Aftes;Nombre i localització
+MDB;Malaltia de Behçet;2;Dolor;
+MDB;Malaltia de Behçet;3;Foliculitis;Sí/No
+MDB;Malaltia de Behçet;4;Afectació ocular;Sí/No
+MDC;Malaltia de Crohn;1;Estat actual;Bé, regular, malament, molt malament, fatal
+MDC;Malaltia de Crohn;2;Dolor abdominal;no, lleu, moderat, greu
+MDC;Malaltia de Crohn;3;Depos liq/tov;Número
+MDC;Malaltia de Crohn;4;Massa abdominal;no, dubtós, si, sí amb dolor
+MDC;Malaltia de Crohn;5;Complicacions;artràlgia, ueveitis, eritema, ulceres, pioderma..
+PSO;Psoriasi;1;PASI;Número entre 0 i 72
+PSO;Psoriasi;2;DLQI;Número entre 0 i 30

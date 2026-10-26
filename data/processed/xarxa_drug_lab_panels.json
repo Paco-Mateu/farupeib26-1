@@ -1,0 +1,710 @@
+[
+  {
+    "substance": "adalimumab",
+    "presentations": [
+      {
+        "medicationCode": "21079",
+        "nationalCode": "7094524",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB 40 mg/0,4 ml ploma (Humira)",
+        "brand": "Humira",
+        "isBiosimilar": false,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB 40 mg/0,4 ml ploma (Humira)"
+      },
+      {
+        "medicationCode": "22030",
+        "nationalCode": "7186960",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB 80 mg/0,8 ml ploma (Humira)",
+        "brand": "Humira",
+        "isBiosimilar": false,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB 80 mg/0,8 ml ploma (Humira)"
+      },
+      {
+        "medicationCode": "23887",
+        "nationalCode": "7233428",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz)",
+        "brand": "Hyrimoz",
+        "isBiosimilar": true,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Hyrimoz)"
+      },
+      {
+        "medicationCode": "26994",
+        "nationalCode": "7259640",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio)",
+        "brand": "Idacio",
+        "isBiosimilar": true,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,8 ml ploma (Idacio)"
+      },
+      {
+        "medicationCode": "28943",
+        "nationalCode": "7337584",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma)",
+        "brand": "Yuflyma",
+        "isBiosimilar": false,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB 80 mg/0,8 ml ploma (Yuflyma)"
+      },
+      {
+        "medicationCode": "29123",
+        "nationalCode": "7306146",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma)",
+        "brand": "Yuflyma",
+        "isBiosimilar": true,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Yuflyma)"
+      },
+      {
+        "medicationCode": "30607",
+        "nationalCode": "7624769",
+        "substance": "adalimumab",
+        "name": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz)",
+        "brand": "Hyrimoz",
+        "isBiosimilar": true,
+        "form": "pluma",
+        "sourceName": "ADALIMUMAB (BIOSIMILAR) 40 mg/0,4 ml ploma (Hyrimoz)"
+      }
+    ],
+    "tests": [
+      {
+        "labCode": "A25485",
+        "label": "Adalimumab- c.massa",
+        "isDrugLevel": true,
+        "show": true,
+        "category": "drug_level"
+      },
+      {
+        "labCode": "H03472",
+        "label": "Eritrosedimentació- long (Sang)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10172",
+        "label": "San-Hemoglobina- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10872",
+        "label": "San-Leucòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10940",
+        "label": "San-Neutròfils(segmentats)- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H11140",
+        "label": "San-Limfòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02258",
+        "label": "Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02485",
+        "label": "Albúmina- c.massa(CRM 470) (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q268O24",
+        "label": "Proteïna- cabal massa (Orina 24 h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q45885",
+        "label": "Proteïna C reactiva- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q46585",
+        "label": "Proteïna- c.massa. (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q80085",
+        "label": "Proteïna C reactivac.massa (CRM 470-\"factor de risc coronari\") (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q97558",
+        "label": "Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "W01524",
+        "label": "Calprotectina- fr.massa (Femta)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "biomarker"
+      }
+    ]
+  },
+  {
+    "substance": "infliximab",
+    "presentations": [
+      {
+        "medicationCode": "1141",
+        "nationalCode": "8121076",
+        "substance": "infliximab",
+        "name": "infliximab 100 mg vial (Remicade)",
+        "brand": "Remicade",
+        "isBiosimilar": false,
+        "form": "vial",
+        "sourceName": "inFLIXimab 100 mg vial (Remicade)"
+      },
+      {
+        "medicationCode": "19214",
+        "nationalCode": "7026945",
+        "substance": "infliximab",
+        "name": "infliximab (BIOSIMILAR) 100 mg vial (Remsima)",
+        "brand": "Remsima",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "inFLIXimab (BIOSIMILAR) 100 mg vial (Remsima)"
+      },
+      {
+        "medicationCode": "26716",
+        "nationalCode": "7278719",
+        "substance": "infliximab",
+        "name": "infliximab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima)",
+        "brand": "Remsima",
+        "isBiosimilar": true,
+        "form": "pluma+precàrrega",
+        "sourceName": "inFLIXimab (BIOSIMILAR) 120 mg/1 ml ploma precarg (Remsima)"
+      },
+      {
+        "medicationCode": "34679",
+        "nationalCode": "7702740",
+        "substance": "infliximab",
+        "name": "infliximab (BIOSIMILAR) 350 mg/8.75 ml vial (Remsima)",
+        "brand": "Remsima",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "inFLIXimab (BIOSIMILAR) 350 mg/8.75 ml vial (Remisima)"
+      },
+      {
+        "medicationCode": "34680",
+        "nationalCode": "7702733",
+        "substance": "infliximab",
+        "name": "infliximab (BIOSIMILAR) 100 mg/2.5 ml vial (Remsima)",
+        "brand": "Remsima",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "inFLIXimab (BIOSIMILAR) 100 mg/2.5 ml vial (Remisima)"
+      }
+    ],
+    "tests": [
+      {
+        "labCode": "W20885",
+        "label": "Infliximab- c.massa(CLIA)",
+        "isDrugLevel": true,
+        "show": true,
+        "category": "drug_level"
+      },
+      {
+        "labCode": "H03472",
+        "label": "Eritrosedimentació- long (Sang)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10172",
+        "label": "San-Hemoglobina- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10872",
+        "label": "San-Leucòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10940",
+        "label": "San-Neutròfils(segmentats)- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H11140",
+        "label": "San-Limfòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02258",
+        "label": "Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02485",
+        "label": "Albúmina- c.massa(CRM 470) (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q268O24",
+        "label": "Proteïna- cabal massa (Orina 24 h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q45885",
+        "label": "Proteïna C reactiva- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q46585",
+        "label": "Proteïna- c.massa. (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q80085",
+        "label": "Proteïna C reactivac.massa (CRM 470-\"factor de risc coronari\") (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q97558",
+        "label": "Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "W01524",
+        "label": "Calprotectina- fr.massa (Femta)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "biomarker"
+      }
+    ]
+  },
+  {
+    "substance": "risankizumab",
+    "presentations": [
+      {
+        "medicationCode": "30172",
+        "nationalCode": "7594710",
+        "substance": "risankizumab",
+        "name": "RISANKIZUMAB 360 mg/2,4 ml cartutx (Skyrizi)",
+        "brand": "Skyrizi",
+        "isBiosimilar": false,
+        "form": "cartutx",
+        "sourceName": "RISANKIZUMAB 360 mg/2,4 ml cartutx (Skyrizi)"
+      },
+      {
+        "medicationCode": "32421",
+        "nationalCode": "7655213",
+        "substance": "risankizumab",
+        "name": "RISANKIZUMAB 180 mg/1,2 ml cartutx (Skyrizi)",
+        "brand": "Skyrizi",
+        "isBiosimilar": false,
+        "form": "cartutx",
+        "sourceName": "RISANKIZUMAB 180 mg/1,2 ml cartutx (Skyrizi)"
+      }
+    ],
+    "tests": [
+      {
+        "labCode": "Q02485",
+        "label": "Albúmina- c.massa(CRM 470) (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q45885",
+        "label": "Proteïna C reactiva- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "W01524",
+        "label": "Calprotectina- fr.massa (Femta)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "biomarker"
+      }
+    ]
+  },
+  {
+    "substance": "ustekinumab",
+    "presentations": [
+      {
+        "medicationCode": "15049",
+        "nationalCode": "6657799",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB 45 mg/0,5 ml xer",
+        "brand": null,
+        "isBiosimilar": false,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB 45 mg/0,5 ml xer"
+      },
+      {
+        "medicationCode": "21565",
+        "nationalCode": "7139478",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB 130 mg/26 ml vial",
+        "brand": null,
+        "isBiosimilar": false,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB 130 mg/26 ml vial"
+      },
+      {
+        "medicationCode": "21623",
+        "nationalCode": "7134329",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB 90 mg/1 ml xer",
+        "brand": null,
+        "isBiosimilar": false,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB 90 mg/1 ml xer"
+      },
+      {
+        "medicationCode": "31459",
+        "nationalCode": "7648284",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva)",
+        "brand": "Pyzchiva",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Pyzchiva)"
+      },
+      {
+        "medicationCode": "31464",
+        "nationalCode": "7648277",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva)",
+        "brand": "Pyzchiva",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Pyzchiva)"
+      },
+      {
+        "medicationCode": "31971",
+        "nationalCode": "7134329",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma)",
+        "brand": "Steqeyma",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml xer (Steqeyma)"
+      },
+      {
+        "medicationCode": "31972",
+        "nationalCode": "7134329",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma)",
+        "brand": "Steqeyma",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml xer (Steqeyma)"
+      },
+      {
+        "medicationCode": "31975",
+        "nationalCode": "7134329",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma)",
+        "brand": "Steqeyma",
+        "isBiosimilar": true,
+        "form": "vial",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 130 mg/26 ml vial (Steqeyma)"
+      },
+      {
+        "medicationCode": "32904",
+        "nationalCode": "7669746",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva)",
+        "brand": "Pyzchiva",
+        "isBiosimilar": true,
+        "form": "pluma",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 45 mg/0,5 ml ploma (Pyzchiva)"
+      },
+      {
+        "medicationCode": "32905",
+        "nationalCode": "7669753",
+        "substance": "ustekinumab",
+        "name": "USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva)",
+        "brand": "Pyzchiva",
+        "isBiosimilar": true,
+        "form": "pluma",
+        "sourceName": "USTEKINUMAB (BIOSIMILAR) 90 mg/1 ml ploma (Pyzchiva)"
+      }
+    ],
+    "tests": [
+      {
+        "labCode": "W58885",
+        "label": "Ustekinumab- c.massa(CLIA)(Sèrum)",
+        "isDrugLevel": true,
+        "show": true,
+        "category": "drug_level"
+      },
+      {
+        "labCode": "H03472",
+        "label": "Eritrosedimentació- long (Sang)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10172",
+        "label": "San-Hemoglobina- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10872",
+        "label": "San-Leucòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10940",
+        "label": "San-Neutròfils(segmentats)- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H11140",
+        "label": "San-Limfòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02258",
+        "label": "Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02485",
+        "label": "Albúmina- c.massa(CRM 470) (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q268O24",
+        "label": "Proteïna- cabal massa (Orina 24 h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q45885",
+        "label": "Proteïna C reactiva- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q46585",
+        "label": "Proteïna- c.massa. (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q80085",
+        "label": "Proteïna C reactivac.massa (CRM 470-\"factor de risc coronari\") (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q97558",
+        "label": "Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "W01524",
+        "label": "Calprotectina- fr.massa (Femta)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "biomarker"
+      }
+    ]
+  },
+  {
+    "substance": "vedolizumab",
+    "presentations": [
+      {
+        "medicationCode": "19154",
+        "nationalCode": "7028215",
+        "substance": "vedolizumab",
+        "name": "VEDOLIZUMAB 300 mg vial",
+        "brand": null,
+        "isBiosimilar": false,
+        "form": "vial",
+        "sourceName": "VEDOLIZUMAB 300 mg vial"
+      },
+      {
+        "medicationCode": "28217",
+        "nationalCode": "7289319",
+        "substance": "vedolizumab",
+        "name": "VEDOLIZUMAB 108 mg/0,68 ml ploma precarg",
+        "brand": null,
+        "isBiosimilar": false,
+        "form": "pluma+precàrrega",
+        "sourceName": "VEDOLIZUMAB 108 mg/0,68 ml ploma precarg"
+      }
+    ],
+    "tests": [
+      {
+        "labCode": "W58785",
+        "label": "Vedolizumab- c.massa(CLIA)",
+        "isDrugLevel": true,
+        "show": true,
+        "category": "drug_level"
+      },
+      {
+        "labCode": "H03472",
+        "label": "Eritrosedimentació- long (Sang)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10172",
+        "label": "San-Hemoglobina- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10872",
+        "label": "San-Leucòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H10940",
+        "label": "San-Neutròfils(segmentats)- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "H11140",
+        "label": "San-Limfòcits- c.nom",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02258",
+        "label": "Albúmina/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q02485",
+        "label": "Albúmina- c.massa(CRM 470) (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q268O24",
+        "label": "Proteïna- cabal massa (Orina 24 h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q45885",
+        "label": "Proteïna C reactiva- c.massa",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q46585",
+        "label": "Proteïna- c.massa. (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q80085",
+        "label": "Proteïna C reactivac.massa (CRM 470-\"factor de risc coronari\") (Sèrum)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "Q97558",
+        "label": "Proteïna/Creatinini- quocient massa/subst. (Orina 1ª h)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "other"
+      },
+      {
+        "labCode": "W01524",
+        "label": "Calprotectina- fr.massa (Femta)",
+        "isDrugLevel": false,
+        "show": false,
+        "category": "biomarker"
+      }
+    ]
+  }
+]
