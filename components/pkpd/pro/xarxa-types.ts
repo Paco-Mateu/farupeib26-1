@@ -173,7 +173,7 @@ export type PatientHistoryPayload = {
   > | null
 }
 
-export type KpiCard = { label: string; value: number }
+export type KpiCard = { label: string; value: number; unit?: string; detail?: string }
 
 export type ChartSeries = { label: string; value: number }
 

@@ -7,6 +7,7 @@ from typing import Any
 from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
 from backend.services.xarxa_terminology import list_xarxa_drug_panels, list_xarxa_pathology_scores
+from backend.services.xarxa_fhir import export_xarxa_case_fhir
 from backend.services.xarxa_similarity import find_similar_cases
 from backend.services.xarxa_surveillance import (
     list_xarxa_surveillance_alerts,
@@ -396,6 +397,15 @@ async def post_bulk_case_action(body: BulkCaseActionRequest):
 async def read_case(case_id: str):
     try:
         return get_xarxa_case(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/cases/{case_id}/fhir")
+async def read_case_fhir(case_id: str):
+    """FHIR R4 Bundle export of the case (toward the hospital EHR/HCE)."""
+    try:
+        return export_xarxa_case_fhir(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

@@ -2642,6 +2642,84 @@ def save_xarxa_followup(case_id: str, payload: dict) -> dict:
 
 # ── kpis ──────────────────────────────────────────────────────────────────────
 
+def _compute_clinical_kpis(cases_col, case_match: dict[str, Any]) -> list[dict[str, Any]]:
+    """Clinical outcome KPIs from the network's own goals and the NHS RFI
+    measures: exposure in target, request-to-recommendation time, urgent
+    SLA compliance and asynchronous resolution."""
+    from backend.services.pkpd_rules import evaluate_pkpd_rules
+
+    cases = list(cases_col.find(case_match, {"_id": 0}))
+
+    in_target = 0
+    with_level = 0
+    turnarounds: list[float] = []
+    urgent_resolved_in_time = 0
+    urgent_total = 0
+    async_resolved = 0
+    resolved_total = 0
+
+    case_ids = [case.get("caseId") for case in cases]
+    events_by_case: dict[str, list[dict]] = {}
+    if case_ids:
+        for event in _col("xarxa_events").find(
+            {"caseId": {"$in": case_ids}, "lane": "Decisiones"},
+            {"_id": 0, "caseId": 1, "type": 1, "date": 1},
+        ):
+            events_by_case.setdefault(event["caseId"], []).append(event)
+
+    for case in cases:
+        evaluation = evaluate_pkpd_rules(case)
+        if evaluation and evaluation.get("inTarget") is not None:
+            with_level += 1
+            in_target += 1 if evaluation["inTarget"] else 0
+
+        created = _parse_datetime(case.get("createdAt"))
+        events = events_by_case.get(case.get("caseId", ""), [])
+        decision_events = [event for event in events if event.get("type") in ("Recomendación", "Análisis", "Consenso de red")]
+        if created and decision_events:
+            first_decision = min((_parse_datetime(event.get("date")) for event in decision_events), default=None)
+            if first_decision and first_decision >= created:
+                turnarounds.append((first_decision - created).total_seconds() / 3600.0)
+
+        if case.get("urgencyTrack") == "Urgente" or case.get("priority") == "Urgente":
+            urgent_total += 1
+            if created and decision_events:
+                first_decision = min((_parse_datetime(event.get("date")) for event in decision_events), default=None)
+                if first_decision and (first_decision - created).total_seconds() <= 48 * 3600:
+                    urgent_resolved_in_time += 1
+
+        stage = case.get("pipelineStage", "")
+        if stage in RESOLVED_SLA_STAGES:
+            resolved_total += 1
+            if not any(event.get("type") == "Sesión" for event in events):
+                async_resolved += 1
+
+    kpis: list[dict[str, Any]] = []
+    if with_level:
+        kpis.append({"label": "Exposición en objetivo", "value": round(in_target / with_level * 100), "unit": "%", "detail": f"{in_target}/{with_level} casos con nivel evaluado"})
+    if turnarounds:
+        turnarounds.sort()
+        median_hours = turnarounds[len(turnarounds) // 2]
+        kpis.append({"label": "Solicitud→recomendación (mediana)", "value": round(median_hours), "unit": "h", "detail": f"{len(turnarounds)} casos con recomendación"})
+    if urgent_total:
+        kpis.append({"label": "Urgentes <48 h", "value": round(urgent_resolved_in_time / urgent_total * 100), "unit": "%", "detail": f"{urgent_resolved_in_time}/{urgent_total} casos urgentes"})
+    if resolved_total:
+        kpis.append({"label": "Resueltos sin sesión (asíncronos)", "value": round(async_resolved / resolved_total * 100), "unit": "%", "detail": f"{async_resolved}/{resolved_total} casos cerrados"})
+    return kpis
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
+
+
 def get_xarxa_kpis(
     center_id: str | None = None,
     program_id: str | None = None,
@@ -2743,6 +2821,7 @@ def get_xarxa_kpis(
         {"label": "Con gaps críticos", "value": critical_gap_cases},
         {"label": "Seguimiento vencido", "value": overdue_followups},
         {"label": "Urgentes fuera de plazo", "value": urgent_breaches},
+        *_compute_clinical_kpis(cases_col, case_match),
     ]
 
     top_gaps = list(

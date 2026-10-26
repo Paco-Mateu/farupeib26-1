@@ -1071,7 +1071,7 @@
       "priority": "Urgente",
       "pipelineStage": "Análisis PK/PD generado",
       "nextAction": "Emitir recomendación del circuito urgente en <24-48h",
-      "createdAt": "2026-05-22T14:10:00+02:00",
+      "createdAt": "2026-05-26T16:00:00+02:00",
       "updatedAt": "2026-06-02T16:00:00+02:00",
       "clinicalSummary": "Varón de 77 años, 180 cm y 108 kg (IMC 33,3; dosis por peso ajustado 83 kg) con infección de úlcera por Fusarium. Pauta de carga 660 mg/12h (2 dosis) seguida de mantenimiento 356 mg/12h IV. Cmin 0,9 µg/mL el 22/05 — subóptima. Se intensifica a 450 mg/12h el 27/05: Cmin 3,2 µg/mL el 02/06, en objetivo (1–5,5 mg/L). Aplicación del diagrama empírico de la red.",
       "patientProfile": {
@@ -1214,7 +1214,9 @@
           "controlType": "Cmin voriconazol"
         }
       ],
-      "demoNote": "Reconstrucción sintética del caso docente de voriconazol del HUB (presentado en sesión como caso de aprendizaje del circuito urgente)"
+      "demoNote": "Reconstrucción sintética del caso docente de voriconazol del HUB (presentado en sesión como caso de aprendizaje del circuito urgente)",
+      "urgencyTrack": "Urgente",
+      "urgencyContext": "Ingresado"
     },
     {
       "_id": "case-0018",
@@ -1237,7 +1239,7 @@
       "priority": "Urgente",
       "pipelineStage": "Informe generado",
       "nextAction": "TDM 3-4 días tras el cambio de dosis (Cmin linezolid)",
-      "createdAt": "2026-06-06T09:50:00+02:00",
+      "createdAt": "2026-06-09T21:00:00+02:00",
       "updatedAt": "2026-06-10T12:40:00+02:00",
       "clinicalSummary": "Paciente ingresado con absceso glúteo infectado por Mycobacterium abscessus (en relación con hematoma tras caída, cirugía previa de pelvis). Sensibilidad: cefoxitina, imipenem, linezolid (S EI), amikacina; test de sinergias del Clinic con combinación oral eficaz BED+CLO+linezolid. Objetivos PK/PD para linezolid: %T>MIC >85% (Cmin 2–7 mg/L con MIC=1) y AUC24/MIC 80–120 mg·h/L. Sin evidencia en micobacteria no tuberculosa ni en combinación con fármacos de reserva multiR: se propone escalada a 600 mg/8h con TDM en 3-4 días.",
       "patientProfile": {
@@ -1374,7 +1376,9 @@
           "controlType": "Hemograma"
         }
       ],
-      "demoNote": "Reconstrucción sintética del caso docente de linezolid (H. Igualada en la sesión; reasignado a centro de la red de la demo)"
+      "demoNote": "Reconstrucción sintética del caso docente de linezolid (H. Igualada en la sesión; reasignado a centro de la red de la demo)",
+      "urgencyTrack": "Urgente",
+      "urgencyContext": "Ingresado"
     }
   ],
   "tasks": [
@@ -1709,9 +1713,9 @@
     {
       "caseId": "PKPD-2026-0017",
       "date": "2026-05-27",
-      "lane": "Tratamiento",
-      "type": "Cambio de dosis",
-      "label": "Intensificación a 450 mg/12h según diagrama empírico"
+      "lane": "Decisiones",
+      "type": "Recomendación",
+      "label": "Recomendación del circuito urgente: intensificar a 450 mg/12h según diagrama empírico (emitida en <24 h)"
     },
     {
       "caseId": "PKPD-2026-0017",
