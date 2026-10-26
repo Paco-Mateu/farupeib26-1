@@ -7,6 +7,11 @@ from typing import Any
 from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
 from backend.services.xarxa_terminology import list_xarxa_drug_panels, list_xarxa_pathology_scores
+from backend.services.xarxa_training import (
+    create_xarxa_training_request,
+    list_xarxa_training_requests,
+    update_xarxa_training_request,
+)
 from backend.services.xarxa_repository import (
     approve_xarxa_professional_request,
     bulk_act_on_xarxa_cases,
@@ -232,6 +237,30 @@ class SessionConsensusRequest(BaseModel):
     actorName: str | None = None
     actorRole: str | None = None
     actorCenter: str | None = None
+
+
+class TrainingRequestPayload(BaseModel):
+    title: str
+    type: str = "Formación"
+    drugDisease: str | None = None
+    justification: str
+    currentSituation: str | None = None
+    expectedImpact: str | None = None
+    bibliography: str | None = None
+    proposedDate: str | None = None
+    requesterName: str | None = None
+    requesterCollegiate: str | None = None
+    centerId: str | None = None
+    centerName: str | None = None
+    actorName: str | None = None
+    actorRole: str | None = None
+    actorCenter: str | None = None
+
+
+class TrainingRequestUpdateRequest(BaseModel):
+    status: str | None = None
+    scheduledDate: str | None = None
+    sessionTitle: str | None = None
 
 
 class BulkCaseActionRequest(BaseModel):
@@ -582,6 +611,28 @@ async def post_publish_program(program_id: str):
 @router.get("/roles")
 async def read_roles():
     return {"items": list_xarxa_roles()}
+
+
+@router.get("/training-requests")
+async def read_training_requests(status: str | None = Query(default=None)):
+    items = list_xarxa_training_requests(status=status)
+    return {"items": items, "total": len(items)}
+
+
+@router.post("/training-requests")
+async def post_training_request(body: TrainingRequestPayload):
+    try:
+        return create_xarxa_training_request(body.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.patch("/training-requests/{request_id}")
+async def patch_training_request(request_id: str, body: TrainingRequestUpdateRequest):
+    try:
+        return update_xarxa_training_request(request_id, body.model_dump(exclude_none=True))
+    except ValueError as exc:
+        raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
 
 
 @router.get("/sessions")

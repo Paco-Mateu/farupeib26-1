@@ -34,6 +34,7 @@ _XARXA_COLLECTIONS = [
     "xarxa_reporting",
     "xarxa_pathology_scores",
     "xarxa_drug_lab_panels",
+    "xarxa_training_requests",
 ]
 
 # Old collections from previous prototype — dropped on reseed
@@ -726,6 +727,7 @@ def _curated_demo_payload() -> dict[str, list[dict]]:
         "clinicalNotes": notes,
         "followUps": followups,
         "agentRuns": agent_runs,
+        "trainingRequests": [],
     }
 
     # Network demo cases rebuilt from the anonymized Bellvitge PK/PD material
@@ -922,6 +924,7 @@ def seed_xarxa_demo(force: bool = False) -> dict:
     _insert("xarxa_notes", data.get("clinicalNotes", []))
     _insert("xarxa_followups", data.get("followUps", []))
     _insert("xarxa_agent_runs", data.get("agentRuns", []))
+    _insert("xarxa_training_requests", data.get("trainingRequests", []))
 
     # Store reporting seed as a single doc
     reporting = data.get("reportingSeed")

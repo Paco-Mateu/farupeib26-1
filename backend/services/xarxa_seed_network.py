@@ -14,7 +14,7 @@ from pathlib import Path
 
 _NETWORK_FILE = Path(__file__).resolve().parents[2] / "docs" / "xarxa_pkpd_network_cases_es.json"
 
-_PAYLOAD_KEYS = ("cases", "tasks", "caseEvents", "recommendations", "clinicalNotes", "followUps", "agentRuns")
+_PAYLOAD_KEYS = ("cases", "tasks", "caseEvents", "recommendations", "clinicalNotes", "followUps", "agentRuns", "trainingRequests")
 
 
 def network_demo_payload() -> dict[str, list[dict]]:

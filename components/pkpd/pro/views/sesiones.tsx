@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, Calendar, ChevronRight, ClipboardEdit, Clock, FlaskConical, Loader2, Mic, Monitor, Save, Sparkles, Users, Video, VideoOff, X } from 'lucide-react'
+import { Bot, Calendar, ChevronRight, ClipboardEdit, Clock, FlaskConical, Loader2, Mic, Monitor, Plus, Save, Sparkles, Users, Video, VideoOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -886,7 +886,185 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
           })}
         </div>
 
+        {/* UC-03: network training requests */}
+        <TrainingRequestsSection />
       </div>
+    </div>
+  )
+}
+
+type TrainingRequest = {
+  requestId: string
+  title: string
+  type: string
+  drugDisease?: string
+  justification: string
+  currentSituation?: string
+  expectedImpact?: string
+  bibliography?: string
+  proposedDate?: string
+  scheduledDate?: string
+  requesterName: string
+  requesterCollegiate?: string
+  centerName: string
+  status: string
+}
+
+const TRAINING_STATUS_STYLE: Record<string, string> = {
+  Propuesta: 'bg-purple-50 text-purple-700',
+  Programada: 'bg-blue-50 text-blue-700',
+  Impartida: 'bg-emerald-50 text-emerald-700',
+  Rechazada: 'bg-slate-100 text-slate-500',
+}
+
+function TrainingRequestsSection() {
+  const [items, setItems] = useState<TrainingRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [draft, setDraft] = useState({ title: '', drugDisease: '', justification: '', currentSituation: '', expectedImpact: '', bibliography: '', proposedDate: '', centerName: '', requesterName: '', requesterCollegiate: '' })
+
+  async function load() {
+    setLoading(true)
+    try {
+      const response = await fetchJson<{ items: TrainingRequest[] }>('/api/xarxa/training-requests')
+      setItems(response.items ?? [])
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'No se han podido cargar las solicitudes de formación.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void load()
+  }, [])
+
+  async function submit() {
+    setCreating(true)
+    setError(null)
+    setNotice(null)
+    try {
+      await fetchJson('/api/xarxa/training-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      })
+      setDraft({ title: '', drugDisease: '', justification: '', currentSituation: '', expectedImpact: '', bibliography: '', proposedDate: '', centerName: draft.centerName, requesterName: draft.requesterName, requesterCollegiate: draft.requesterCollegiate })
+      setShowForm(false)
+      await load()
+      setNotice('Solicitud de formación registrada y a disposición del HUB para su programación.')
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No se ha podido registrar la solicitud.')
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  async function updateStatus(requestId: string, status: string) {
+    setBusyKey(`${status}:${requestId}`)
+    setError(null)
+    try {
+      await fetchJson(`/api/xarxa/training-requests/${encodeURIComponent(requestId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, scheduledDate: status === 'Programada' ? new Date().toISOString().slice(0, 10) : undefined }),
+      })
+      await load()
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No se ha podido actualizar la solicitud.')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  const inputCls = 'w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-[#152520] outline-none transition placeholder:text-slate-400 focus:border-[#7b3fa0]'
+
+  return (
+    <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-[#152520]">Formación de la red (UC-03)</p>
+          <p className="text-xs text-[#4a7068]">Solicitudes de formación o revisión monográfica para las sesiones quincenales.</p>
+        </div>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => setShowForm((current) => !current)}>
+          <Plus className={`mr-1.5 h-3.5 w-3.5 ${showForm ? 'rotate-45' : ''}`} />
+          {showForm ? 'Cerrar formulario' : 'Nueva solicitud'}
+        </Button>
+      </div>
+
+      {notice ? <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">{notice}</p> : null}
+      {error ? <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p> : null}
+
+      {showForm ? (
+        <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <input className={inputCls} placeholder="Título resumido del tema (obligatorio)" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+            <input className={inputCls} placeholder="Fármaco y/o enfermedad" value={draft.drugDisease} onChange={(e) => setDraft({ ...draft, drugDisease: e.target.value })} />
+            <input className={inputCls} placeholder="Centro" value={draft.centerName} onChange={(e) => setDraft({ ...draft, centerName: e.target.value })} />
+            <input className={inputCls} placeholder="Fecha propuesta (AAAA-MM-DD)" value={draft.proposedDate} onChange={(e) => setDraft({ ...draft, proposedDate: e.target.value })} />
+            <input className={inputCls} placeholder="Solicitante" value={draft.requesterName} onChange={(e) => setDraft({ ...draft, requesterName: e.target.value })} />
+            <input className={inputCls} placeholder="Número de colegiado" value={draft.requesterCollegiate} onChange={(e) => setDraft({ ...draft, requesterCollegiate: e.target.value })} />
+          </div>
+          <textarea className={`${inputCls} min-h-[70px]`} placeholder="Justificación de la necesidad formativa (obligatoria)" value={draft.justification} onChange={(e) => setDraft({ ...draft, justification: e.target.value })} />
+          <div className="grid gap-3 md:grid-cols-2">
+            <textarea className={`${inputCls} min-h-[60px]`} placeholder="Situación actual en tu centro" value={draft.currentSituation} onChange={(e) => setDraft({ ...draft, currentSituation: e.target.value })} />
+            <textarea className={`${inputCls} min-h-[60px]`} placeholder="Impacto esperado" value={draft.expectedImpact} onChange={(e) => setDraft({ ...draft, expectedImpact: e.target.value })} />
+          </div>
+          <textarea className={`${inputCls} min-h-[50px]`} placeholder="Referencias bibliográficas que justifican la solicitud" value={draft.bibliography} onChange={(e) => setDraft({ ...draft, bibliography: e.target.value })} />
+          <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={() => void submit()} disabled={creating || !draft.title.trim() || !draft.justification.trim()}>
+            {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+            Registrar solicitud
+          </Button>
+        </div>
+      ) : null}
+
+      {loading ? (
+        <div className="mt-4 flex items-center gap-2 text-xs text-[#4a7068]"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Cargando…</div>
+      ) : items.length === 0 ? (
+        <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-xs text-[#4a7068]">
+          No hay solicitudes de formación registradas.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-2">
+          {items.map((item) => (
+            <div key={item.requestId} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#152520]">{item.title}</p>
+                  <p className="mt-0.5 text-[11px] text-[#4a7068]">
+                    {item.requestId} · {item.type} · {item.centerName} · {item.requesterName}
+                    {item.requesterCollegiate ? ` (col. ${item.requesterCollegiate})` : ''}
+                    {item.proposedDate ? ` · fecha propuesta: ${item.proposedDate}` : ''}
+                  </p>
+                  <p className="mt-1 text-xs text-[#4a7068]">{item.justification}</p>
+                  {item.expectedImpact ? <p className="mt-1 text-[11px] text-slate-500">Impacto esperado: {item.expectedImpact}</p> : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${TRAINING_STATUS_STYLE[item.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                    {item.status}
+                  </span>
+                  {item.status === 'Propuesta' ? (
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => void updateStatus(item.requestId, 'Programada')} disabled={!!busyKey}>
+                      {busyKey === `Programada:${item.requestId}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Calendar className="h-3.5 w-3.5" />}
+                      Programar
+                    </Button>
+                  ) : null}
+                  {item.status === 'Programada' ? (
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => void updateStatus(item.requestId, 'Impartida')} disabled={!!busyKey}>
+                      {busyKey === `Impartida:${item.requestId}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                      Marcar impartida
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -2016,5 +2016,44 @@
       "message": "Objetivos PK/PD evaluados: %T>MIC >85% y AUC24/MIC 80-120; escalada a 600 mg/8h",
       "timestamp": "2026-06-10T12:35:00+02:00"
     }
+  ],
+  "trainingRequests": [
+    {
+      "requestId": "FORM-2026-001",
+      "title": "TDM de antimicrobianos en pacientes críticos: del diagrama empírico al modelo bayesiano",
+      "type": "Formación",
+      "drugDisease": "Vancomicina, linezolid, voriconazol en paciente ingresado",
+      "justification": "Los centros de proximidad incorporan pautas de TDM de antimicrobianos sin herramientas de modelado; se detectan decisiones empíricas dispares entre centros de la red.",
+      "currentSituation": "El HUB resuelve casos urgentes de antimicrobianos con diagramas empíricos; los centros solicitantes no disponen de formación estructurada sobre interpretación de niveles y objetivos PK/PD.",
+      "expectedImpact": "Homogeneizar la interpretación de niveles en los centros y reducir consultas urgentes evitables; preparar la extensión del programa de TDM de antibióticos.",
+      "bibliography": "Guías de TDM de antimicrobianos; revisión de regímenes basados en linezolid para tuberculosis multirresistente (dosificación).",
+      "proposedDate": "2026-07-07",
+      "requesterName": "Dr. Víctor Molina",
+      "requesterCollegiate": "08-12345",
+      "centerId": "ctr-martorell",
+      "centerName": "Hospital de Martorell",
+      "status": "Programada",
+      "scheduledDate": "2026-07-07",
+      "createdAt": "2026-06-12T10:00:00+02:00",
+      "updatedAt": "2026-06-15T09:30:00+02:00"
+    },
+    {
+      "requestId": "FORM-2026-002",
+      "title": "Inmunogenicidad en biológicos: ATI, factores de riesgo y estrategia de cambio",
+      "type": "Revisión monográfica",
+      "drugDisease": "Anticuerpos monoclonales en EII",
+      "justification": "Tras la sesión 23 se detecta variabilidad en la interpretación de ATI y en la decisión de cambio de fármaco frente a intensificación.",
+      "currentSituation": "Cada centro interpreta la positividad de ATI según práctica local; no hay criterio compartido de red.",
+      "expectedImpact": "Criterio compartido de red para inmunogenicidad y documento docente reutilizable.",
+      "bibliography": "Posicionamientos de la red sobre monitorización terapéutica de fármacos en EII.",
+      "proposedDate": "2026-07-21",
+      "requesterName": "Dra. Silvia Romero",
+      "requesterCollegiate": "08-23456",
+      "centerId": "ctr-camils",
+      "centerName": "Hospital Camils",
+      "status": "Propuesta",
+      "createdAt": "2026-06-18T16:20:00+02:00",
+      "updatedAt": "2026-06-18T16:20:00+02:00"
+    }
   ]
 }
