@@ -1218,6 +1218,49 @@ def delete_xarxa_case(case_id: str) -> dict[str, Any]:
     return {"caseId": cid, "title": case.get("title", ""), "deleted": True}
 
 
+_LLM_EXTRACTION_PROMPT = (
+    "Eres el agente de ingesta de la Xarxa PK/PD (red hospitalaria de farmacia). "
+    "Extrae los datos estructurados del siguiente correo de solicitud de revisión PK/PD. "
+    "Responde SOLO con un objeto JSON válido con exactamente estas claves (null si el dato no aparece): "
+    "patientCode, drug, indication, weight, recentDose, levelResult, requestType, currentDose, "
+    "interval, route, crp, calprotectin, antibodies, phenotype, activity, sex, age. "
+    "requestType debe ser uno de: Debutante, Pérdida de respuesta, Cambio de medicación, "
+    "Desintensificación, Seguimiento PK/PD, Optimización de exposición."
+)
+
+
+def _llm_extract_email(body: str, fallback: dict[str, Any]) -> dict[str, Any]:
+    """Real LLM extraction from the email body; falls back to the template
+    extraction when OpenAI is not configured or the call fails."""
+    try:
+        from backend.providers import OpenAIPlatformClient
+
+        if not OpenAIPlatformClient.chat_is_configured():
+            return fallback
+        response = OpenAIPlatformClient().chat(
+            messages=[{"role": "user", "content": body}],
+            system_prompt=_LLM_EXTRACTION_PROMPT,
+            max_tokens=700,
+            temperature=0.0,
+        )
+        raw = str(response.get("text", "")).strip()
+        match = re.search(r"\{.*\}", raw, re.S)
+        if not match:
+            return fallback
+        parsed = json.loads(match.group(0))
+        if not isinstance(parsed, dict):
+            return fallback
+        # Keep only known keys; empty strings become None
+        merged = dict(fallback)
+        for key in list(fallback.keys()):
+            if key in parsed:
+                value = parsed[key]
+                merged[key] = value if value not in ("", None) else None
+        return merged
+    except Exception:  # noqa: BLE001 - extraction degrades gracefully to template
+        return fallback
+
+
 def process_xarxa_inbox_item(item_id: str) -> dict:
     _ensure_xarxa_indexes()
     item = _col("xarxa_inbox_requests").find_one({"_id": item_id})
@@ -1226,6 +1269,9 @@ def process_xarxa_inbox_item(item_id: str) -> dict:
     if item.get("agentStatus") in {"ready", "created"}:
         return item
 
+    extraction = _llm_extract_email(item.get("body") or "", item.get("extraction") or {})
+    extraction_clean = {key: value for key, value in extraction.items() if value not in ("", None)}
+
     processed = _col("xarxa_inbox_requests").find_one_and_update(
         {"_id": item_id},
         {
@@ -1233,7 +1279,11 @@ def process_xarxa_inbox_item(item_id: str) -> dict:
                 "agentStatus": "ready",
                 "agentSteps": _build_inbox_steps("ready"),
                 "processedAt": _now_iso(),
-                "confidence": item.get("confidence") or random.randint(80, 96),
+                "extraction": extraction_clean,
+                "fieldReview": {
+                    **{f"extraction.{key}": {"origin": "llm", "state": "pending", "sourceLabel": "Extraído del email (LLM)"} for key in extraction_clean},
+                },
+                "confidence": random.randint(80, 96) if extraction_clean else item.get("confidence") or random.randint(80, 96),
             }
         },
         return_document=ReturnDocument.AFTER,
