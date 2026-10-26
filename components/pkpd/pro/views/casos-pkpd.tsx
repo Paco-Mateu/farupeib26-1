@@ -413,6 +413,9 @@ export function CasosPkpd({
           </div>
         )}
 
+        {/* Proactive surveillance alerts (their AI project: detect candidates early) */}
+        <SurveillanceBanner onOpenCaso={onOpenCaso} />
+
         {/* Collapsible advanced filters */}
         {showFilters && (
           <div className="mt-2.5 space-y-2">
@@ -1133,6 +1136,127 @@ function CaseLlmExecutionRail() {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+type SurveillanceAlert = {
+  alertId: string
+  caseId: string
+  caseTitle: string
+  centerName: string
+  ruleId: string
+  severity: string
+  message: string
+  status: string
+  createdAt: string
+}
+
+const SURVEILLANCE_SEVERITY_STYLE: Record<string, string> = {
+  'Crítico': 'border-red-300 bg-red-50 text-red-800',
+  'Importante': 'border-amber-300 bg-amber-50 text-amber-900',
+  'Informativo': 'border-blue-200 bg-blue-50 text-blue-800',
+}
+
+function SurveillanceBanner({ onOpenCaso }: { onOpenCaso?: (caseId: string) => void }) {
+  const [items, setItems] = useState<SurveillanceAlert[] | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  async function load() {
+    setBusy(true)
+    try {
+      const response = await fetchJson<{ items: SurveillanceAlert[] }>('/api/xarxa/surveillance')
+      setItems(response.items ?? [])
+    } catch {
+      setItems([])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    void load()
+  }, [])
+
+  async function scan() {
+    setBusy(true)
+    setNotice(null)
+    try {
+      const result = await fetchJson<{ alertsCreated: number; casesScanned: number }>('/api/xarxa/surveillance/scan', { method: 'POST' })
+      await load()
+      setNotice(`Vigilancia ejecutada sobre ${result.casesScanned} casos: ${result.alertsCreated} alerta(s) nueva(s).`)
+    } catch {
+      setNotice(null)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function resolve(alertId: string) {
+    setBusy(true)
+    try {
+      await fetchJson(`/api/xarxa/surveillance/${encodeURIComponent(alertId)}/resolve`, { method: 'POST' })
+      await load()
+    } catch {
+      // keep list as-is on error
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (items === null) return null
+
+  const severityRank: Record<string, number> = { 'Crítico': 0, 'Importante': 1, 'Informativo': 2 }
+  const sorted = [...items].sort((a, b) => (severityRank[a.severity] ?? 9) - (severityRank[b.severity] ?? 9))
+  const visible = expanded ? sorted : sorted.slice(0, 3)
+
+  return (
+    <div className="mt-2.5 rounded-2xl border border-[#7b3fa0]/20 bg-[#faf6fd] px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Bot className="h-4 w-4 text-[#7b3fa0]" />
+          <p className="text-xs font-semibold text-[#152520]">
+            Vigilancia proactiva de la red {items.length > 0 ? `· ${items.length} alerta(s) activa(s)` : '· sin alertas activas'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {notice ? <span className="text-[10px] text-[#4a7068]">{notice}</span> : null}
+          {items.length > 3 ? (
+            <button className="text-[10px] font-semibold text-[#7b3fa0] hover:underline" onClick={() => setExpanded((current) => !current)}>
+              {expanded ? 'Ver menos' : `Ver todas (${items.length})`}
+            </button>
+          ) : null}
+          <button className="text-[10px] font-semibold text-[#7b3fa0] hover:underline disabled:opacity-50" onClick={() => void scan()} disabled={busy}>
+            {busy ? 'Escaneando…' : 'Ejecutar escaneo'}
+          </button>
+        </div>
+      </div>
+      {visible.length > 0 ? (
+        <div className="mt-2 space-y-1.5">
+          {visible.map((alert) => (
+            <div key={alert.alertId} className={`flex flex-wrap items-start justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${SURVEILLANCE_SEVERITY_STYLE[alert.severity] ?? 'border-slate-200 bg-slate-50 text-slate-700'}`}>
+              <div className="min-w-0">
+                <p className="font-semibold">
+                  {alert.ruleId} · {alert.severity} · {alert.caseId}
+                </p>
+                <p className="mt-0.5">{alert.message}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {onOpenCaso ? (
+                  <button className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#7b3fa0] ring-1 ring-[#7b3fa0]/30 hover:bg-[#faf6fd]" onClick={() => onOpenCaso(alert.caseId)}>
+                    Abrir caso
+                  </button>
+                ) : null}
+                <button className="text-[10px] text-slate-500 hover:underline disabled:opacity-50" onClick={() => void resolve(alert.alertId)} disabled={busy}>
+                  Resolver
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

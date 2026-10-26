@@ -8,6 +8,11 @@ from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
 from backend.services.xarxa_terminology import list_xarxa_drug_panels, list_xarxa_pathology_scores
 from backend.services.xarxa_similarity import find_similar_cases
+from backend.services.xarxa_surveillance import (
+    list_xarxa_surveillance_alerts,
+    resolve_xarxa_surveillance_alert,
+    run_xarxa_surveillance,
+)
 from backend.services.xarxa_training import (
     create_xarxa_training_request,
     list_xarxa_training_requests,
@@ -433,6 +438,25 @@ async def post_run_bayes(case_id: str):
         return run_xarxa_bayes(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.get("/surveillance")
+async def read_surveillance(status: str = Query(default="Activa")):
+    items = list_xarxa_surveillance_alerts(status=status)
+    return {"items": items, "total": len(items)}
+
+
+@router.post("/surveillance/scan")
+async def post_surveillance_scan():
+    return run_xarxa_surveillance()
+
+
+@router.post("/surveillance/{alert_id}/resolve")
+async def post_resolve_alert(alert_id: str):
+    try:
+        return resolve_xarxa_surveillance_alert(alert_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/cases/{case_id}/similar-cases")
