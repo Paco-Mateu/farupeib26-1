@@ -3,6 +3,7 @@
 import { AlertTriangle, Bot, ChevronDown, FilePlus, Loader2, Search, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import type { CasoResumen, Professional } from '@/components/pkpd/pro/xarxa-types'
 import { PRIORITY_STYLE, STAGE_LABEL, STAGE_STYLE, SEVERITY_STYLE } from '@/components/pkpd/pro/xarxa-types'
 import { PersonAvatar } from '@/components/pkpd/pro/person-avatar'
@@ -39,18 +40,36 @@ const QUICK_CHIPS = [
   'Cerrados',
 ]
 
+// Chip values stay literal Spanish: they are compared against case pipeline stages.
+// Display copy goes through the dictionary at the render site.
+const QUICK_CHIP_LABEL_KEYS: Record<string, string> = {
+  'Nuevos': 'chip.nuevos',
+  'Incompletos': 'chip.incompletos',
+  'Pendiente laboratorio': 'chip.pendiente.laboratorio',
+  'Listos para revisar': 'chip.listos.revisar',
+  'Para sesión': 'chip.para.sesion',
+  'Seguimiento 4 semanas': 'chip.seguimiento.4',
+  'Cerrados': 'chip.cerrados',
+}
+
+const PRIORITY_LABEL_KEYS: Record<string, string> = {
+  'Alta': 'priority.alta',
+  'Media': 'priority.media',
+  'Baja': 'priority.baja',
+}
+
 const SAVED_VIEWS = [
-  { id: 'urgentes', label: 'Mis urgentes' },
-  { id: 'pendientes', label: 'Pendientes de datos' },
-  { id: 'sesion', label: 'Para sesión' },
-  { id: 'seguimiento', label: 'En seguimiento' },
+  { id: 'urgentes', labelKey: 'view.urgentes' },
+  { id: 'pendientes', labelKey: 'view.pendientes' },
+  { id: 'sesion', labelKey: 'view.sesion' },
+  { id: 'seguimiento', labelKey: 'view.seguimiento' },
 ] as const
 
 const DATE_RANGES = [
-  { value: 7, label: 'Últimos 7 días' },
-  { value: 30, label: 'Últimos 30 días' },
-  { value: 90, label: 'Últimos 90 días' },
-  { value: 0, label: 'Todo el período' },
+  { value: 7, labelKey: 'range.7' },
+  { value: 30, labelKey: 'range.30' },
+  { value: 90, labelKey: 'range.90' },
+  { value: 0, labelKey: 'range.all' },
 ] as const
 
 type SavedView = (typeof SAVED_VIEWS)[number]['id'] | ''
@@ -92,6 +111,7 @@ export function CasosPkpd({
   onNuevoCaso,
   onCasesChanged,
 }: Props) {
+  const t = useXarxaT('casos-pkpd')
   const [search, setSearch] = useState('')
   const [activeStages, setActiveStages] = useState<string[]>([])
   const [activePriority, setActivePriority] = useState<string>('')
@@ -183,11 +203,11 @@ export function CasosPkpd({
           ...extra,
         }),
       })
-      setActionNotice(successMessage ?? 'La acción se ha aplicado correctamente.')
+      setActionNotice(successMessage ?? t('action.default.success'))
       setSelectedCaseIds([])
       await onCasesChanged?.()
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'No se ha podido aplicar la acción sobre la cola.')
+      setActionError(error instanceof Error ? error.message : t('action.default.error'))
     } finally {
       setBusyAction(null)
     }
@@ -201,10 +221,10 @@ export function CasosPkpd({
       await fetchJson<CasoResumen>(`/api/xarxa/cases/${caseId}/orchestrate`, {
         method: 'POST',
       })
-      setActionNotice(`El paquete del caso ${caseId} se ha actualizado.`)
+      setActionNotice(t('orchestrate.success').replaceAll('{caseId}', caseId))
       await onCasesChanged?.()
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'No se ha podido actualizar el paquete del caso.')
+      setActionError(error instanceof Error ? error.message : t('orchestrate.error'))
     } finally {
       setBusyAction(null)
     }
@@ -214,7 +234,7 @@ export function CasosPkpd({
     const target = pendingDeleteCase ?? casos.find((item) => item.caseId === caseId)
     if (!target) return
     if (target.demoLocked || target.deletable === false) {
-      setActionError('Este caso de demo está protegido y no se puede eliminar.')
+      setActionError(t('delete.protected'))
       setActionNotice(null)
       return
     }
@@ -226,11 +246,11 @@ export function CasosPkpd({
       await fetchJson(`/api/xarxa/cases/${caseId}`, { method: 'DELETE' })
       setDrawerCaseId((current) => (current === caseId ? null : current))
       setSelectedCaseIds((current) => current.filter((item) => item !== caseId))
-      setActionNotice(`El caso ${caseId} se ha eliminado.`)
+      setActionNotice(t('delete.success').replaceAll('{caseId}', caseId))
       setPendingDeleteCase(null)
       await onCasesChanged?.()
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'No se ha podido eliminar el caso.')
+      setActionError(error instanceof Error ? error.message : t('delete.error'))
     } finally {
       setBusyAction(null)
     }
@@ -295,7 +315,7 @@ export function CasosPkpd({
         ) : null}
         {isRefreshing ? (
           <div className="mb-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-[#4a7068]">
-            Actualizando cola de casos…
+            {t('refresh.notice')}
           </div>
         ) : null}
 
@@ -307,7 +327,7 @@ export function CasosPkpd({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar caso, paciente, centro…"
+              placeholder={t('search.placeholder')}
               className="w-52 bg-transparent text-sm text-[#152520] outline-none placeholder:text-slate-400"
             />
             {search && (
@@ -325,7 +345,7 @@ export function CasosPkpd({
             onClick={() => setShowFilters(!showFilters)}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            Filtros
+            {t('filters')}
           </Button>
 
           <div className="h-4 w-px bg-slate-200" />
@@ -341,7 +361,7 @@ export function CasosPkpd({
                   : 'bg-white text-slate-500 ring-slate-200 hover:ring-slate-300'
               }`}
             >
-              {p}
+              {t(PRIORITY_LABEL_KEYS[p] ?? p)}
             </button>
           ))}
 
@@ -351,7 +371,7 @@ export function CasosPkpd({
             onChange={(e) => setActiveCenter(e.target.value)}
             className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-[#152520] outline-none"
           >
-            <option value="">Todos los centros</option>
+            <option value="">{t('centros.todos')}</option>
             {centerOptions.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
 
@@ -362,7 +382,7 @@ export function CasosPkpd({
           >
             {DATE_RANGES.map((range) => (
               <option key={range.value} value={range.value}>
-                {range.label}
+                {t(range.labelKey)}
               </option>
             ))}
           </select>
@@ -375,7 +395,7 @@ export function CasosPkpd({
             }`}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Métricas
+            {t('metricas')}
           </button>
 
           <div className="ml-auto">
@@ -385,7 +405,7 @@ export function CasosPkpd({
               onClick={onNuevoCaso}
             >
               <FilePlus className="h-3.5 w-3.5" />
-              Nuevo caso
+              {t('nuevo.caso')}
             </Button>
           </div>
         </div>
@@ -430,7 +450,7 @@ export function CasosPkpd({
                       : 'border-slate-200 bg-slate-50 text-[#4a7068] hover:bg-[#faf6fd] hover:text-[#7b3fa0]'
                   }`}
                 >
-                  {view.label}
+                  {t(view.labelKey)}
                 </button>
               ))}
             </div>
@@ -445,7 +465,7 @@ export function CasosPkpd({
                       : 'border-slate-200 bg-slate-50 text-[#4a7068] hover:bg-[#faf6fd] hover:text-[#7b3fa0]'
                   }`}
                 >
-                  {chip} <span className="ml-0.5 text-[10px] opacity-60">{chipCounts[chip]}</span>
+                  {t(QUICK_CHIP_LABEL_KEYS[chip] ?? chip)} <span className="ml-0.5 text-[10px] opacity-60">{chipCounts[chip]}</span>
                 </button>
               ))}
             </div>
@@ -457,14 +477,14 @@ export function CasosPkpd({
         <div className="shrink-0 border-b border-slate-100 bg-[#f8faf9] px-6 py-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-[#152520]">
-              {selectedCaseIds.length} {selectedCaseIds.length === 1 ? 'caso seleccionado' : 'casos seleccionados'}
+              {selectedCaseIds.length} {selectedCaseIds.length === 1 ? t('bulk.seleccionados.one') : t('bulk.seleccionados.many')}
             </span>
             <select
               value={bulkAssigneeId}
               onChange={(event) => setBulkAssigneeId(event.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-[#152520] outline-none"
             >
-              <option value="">Asignar a farmacéutico…</option>
+              <option value="">{t('bulk.asignar.placeholder')}</option>
               {pharmacistOptions.map((professional) => (
                 <option key={professional._id} value={professional._id}>
                   {professional.name}
@@ -484,12 +504,12 @@ export function CasosPkpd({
                     assignedTo: bulkAssigneeId,
                     assignedName: assigneeNameById(bulkAssigneeId),
                   },
-                  'Los casos seleccionados se han asignado.'
+                  t('action.asignar.success')
                 )
               }
             >
               {busyAction?.startsWith('assign:') ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-              Asignar responsable
+              {t('action.asignar.responsable')}
             </Button>
             <Button
               size="sm"
@@ -501,11 +521,11 @@ export function CasosPkpd({
                   'request_data',
                   selectedCaseIds,
                   {},
-                  'Se ha solicitado completar datos para los casos seleccionados.'
+                  t('action.solicitar.success')
                 )
               }
             >
-              Solicitar datos
+              {t('action.solicitar.datos')}
             </Button>
             <Button
               size="sm"
@@ -517,11 +537,11 @@ export function CasosPkpd({
                   'send_session',
                   selectedCaseIds,
                   {},
-                  'Los casos seleccionados se han enviado a sesión de red.'
+                  t('action.enviar.success')
                 )
               }
             >
-              Enviar a sesión
+              {t('action.enviar.sesion')}
             </Button>
             <select
               value={bulkPriority}
@@ -530,7 +550,7 @@ export function CasosPkpd({
             >
               {['Alta', 'Media', 'Baja'].map((priority) => (
                 <option key={priority} value={priority}>
-                  Prioridad {priority}
+                  {t('bulk.priority.label').replaceAll('{priority}', priority)}
                 </option>
               ))}
             </select>
@@ -544,11 +564,11 @@ export function CasosPkpd({
                   'set_priority',
                   selectedCaseIds,
                   { priority: bulkPriority },
-                  'La prioridad de los casos seleccionados se ha actualizado.'
+                  t('action.cambiar.success')
                 )
               }
             >
-              Cambiar prioridad
+              {t('action.cambiar.prioridad')}
             </Button>
           </div>
         </div>
@@ -565,27 +585,27 @@ export function CasosPkpd({
         const listos = casos.filter(c => READY_STAGES.includes(c.pipelineStage)).length
         const seguimiento = casos.filter(c => FOLLOWUP_STAGES.includes(c.pipelineStage)).length
         const tiles = [
-          { label: 'Requieren mi acción', count: accion, color: 'text-[#7b3fa0]', bg: 'bg-[#faf6fd]', border: 'border-[#7b3fa0]/20', dot: 'bg-[#7b3fa0]', stages: ACTION_STAGES },
-          { label: 'Esperando datos', count: esperando, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', dot: 'bg-amber-400', stages: WAITING_STAGES },
-          { label: 'Listos para enviar', count: listos, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', dot: 'bg-blue-500', stages: READY_STAGES },
-          { label: 'En seguimiento', count: seguimiento, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400', stages: FOLLOWUP_STAGES },
+          { labelKey: 'triage.accion', count: accion, color: 'text-[#7b3fa0]', bg: 'bg-[#faf6fd]', border: 'border-[#7b3fa0]/20', dot: 'bg-[#7b3fa0]', stages: ACTION_STAGES },
+          { labelKey: 'triage.esperando', count: esperando, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', dot: 'bg-amber-400', stages: WAITING_STAGES },
+          { labelKey: 'triage.listos', count: listos, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', dot: 'bg-blue-500', stages: READY_STAGES },
+          { labelKey: 'triage.seguimiento', count: seguimiento, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400', stages: FOLLOWUP_STAGES },
         ]
         return (
           <div className="shrink-0 border-b border-slate-100 bg-white px-5 py-2.5">
             <div className="flex gap-2">
-              {tiles.map(t => (
+              {tiles.map(tile => (
                 <button
-                  key={t.label}
+                  key={tile.labelKey}
                   onClick={() => {
-                    if (t.stages.every(s => activeStages.includes(s))) setActiveStages([])
-                    else setActiveStages(t.stages)
+                    if (tile.stages.every(s => activeStages.includes(s))) setActiveStages([])
+                    else setActiveStages(tile.stages)
                   }}
-                  className={`flex flex-1 items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm ${t.border} ${t.bg}`}
+                  className={`flex flex-1 items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm ${tile.border} ${tile.bg}`}
                 >
-                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${t.dot}`} />
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${tile.dot}`} />
                   <div className="min-w-0">
-                    <p className={`text-xl font-bold tabular-nums ${t.color}`}>{t.count}</p>
-                    <p className="text-[10px] text-slate-500 leading-tight">{t.label}</p>
+                    <p className={`text-xl font-bold tabular-nums ${tile.color}`}>{tile.count}</p>
+                    <p className="text-[10px] text-slate-500 leading-tight">{t(tile.labelKey)}</p>
                   </div>
                 </button>
               ))}
@@ -608,23 +628,23 @@ export function CasosPkpd({
                   className="h-4 w-4 rounded border-slate-300 text-[#7b3fa0] focus:ring-[#7b3fa0]"
                 />
               </th>
-              <th className="px-5 py-3 font-medium">Caso</th>
-              <th className="px-4 py-3 font-medium">Paciente</th>
-              <th className="px-4 py-3 font-medium">Estado</th>
-              <th className="px-4 py-3 font-medium">Prioridad</th>
-              <th className="px-4 py-3 font-medium">Siguiente paso</th>
-              <th className="px-4 py-3 font-medium">Actualizado</th>
+              <th className="px-5 py-3 font-medium">{t('th.caso')}</th>
+              <th className="px-4 py-3 font-medium">{t('th.paciente')}</th>
+              <th className="px-4 py-3 font-medium">{t('th.estado')}</th>
+              <th className="px-4 py-3 font-medium">{t('th.prioridad')}</th>
+              <th className="px-4 py-3 font-medium">{t('th.siguiente.paso')}</th>
+              <th className="px-4 py-3 font-medium">{t('th.actualizado')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-5 py-16 text-center text-sm text-[#4a7068]">
-                  {isRefreshing ? 'Actualizando casos…' : 'No hay casos con estos filtros.'}
+                  {isRefreshing ? t('empty.refreshing') : t('empty.title')}
                   <span className="mt-1 block text-xs text-slate-400">
                     {isRefreshing
-                      ? 'Estamos aplicando los filtros y preparando la cola clínica.'
-                      : 'Prueba a ampliar el rango o quitar algún filtro.'}
+                      ? t('empty.refreshing.sub')
+                      : t('empty.sub')}
                   </span>
                 </td>
               </tr>
@@ -657,12 +677,12 @@ export function CasosPkpd({
                           {caso.automationSummary ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-[#faf6fd] px-2 py-0.5 text-[10px] font-semibold text-[#7b3fa0] ring-1 ring-[#7b3fa0]/15">
                               <Bot className="h-3 w-3" />
-                              LLM preparado
+                              {t('row.llm')}
                             </span>
                           ) : null}
                           {caso.demoLocked || caso.deletable === false ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200">
-                              Demo protegido
+                              {t('label.demo.protegido')}
                             </span>
                           ) : null}
                         </div>
@@ -679,13 +699,16 @@ export function CasosPkpd({
                               {caso.assignedName}
                             </span>
                           ) : (
-                            <span className="text-slate-400">Sin asignar</span>
+                            <span className="text-slate-400">{t('row.sin.asignar')}</span>
                           )}
                         </span>
                         {caso.automationSummary ? (
                           <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#4a7068]">
                             <span>
-                              {caso.automationSummary.draftsReady} borradores · {caso.automationSummary.pendingTasks} tarea{caso.automationSummary.pendingTasks === 1 ? '' : 's'}
+                              {t('row.drafts.tasks')
+                                .replaceAll('{drafts}', String(caso.automationSummary.draftsReady))
+                                .replaceAll('{tasks}', String(caso.automationSummary.pendingTasks))
+                                .replaceAll('{s}', caso.automationSummary.pendingTasks === 1 ? '' : 's')}
                             </span>
                           </div>
                         ) : null}
@@ -709,13 +732,13 @@ export function CasosPkpd({
                           <div className="flex items-center gap-1.5 text-[10px] text-[#4a7068]">
                             {criticalGaps > 0 ? (
                               <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700 ring-1 ring-red-200">
-                                {criticalGaps} crítico{criticalGaps > 1 ? 's' : ''}
+                                {t('row.gaps.criticos').replaceAll('{count}', String(criticalGaps)).replaceAll('{s}', criticalGaps > 1 ? 's' : '')}
                               </span>
                             ) : null}
-                            <span>{totalGaps} gap{totalGaps > 1 ? 's' : ''}</span>
+                            <span>{t('row.gaps.count').replaceAll('{count}', String(totalGaps)).replaceAll('{s}', totalGaps > 1 ? 's' : '')}</span>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-emerald-700">Sin gaps abiertos</span>
+                          <span className="text-[10px] text-emerald-700">{t('row.gaps.sin')}</span>
                         )}
                       </div>
                     </td>
@@ -736,13 +759,13 @@ export function CasosPkpd({
           onOpen={() => onOpenCaso(drawerCase.caseId)}
           onClose={() => setDrawerCaseId(null)}
           onOrchestrate={() => void orchestrateCase(drawerCase.caseId)}
-          onRequestData={() => void runCaseAction('request_data', [drawerCase.caseId], {}, `Se ha solicitado completar datos para ${drawerCase.caseId}.`)}
-          onSendSession={() => void runCaseAction('send_session', [drawerCase.caseId], {}, `El caso ${drawerCase.caseId} se ha enviado a sesión.`)}
+          onRequestData={() => void runCaseAction('request_data', [drawerCase.caseId], {}, t('request.data.success.one').replaceAll('{caseId}', drawerCase.caseId))}
+          onSendSession={() => void runCaseAction('send_session', [drawerCase.caseId], {}, t('send.session.success.one').replaceAll('{caseId}', drawerCase.caseId))}
           pharmacistOptions={pharmacistOptions}
           loadingProfessionals={loadingProfessionals}
           rowAssignee={rowAssignee[drawerCase.caseId] ?? ''}
           onAssigneeChange={(id) => setRowAssignee((prev) => ({ ...prev, [drawerCase.caseId]: id }))}
-          onAssign={() => void runCaseAction('assign', [drawerCase.caseId], { assignedTo: rowAssignee[drawerCase.caseId], assignedName: assigneeNameById(rowAssignee[drawerCase.caseId]) }, `El caso ${drawerCase.caseId} se ha asignado.`)}
+          onAssign={() => void runCaseAction('assign', [drawerCase.caseId], { assignedTo: rowAssignee[drawerCase.caseId], assignedName: assigneeNameById(rowAssignee[drawerCase.caseId]) }, t('assign.success.one').replaceAll('{caseId}', drawerCase.caseId))}
           onDelete={() => setPendingDeleteCase(drawerCase)}
           busyAction={busyAction}
         />
@@ -752,14 +775,14 @@ export function CasosPkpd({
         onOpenChange={(open) => {
           if (!open) setPendingDeleteCase(null)
         }}
-        title={pendingDeleteCase ? `Eliminar ${pendingDeleteCase.caseId}` : 'Eliminar caso'}
+        title={pendingDeleteCase ? t('dialog.delete.title.named').replaceAll('{caseId}', pendingDeleteCase.caseId) : t('dialog.delete.title')}
         description={
           pendingDeleteCase
-            ? `Se eliminarán el caso «${pendingDeleteCase.title}», sus tareas, timeline, recomendación, nota clínica, seguimiento y trazas de agentes asociadas.`
+            ? t('dialog.delete.description').replaceAll('{title}', pendingDeleteCase.title)
             : ''
         }
-        confirmLabel="Eliminar caso"
-        cancelLabel="Cancelar"
+        confirmLabel={t('dialog.confirm')}
+        cancelLabel={t('dialog.cancel')}
         tone="danger"
         icon={<Trash2 className="h-5 w-5" />}
         confirmBusy={Boolean(pendingDeleteCase && busyAction === `delete:${pendingDeleteCase.caseId}`)}
@@ -770,8 +793,8 @@ export function CasosPkpd({
       </div>
 
       <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-2 text-xs text-[#4a7068]">
-        {filtered.length} {filtered.length === 1 ? 'caso' : 'casos'} · {visibleSelected} seleccionados
-        {drawerCase && <span className="ml-3 font-medium text-[#7b3fa0]">Inspector: {drawerCase.caseId}</span>}
+        {filtered.length} {filtered.length === 1 ? t('footer.casos.one') : t('footer.casos.many')} · {visibleSelected} {t('footer.seleccionados')}
+        {drawerCase && <span className="ml-3 font-medium text-[#7b3fa0]">{t('footer.inspector').replaceAll('{caseId}', drawerCase.caseId)}</span>}
       </div>
     </div>
   )
@@ -870,6 +893,7 @@ function CaseDrawer({
   onDelete: () => void
   busyAction: string | null
 }) {
+  const t = useXarxaT('casos-pkpd')
   const criticalGaps = caso.gaps?.filter((g) => g.severity === 'Crítico') ?? []
   const otherGaps = caso.gaps?.filter((g) => g.severity !== 'Crítico') ?? []
   const llmBusy = busyAction === `orchestrate:${caso.caseId}`
@@ -887,7 +911,7 @@ function CaseDrawer({
           <p className="text-xs text-[#4a7068]">{caso.patientCode} · {caso.caseType}</p>
           {isProtected ? (
             <span className="mt-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200">
-              Demo protegido
+              {t('label.demo.protegido')}
             </span>
           ) : null}
         </div>
@@ -904,7 +928,7 @@ function CaseDrawer({
             className="w-full rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
             onClick={onOpen}
           >
-            Abrir caso completo
+            {t('drawer.abrir')}
           </Button>
 
           {/* Quick actions — tab-style pill bar */}
@@ -914,14 +938,14 @@ function CaseDrawer({
               onClick={onRequestData}
               className="flex-1 rounded-lg py-2 text-xs font-semibold text-slate-600 transition hover:bg-white hover:text-[#152520] hover:shadow-sm disabled:opacity-40"
             >
-              Solicitar datos
+              {t('action.solicitar.datos')}
             </button>
             <button
               disabled={busyAction !== null}
               onClick={onSendSession}
               className="flex-1 rounded-lg py-2 text-xs font-semibold text-slate-600 transition hover:bg-white hover:text-[#152520] hover:shadow-sm disabled:opacity-40"
             >
-              Enviar a sesión
+              {t('action.enviar.sesion')}
             </button>
           </div>
 
@@ -933,11 +957,11 @@ function CaseDrawer({
               className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-40"
             >
               {isProtected ? (
-                'Demo protegido'
+                t('label.demo.protegido')
               ) : deleteBusy ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" />Eliminando…</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" />{t('drawer.eliminando')}</>
               ) : (
-                <><Trash2 className="h-3.5 w-3.5" />Eliminar caso</>
+                <><Trash2 className="h-3.5 w-3.5" />{t('drawer.eliminar.caso')}</>
               )}
             </button>
           </div>
@@ -950,21 +974,21 @@ function CaseDrawer({
                 <Bot className="h-4 w-4 text-[#7b3fa0]" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">Agentes trabajando</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">{t('drawer.agentes.trabajando')}</p>
                 <p className="text-xs font-semibold text-[#152520]">{automation.headline}</p>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
               <div className="rounded-xl border border-white bg-white/80 px-2.5 py-2 shadow-sm">
-                <p className="text-[9px] uppercase tracking-[0.12em] text-[#4a7068]">Agentes</p>
+                <p className="text-[9px] uppercase tracking-[0.12em] text-[#4a7068]">{t('drawer.agentes')}</p>
                 <p className="mt-1 text-sm font-bold text-[#152520]">{automation.agentsInvolved?.length ?? 0}</p>
               </div>
               <div className="rounded-xl border border-white bg-white/80 px-2.5 py-2 shadow-sm">
-                <p className="text-[9px] uppercase tracking-[0.12em] text-[#4a7068]">Borradores</p>
+                <p className="text-[9px] uppercase tracking-[0.12em] text-[#4a7068]">{t('drawer.borradores')}</p>
                 <p className="mt-1 text-sm font-bold text-[#152520]">{automation.draftsReady ?? 0}</p>
               </div>
               <div className="rounded-xl border border-white bg-white/80 px-2.5 py-2 shadow-sm">
-                <p className="text-[9px] uppercase tracking-[0.12em] text-[#4a7068]">Tareas</p>
+                <p className="text-[9px] uppercase tracking-[0.12em] text-[#4a7068]">{t('drawer.tareas')}</p>
                 <p className="mt-1 text-sm font-bold text-[#152520]">{automation.pendingTasks ?? 0}</p>
               </div>
             </div>
@@ -984,23 +1008,23 @@ function CaseDrawer({
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Estado</p>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('th.estado')}</p>
             <span className={`mt-1 inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STAGE_STYLE[caso.pipelineStage] ?? 'bg-slate-100 text-slate-600'}`}>
               {STAGE_LABEL[caso.pipelineStage] ?? caso.pipelineStage}
             </span>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Prioridad</p>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('th.prioridad')}</p>
             <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${PRIORITY_STYLE[caso.priority] ?? 'bg-slate-100 text-slate-600'}`}>
               {caso.priority}
             </span>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Siguiente paso</p>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('th.siguiente.paso')}</p>
             <p className="mt-1 text-xs font-medium text-[#152520]">{caso.nextAction}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">Gaps críticos</p>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('drawer.gaps.criticos')}</p>
             <p className="mt-1 text-xs font-medium text-[#152520]">{criticalGaps.length}</p>
           </div>
         </div>
@@ -1008,7 +1032,7 @@ function CaseDrawer({
         {/* Gaps */}
         {caso.gaps?.length > 0 && (
           <div>
-            <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">Gaps</p>
+            <p className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">{t('drawer.gaps')}</p>
             <div className="space-y-1">
               {criticalGaps.map((g, i) => (
                 <div key={i} className="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-2.5 py-1.5">
@@ -1028,12 +1052,12 @@ function CaseDrawer({
 
         {/* People */}
         <div className="space-y-2 text-xs">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Responsables</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{t('drawer.responsables')}</p>
           <div className="flex items-center gap-2">
             <PersonAvatar name={caso.requesterName} size="sm" />
             <div>
               <p className="font-medium text-[#152520]">{caso.requesterName}</p>
-              <p className="text-[#4a7068]">Solicitante · {caso.centerName}</p>
+              <p className="text-[#4a7068]">{t('drawer.solicitante').replaceAll('{center}', caso.centerName)}</p>
             </div>
           </div>
           {caso.assignedName ? (
@@ -1041,23 +1065,23 @@ function CaseDrawer({
               <PersonAvatar name={caso.assignedName} size="sm" />
               <div>
                 <p className="font-medium text-[#152520]">{caso.assignedName}</p>
-                <p className="text-[#4a7068]">Farmacia responsable</p>
+                <p className="text-[#4a7068]">{t('drawer.farmacia.responsable')}</p>
               </div>
             </div>
           ) : (
-            <p className="text-slate-400">Farmacia: Sin asignar</p>
+            <p className="text-slate-400">{t('drawer.farmacia.sin.asignar')}</p>
           )}
         </div>
 
         {/* Assign */}
         <div className="space-y-1.5">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Asignar responsable</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{t('action.asignar.responsable')}</p>
           <select
             value={rowAssignee}
             onChange={(e) => onAssigneeChange(e.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-[#152520] outline-none"
           >
-            <option value="">{loadingProfessionals ? 'Cargando…' : 'Seleccionar farmacéutico…'}</option>
+            <option value="">{loadingProfessionals ? t('drawer.cargando') : t('drawer.seleccionar.farmaceutico')}</option>
             {pharmacistOptions.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
           </select>
           <Button
@@ -1067,7 +1091,7 @@ function CaseDrawer({
             disabled={!rowAssignee || busyAction !== null}
             onClick={onAssign}
           >
-            Asignar
+            {t('drawer.asignar')}
           </Button>
         </div>
 
@@ -1082,11 +1106,12 @@ function CaseDrawer({
 }
 
 function CaseLlmExecutionRail() {
+  const t = useXarxaT('casos-pkpd')
   const steps = [
-    'Releyendo determinantes y contexto clínico',
-    'Reconstruyendo interpretación PK/PD',
-    'Preparando recomendación trazable',
-    'Actualizando borrador de nota HCE',
+    'rail.step.1',
+    'rail.step.2',
+    'rail.step.3',
+    'rail.step.4',
   ]
   const [activeStep, setActiveStep] = useState(0)
 
@@ -1105,8 +1130,8 @@ function CaseLlmExecutionRail() {
           <Bot className="h-4 w-4 text-[#7b3fa0]" />
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">Agentes en ejecución</p>
-          <p className="text-xs font-semibold text-[#152520]">Actualizando el paquete del caso</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">{t('rail.title')}</p>
+          <p className="text-xs font-semibold text-[#152520]">{t('rail.subtitle')}</p>
         </div>
       </div>
       <div className="mt-3 space-y-2">
@@ -1131,7 +1156,7 @@ function CaseLlmExecutionRail() {
               ) : (
                 <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-200" />
               )}
-              <span className={isRunning ? 'font-semibold' : ''}>{step}</span>
+              <span className={isRunning ? 'font-semibold' : ''}>{t(step)}</span>
             </div>
           )
         })}
@@ -1159,6 +1184,7 @@ const SURVEILLANCE_SEVERITY_STYLE: Record<string, string> = {
 }
 
 function SurveillanceBanner({ onOpenCaso }: { onOpenCaso?: (caseId: string) => void }) {
+  const t = useXarxaT('casos-pkpd')
   const [items, setItems] = useState<SurveillanceAlert[] | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -1186,7 +1212,7 @@ function SurveillanceBanner({ onOpenCaso }: { onOpenCaso?: (caseId: string) => v
     try {
       const result = await fetchJson<{ alertsCreated: number; casesScanned: number }>('/api/xarxa/surveillance/scan', { method: 'POST' })
       await load()
-      setNotice(`Vigilancia ejecutada sobre ${result.casesScanned} casos: ${result.alertsCreated} alerta(s) nueva(s).`)
+      setNotice(t('banner.scan.notice').replaceAll('{cases}', String(result.casesScanned)).replaceAll('{alerts}', String(result.alertsCreated)))
     } catch {
       setNotice(null)
     } finally {
@@ -1218,18 +1244,18 @@ function SurveillanceBanner({ onOpenCaso }: { onOpenCaso?: (caseId: string) => v
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4 text-[#7b3fa0]" />
           <p className="text-xs font-semibold text-[#152520]">
-            Vigilancia proactiva de la red {items.length > 0 ? `· ${items.length} alerta(s) activa(s)` : '· sin alertas activas'}
+            {t('banner.title')} {items.length > 0 ? `· ${items.length} ${t('banner.alertas.activas')}` : `· ${t('banner.sin.alertas')}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {notice ? <span className="text-[10px] text-[#4a7068]">{notice}</span> : null}
           {items.length > 3 ? (
             <button className="text-[10px] font-semibold text-[#7b3fa0] hover:underline" onClick={() => setExpanded((current) => !current)}>
-              {expanded ? 'Ver menos' : `Ver todas (${items.length})`}
+              {expanded ? t('banner.ver.menos') : t('banner.ver.todas').replaceAll('{count}', String(items.length))}
             </button>
           ) : null}
           <button className="text-[10px] font-semibold text-[#7b3fa0] hover:underline disabled:opacity-50" onClick={() => void scan()} disabled={busy}>
-            {busy ? 'Escaneando…' : 'Ejecutar escaneo'}
+            {busy ? t('banner.escaneando') : t('banner.ejecutar')}
           </button>
         </div>
       </div>
@@ -1246,11 +1272,11 @@ function SurveillanceBanner({ onOpenCaso }: { onOpenCaso?: (caseId: string) => v
               <div className="flex shrink-0 items-center gap-2">
                 {onOpenCaso ? (
                   <button className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#7b3fa0] ring-1 ring-[#7b3fa0]/30 hover:bg-[#faf6fd]" onClick={() => onOpenCaso(alert.caseId)}>
-                    Abrir caso
+                    {t('banner.abrir.caso')}
                   </button>
                 ) : null}
                 <button className="text-[10px] text-slate-500 hover:underline disabled:opacity-50" onClick={() => void resolve(alert.alertId)} disabled={busy}>
-                  Resolver
+                  {t('banner.resolver')}
                 </button>
               </div>
             </div>

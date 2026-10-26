@@ -32,6 +32,7 @@ import type {
   Role,
 } from '@/components/pkpd/pro/xarxa-types'
 import { fetchJson } from '@/lib/fetch-json'
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 
 const BRAND_GREEN  = '#8dc63f'
 const BRAND_PURPLE = '#7b3fa0'
@@ -60,6 +61,7 @@ type DirectoryPayload = {
 }
 
 export function Profesionales() {
+  const t = useXarxaT('profesionales')
   const [tab, setTab] = useState<Tab>('profesionales')
   const [centers, setCenters] = useState<Center[]>([])
   const [professionals, setProfessionals] = useState<Professional[]>([])
@@ -97,7 +99,7 @@ export function Profesionales() {
         )
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se ha podido cargar el directorio de red.')
+      setError(err instanceof Error ? err.message : t('error.cargar'))
     } finally {
       setLoading(false)
     }
@@ -148,10 +150,10 @@ export function Profesionales() {
         body: JSON.stringify({ roleId: draft.roleId || undefined, centerId: draft.centerId || undefined }),
       })
       setProfessionals((cur) => cur.map((p) => (p._id === id ? updated : p)))
-      setNotice(`Actualizado: ${updated.name}`)
+      setNotice(t('notice.actualizado').replaceAll('{name}', updated.name))
       setSelectedProId(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se ha podido actualizar el profesional.')
+      setError(err instanceof Error ? err.message : t('error.actualizar'))
     } finally {
       setBusyKey(null)
     }
@@ -175,29 +177,29 @@ export function Profesionales() {
       setPendingApprovals((cur) => cur.filter((a) => a._id !== requestId))
       setProfessionals((cur) => [approved, ...cur])
       setAssignmentDrafts((cur) => ({ ...cur, [approved._id]: { roleId: approved.roleId ?? '', centerId: approved.centerId } }))
-      setNotice(`Incorporado a la red: ${approved.name}`)
+      setNotice(t('notice.incorporado').replaceAll('{name}', approved.name))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se ha podido aprobar el acceso.')
+      setError(err instanceof Error ? err.message : t('error.aprobar'))
     } finally {
       setBusyKey(null)
     }
   }
 
   if (loading) {
-    return <WorkspaceLoadingState title="Cargando red de profesionales…" detail="Preparando directorio, centros y solicitudes de acceso." />
+    return <WorkspaceLoadingState title={t('loading.title')} detail={t('loading.detail')} />
   }
   if (error && professionals.length === 0 && centers.length === 0) {
-    return <WorkspaceErrorState title="No se ha podido cargar el directorio." detail={error} onRetry={() => void loadDirectory()} />
+    return <WorkspaceErrorState title={t('error.cargar.title')} detail={error} onRetry={() => void loadDirectory()} />
   }
 
   const selectedPro = selectedProId ? professionals.find((p) => p._id === selectedProId) ?? null : null
   const selectedDraft = selectedProId ? (assignmentDrafts[selectedProId] ?? null) : null
 
   const TABS: Array<{ id: Tab; label: string; count: number }> = [
-    { id: 'profesionales', label: 'Directorio',  count: professionals.length    },
-    { id: 'pendientes',    label: 'Solicitudes',  count: pendingApprovals.length },
-    { id: 'centros',       label: 'Centros',      count: centers.length          },
-    { id: 'roles',         label: 'Roles',        count: roles.length            },
+    { id: 'profesionales', label: t('tab.directorio'),  count: professionals.length    },
+    { id: 'pendientes',    label: t('tab.solicitudes'),  count: pendingApprovals.length },
+    { id: 'centros',       label: t('tab.centros'),      count: centers.length          },
+    { id: 'roles',         label: t('tab.roles'),        count: roles.length            },
   ]
 
   return (
@@ -213,15 +215,15 @@ export function Profesionales() {
                 <Users2 className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-900">Red de profesionales</h2>
-                <p className="text-xs text-slate-500">Crohn PK/PD · Directorio, centros y gobierno de acceso</p>
+                <h2 className="text-base font-bold text-slate-900">{t('header.title')}</h2>
+                <p className="text-xs text-slate-500">{t('header.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <KpiPill value={professionals.filter((p) => p.status === 'Activo').length} label="Activos" color={BRAND_GREEN} />
-              <KpiPill value={centers.length} label="Centros" color={BRAND_PURPLE} />
+              <KpiPill value={professionals.filter((p) => p.status === 'Activo').length} label={t('kpi.activos')} color={BRAND_GREEN} />
+              <KpiPill value={centers.length} label={t('kpi.centros')} color={BRAND_PURPLE} />
               {pendingApprovals.length > 0 && (
-                <KpiPill value={pendingApprovals.length} label="Pendientes" color="#f59e0b" />
+                <KpiPill value={pendingApprovals.length} label={t('kpi.pendientes')} color="#f59e0b" />
               )}
             </div>
           </div>
@@ -233,7 +235,7 @@ export function Profesionales() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar nombre, hospital, especialidad…"
+                placeholder={t('filtro.buscar.placeholder')}
                 className="w-56 bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-400"
               />
               {search && (
@@ -244,20 +246,20 @@ export function Profesionales() {
             </div>
             <select value={centerFilter} onChange={(e) => setCenterFilter(e.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none">
-              <option value="">Todos los centros</option>
+              <option value="">{t('filtro.todos.centros')}</option>
               {centers.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
             <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none">
-              <option value="">Todos los roles</option>
+              <option value="">{t('filtro.todos.roles')}</option>
               {roles.map((r) => <option key={r._id} value={r._id}>{r.label}</option>)}
             </select>
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none">
-              <option value="">Todos los estados</option>
-              <option value="Activo">Activo</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="Inactivo">Inactivo</option>
+              <option value="">{t('filtro.todos.estados')}</option>
+              <option value="Activo">{t('estado.activo')}</option>
+              <option value="Pendiente">{t('estado.pendiente')}</option>
+              <option value="Inactivo">{t('estado.inactivo')}</option>
             </select>
           </div>
 
@@ -297,7 +299,7 @@ export function Profesionales() {
           {/* ── Directorio ─────────────────────────────────────────────── */}
           {tab === 'profesionales' && (
             filteredProfessionals.length === 0
-              ? <WorkspaceEmptyState title="No hay profesionales con estos filtros." detail="Amplía la búsqueda o quita algún filtro activo." />
+              ? <WorkspaceEmptyState title={t('empty.directorio.title')} detail={t('empty.directorio.detail')} />
               : <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredProfessionals.map((p) => (
                     <button
@@ -334,9 +336,9 @@ export function Profesionales() {
 
                         {/* Activity metrics */}
                         <div className="mt-3 grid grid-cols-3 gap-1.5">
-                          <ActivityTile label="Casos activos" value={p.activeCases ?? 0} color={BRAND_GREEN} />
-                          <ActivityTile label="Cerrados" value={p.validatedCases ?? 0} color={BRAND_PURPLE} />
-                          <ActivityTile label="Respuesta" value={p.responseTimeLabel ?? '—'} color="#64748b" isText />
+                          <ActivityTile label={t('tile.casos')} value={p.activeCases ?? 0} color={BRAND_GREEN} />
+                          <ActivityTile label={t('tile.cerrados')} value={p.validatedCases ?? 0} color={BRAND_PURPLE} />
+                          <ActivityTile label={t('tile.respuesta')} value={p.responseTimeLabel ?? '—'} color="#64748b" isText />
                         </div>
 
                         {/* Specialty tags */}
@@ -356,7 +358,7 @@ export function Profesionales() {
                         selectedProId === p._id ? 'border-[#7b3fa0]/20 bg-[#faf6fd]' : 'border-slate-100 bg-slate-50 group-hover:bg-slate-100'
                       }`}>
                         <span className="text-[10px] text-slate-400">
-                          {p.programs?.join(' · ') || 'Sin programa asignado'}
+                          {p.programs?.join(' · ') || t('sin.programa')}
                         </span>
                         <Settings2 className={`h-3.5 w-3.5 transition ${
                           selectedProId === p._id ? 'text-[#7b3fa0]' : 'text-slate-300 group-hover:text-slate-500'
@@ -370,7 +372,7 @@ export function Profesionales() {
           {/* ── Solicitudes ────────────────────────────────────────────── */}
           {tab === 'pendientes' && (
             filteredApprovals.length === 0
-              ? <WorkspaceEmptyState title="No hay solicitudes pendientes." detail="Las nuevas solicitudes de acceso aparecerán aquí." />
+              ? <WorkspaceEmptyState title={t('empty.solicitudes.title')} detail={t('empty.solicitudes.detail')} />
               : <div className="space-y-3">
                   {filteredApprovals.map((item) => {
                     const draft = approvalDrafts[item._id] ?? { roleId: item.requestedRoleId, centerId: item.requestedCenterId }
@@ -384,11 +386,11 @@ export function Profesionales() {
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-bold text-slate-900">{item.name}</p>
-                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">Pendiente</span>
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">{t('badge.pendiente')}</span>
                             </div>
                             <p className="mt-0.5 text-xs text-slate-500">
                               {item.requestedRoleLabel} · {item.requestedCenterName}
-                              {item.requestedDate ? ` · Solicitado: ${item.requestedDate}` : ''}
+                              {item.requestedDate ? ` · ${t('solicitado').replaceAll('{date}', item.requestedDate)}` : ''}
                             </p>
                             <p className="mt-2 text-xs leading-relaxed text-slate-700">{item.requestReason}</p>
                             <div className="mt-2 flex flex-wrap gap-1">
@@ -413,7 +415,7 @@ export function Profesionales() {
                               {isBusy
                                 ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                                 : <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />}
-                              Aprobar e incorporar
+                              {t('aprobar.incorporar')}
                             </Button>
                           </div>
                         </div>
@@ -426,7 +428,7 @@ export function Profesionales() {
           {/* ── Centros ────────────────────────────────────────────────── */}
           {tab === 'centros' && (
             centers.length === 0
-              ? <WorkspaceEmptyState title="No hay centros registrados." detail="Cuando la red tenga centros activos aparecerán aquí." />
+              ? <WorkspaceEmptyState title={t('empty.centros.title')} detail={t('empty.centros.detail')} />
               : <div className="grid gap-3 xl:grid-cols-2">
                   {centers.map((center) => {
                     const centerPros = professionals.filter((p) => p.centerId === center._id)
@@ -442,7 +444,7 @@ export function Profesionales() {
                               <p className="font-bold text-slate-900">{center.name}</p>
                               <div className="mt-0.5 flex items-center gap-2">
                                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CENTER_TYPE_BADGE[center.type] ?? 'bg-slate-100 text-slate-600'}`}>
-                                  {center.type ?? 'Hospital'}
+                                  {center.type ?? t('fallback.hospital')}
                                 </span>
                                 <span className="flex items-center gap-0.5 text-xs text-slate-500">
                                   <MapPin className="h-3 w-3" />{center.city}
@@ -452,9 +454,9 @@ export function Profesionales() {
                           </div>
                         </div>
                         <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100">
-                          <StatCell label="Total" value={String(centerPros.length)} />
-                          <StatCell label="Activos" value={String(active)} highlight={active > 0} color={BRAND_GREEN} />
-                          <StatCell label="Programas" value={String((center.programs ?? []).length)} color={BRAND_PURPLE} />
+                          <StatCell label={t('stat.total')} value={String(centerPros.length)} />
+                          <StatCell label={t('stat.activos')} value={String(active)} highlight={active > 0} color={BRAND_GREEN} />
+                          <StatCell label={t('stat.programas')} value={String((center.programs ?? []).length)} color={BRAND_PURPLE} />
                         </div>
                         {(center.programs ?? []).length > 0 && (
                           <div className="flex flex-wrap gap-1 border-t border-slate-100 px-5 py-3">
@@ -477,7 +479,7 @@ export function Profesionales() {
                               </div>
                             ))}
                             {centerPros.length > 4 && (
-                              <p className="text-center text-[10px] text-slate-400">+{centerPros.length - 4} más</p>
+                              <p className="text-center text-[10px] text-slate-400">{t('centros.mas').replaceAll('{n}', String(centerPros.length - 4))}</p>
                             )}
                           </div>
                         )}
@@ -490,7 +492,7 @@ export function Profesionales() {
           {/* ── Roles ──────────────────────────────────────────────────── */}
           {tab === 'roles' && (
             roles.length === 0
-              ? <WorkspaceEmptyState title="No hay roles configurados." detail="Los perfiles de acceso y permisos aparecerán aquí." />
+              ? <WorkspaceEmptyState title={t('empty.roles.title')} detail={t('empty.roles.detail')} />
               : <div className="grid gap-3 xl:grid-cols-2">
                   {roles.map((role, idx) => (
                     <div key={role._id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -502,12 +504,12 @@ export function Profesionales() {
                           </div>
                           <div>
                             <p className="font-bold text-slate-900">{role.label}</p>
-                            <p className="text-xs text-slate-500">Ámbito: {role.scope}</p>
+                            <p className="text-xs text-slate-500">{t('roles.ambito').replaceAll('{scope}', role.scope)}</p>
                           </div>
                         </div>
                         <span className="rounded-full px-2.5 py-1 text-xs font-semibold text-white"
                           style={{ backgroundColor: idx % 2 === 0 ? BRAND_GREEN : BRAND_PURPLE }}>
-                          {role.permissions.length} permisos
+                          {role.permissions.length} {t('roles.permisos')}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-slate-50 px-5 py-3">
@@ -530,7 +532,7 @@ export function Profesionales() {
         <div className="w-[320px] shrink-0 border-l border-slate-200 bg-white flex flex-col overflow-hidden">
           {/* Panel header */}
           <div className="shrink-0 flex items-center justify-between border-b border-slate-100 px-5 py-4">
-            <p className="text-sm font-semibold text-[#152520]">Perfil y acceso</p>
+            <p className="text-sm font-semibold text-[#152520]">{t('panel.perfil')}</p>
             <button onClick={() => setSelectedProId(null)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
               <X className="h-4 w-4" />
             </button>
@@ -551,17 +553,17 @@ export function Profesionales() {
 
             {/* Activity metrics */}
             <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">Actividad en la red</p>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t('panel.actividad')}</p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-center">
                   <FolderOpen className="mx-auto mb-1 h-4 w-4 text-[#8dc63f]" />
                   <p className="text-xl font-bold text-[#152520]">{selectedPro.activeCases ?? 0}</p>
-                  <p className="text-[10px] text-slate-500">Casos activos</p>
+                  <p className="text-[10px] text-slate-500">{t('tile.casos')}</p>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-center">
                   <CheckCircle2 className="mx-auto mb-1 h-4 w-4 text-[#7b3fa0]" />
                   <p className="text-xl font-bold text-[#152520]">{selectedPro.validatedCases ?? 0}</p>
-                  <p className="text-[10px] text-slate-500">Cerrados</p>
+                  <p className="text-[10px] text-slate-500">{t('tile.cerrados')}</p>
                 </div>
               </div>
               {selectedPro.responseTimeLabel && (
@@ -569,7 +571,7 @@ export function Profesionales() {
                   <Clock className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-xs font-semibold text-[#152520]">{selectedPro.responseTimeLabel}</p>
-                    <p className="text-[10px] text-slate-400">Tiempo de respuesta</p>
+                    <p className="text-[10px] text-slate-400">{t('panel.tiempo.respuesta')}</p>
                   </div>
                 </div>
               )}
@@ -577,7 +579,7 @@ export function Profesionales() {
 
             {/* Hospital */}
             <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">Centro</p>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t('panel.centro')}</p>
               <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
                 <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
                 <p className="text-xs font-medium text-[#152520]">{selectedPro.centerName}</p>
@@ -587,7 +589,7 @@ export function Profesionales() {
             {/* Specialties */}
             {(selectedPro.expertise ?? selectedPro.specialties ?? []).length > 0 && (
               <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">Especialidades</p>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t('panel.especialidades')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {(selectedPro.expertise ?? selectedPro.specialties ?? []).map((tag) => (
                     <span key={tag} className="rounded-full bg-[#7b3fa0]/10 px-2.5 py-1 text-[10px] font-medium text-[#7b3fa0]">{tag}</span>
@@ -598,10 +600,10 @@ export function Profesionales() {
 
             {/* Edit controls */}
             <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">Editar asignación</p>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t('panel.editar')}</p>
               <div className="space-y-2">
                 <div>
-                  <p className="mb-1 text-[10px] text-slate-500">Rol</p>
+                  <p className="mb-1 text-[10px] text-slate-500">{t('panel.rol')}</p>
                   <select value={selectedDraft.roleId}
                     onChange={(e) => setAssignmentDrafts((cur) => ({ ...cur, [selectedPro._id]: { ...selectedDraft, roleId: e.target.value } }))}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-[#7b3fa0]/40 focus:ring-2 focus:ring-[#7b3fa0]/15">
@@ -609,7 +611,7 @@ export function Profesionales() {
                   </select>
                 </div>
                 <div>
-                  <p className="mb-1 text-[10px] text-slate-500">Centro</p>
+                  <p className="mb-1 text-[10px] text-slate-500">{t('panel.centro')}</p>
                   <select value={selectedDraft.centerId}
                     onChange={(e) => setAssignmentDrafts((cur) => ({ ...cur, [selectedPro._id]: { ...selectedDraft, centerId: e.target.value } }))}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-[#7b3fa0]/40 focus:ring-2 focus:ring-[#7b3fa0]/15">
@@ -630,7 +632,7 @@ export function Profesionales() {
               {busyKey === `pro:${selectedPro._id}`
                 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 : <CheckCircle2 className="mr-2 h-4 w-4" />}
-              Guardar cambios
+              {t('guardar')}
             </Button>
           </div>
         </div>

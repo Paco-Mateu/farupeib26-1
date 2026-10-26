@@ -3,6 +3,7 @@
 import { AlertCircle, Bot, CheckCircle2, ChevronLeft, ChevronRight, Clock3, FlaskConical, Loader2, Plus, Sparkles, Stethoscope, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import type { Center, PatientHistoryPayload, Professional, Program } from '@/components/pkpd/pro/xarxa-types'
 import { SAMPLE_TYPES } from '@/components/pkpd/pro/xarxa-types'
 import { WorkspaceErrorState, WorkspaceLoadingState } from '@/components/pkpd/pro/workspace-state'
@@ -65,13 +66,13 @@ type FormState = {
   determinants: DeterminantDraft[]
 }
 
-const STEPS: Array<{ id: WizardStep; label: string; helper: string }> = [
-  { id: 'trigger', label: 'Trigger', helper: 'Entrada clínica y prioridad' },
-  { id: 'patient', label: 'Paciente', helper: 'Demografía sintética y contexto' },
-  { id: 'therapy', label: 'Tratamiento', helper: 'Medicaciones y objetivo clínico' },
-  { id: 'labs', label: 'Determinantes', helper: 'Laboratorio y relación con dosis' },
-  { id: 'completeness', label: 'Completitud', helper: 'Gaps y siguiente paso sugerido' },
-  { id: 'submit', label: 'Enviar', helper: 'Creación del caso estructurado' },
+const STEPS: Array<{ id: WizardStep; labelKey: string; helperKey: string }> = [
+  { id: 'trigger', labelKey: 'step.trigger.label', helperKey: 'step.trigger.helper' },
+  { id: 'patient', labelKey: 'step.patient.label', helperKey: 'step.patient.helper' },
+  { id: 'therapy', labelKey: 'step.therapy.label', helperKey: 'step.therapy.helper' },
+  { id: 'labs', labelKey: 'step.labs.label', helperKey: 'step.labs.helper' },
+  { id: 'completeness', labelKey: 'step.completeness.label', helperKey: 'step.completeness.helper' },
+  { id: 'submit', labelKey: 'step.submit.label', helperKey: 'step.submit.helper' },
 ]
 
 const CASE_TYPES = [
@@ -206,6 +207,7 @@ export function NuevoCasoWizard({
   onCancel: () => void
   onCreated: (caseId: string) => void
 }) {
+  const t = useXarxaT('nuevo-caso-wizard')
   const [stepIndex, setStepIndex] = useState(0)
   const [programs, setPrograms] = useState<Program[]>([])
   const [centers, setCenters] = useState<Center[]>([])
@@ -275,7 +277,7 @@ export function NuevoCasoWizard({
 
       } catch (error) {
         if (cancelled) return
-        setRefsError(error instanceof Error ? error.message : 'No se han podido cargar los datos de referencia.')
+        setRefsError(error instanceof Error ? error.message : t('refs.error'))
       } finally {
         if (!cancelled) setLoadingRefs(false)
       }
@@ -368,9 +370,9 @@ export function NuevoCasoWizard({
       suggestions.push({
         id: `det-${label}`,
         label,
-        detail: 'Determinante sugerido por Agentes para este fármaco y tipo de caso.',
+        detail: t('agent.det.detail'),
         kind: 'determinant',
-        actionLabel: 'Añadir',
+        actionLabel: t('agent.add'),
       })
     })
 
@@ -378,7 +380,7 @@ export function NuevoCasoWizard({
       suggestions.push({
         id: `warn-${index}`,
         label: warning,
-        detail: 'Conviene revisarlo antes de enviar el caso a la cola operativa.',
+        detail: t('agent.warning.detail'),
         kind: 'warning',
       })
     })
@@ -386,35 +388,35 @@ export function NuevoCasoWizard({
     if (patientHistory?.latestCase) {
       suggestions.push({
         id: 'history-latest',
-        label: `Reutilizar contexto del último caso ${patientHistory.latestCase.caseId}`,
-        detail: 'Edad, diagnóstico, pauta y antecedentes del mismo paciente pueden reaprovecharse como punto de partida.',
+        label: t('agent.history.label').replaceAll('{caseId}', patientHistory.latestCase.caseId),
+        detail: t('agent.history.detail'),
         kind: 'history',
-        actionLabel: 'Aplicar',
+        actionLabel: t('agent.apply'),
       })
     }
 
     return suggestions
-  }, [missingSuggestedDeterminants, patientHistory, therapyWarnings])
+  }, [missingSuggestedDeterminants, patientHistory, therapyWarnings, t])
 
   function getStepErrors(step: WizardStep): string[] {
     if (step === 'trigger') {
       const errors: string[] = []
-      if (!form.centerId) errors.push('Selecciona un centro solicitante')
-      if (!form.requesterId) errors.push('Selecciona un profesional solicitante')
-      if (!form.caseType) errors.push('Selecciona el tipo de consulta')
+      if (!form.centerId) errors.push(t('error.centro'))
+      if (!form.requesterId) errors.push(t('error.profesional'))
+      if (!form.caseType) errors.push(t('error.tipoConsulta'))
       return errors
     }
     if (step === 'patient') {
-      if (!form.patientCode.trim()) return ['El código de paciente es obligatorio']
+      if (!form.patientCode.trim()) return [t('error.codigoPaciente')]
       return []
     }
     if (step === 'therapy') {
-      if (!form.currentDrug.trim()) return ['Indica el fármaco actual o candidato']
+      if (!form.currentDrug.trim()) return [t('error.farmaco')]
       return []
     }
     if (step === 'labs') {
       const hasValid = form.determinants.some((d) => d.label.trim() && d.value.trim())
-      if (!hasValid) return ['Añade al menos un determinante con etiqueta y valor']
+      if (!hasValid) return [t('error.determinante')]
       return []
     }
     return []
@@ -462,7 +464,7 @@ export function NuevoCasoWizard({
   function applyDeterminantSuggestion(label: string) {
     if (form.determinants.some((item) => item.label.trim().toLowerCase() === label.toLowerCase())) return
     addDeterminant(label)
-    setAssistNotice(`Se ha añadido «${label}» como determinante sugerido por Agentes.`)
+    setAssistNotice(t('notice.det.added').replaceAll('{label}', label))
   }
 
   function applyAllDeterminantSuggestions() {
@@ -477,7 +479,7 @@ export function NuevoCasoWizard({
         ],
       }))
       setAssistBusy(false)
-      setAssistNotice(`Los Agentes han añadido ${missingSuggestedDeterminants.length} determinante(s) sugerido(s).`)
+      setAssistNotice(t('notice.det.all').replaceAll('{count}', String(missingSuggestedDeterminants.length)))
     }, 850)
   }
 
@@ -508,7 +510,7 @@ export function NuevoCasoWizard({
         adherence: current.adherence || String(latest.therapyContext?.adherence ?? ''),
       }))
       setAssistBusy(false)
-      setAssistNotice(`Se ha reutilizado el contexto del caso ${latest.caseId} como base de trabajo.`)
+      setAssistNotice(t('notice.history.applied').replaceAll('{caseId}', latest.caseId))
     }, 950)
   }
 
@@ -602,7 +604,7 @@ export function NuevoCasoWizard({
 
       onCreated(payload.caseId)
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'No se ha podido crear el caso.')
+      setSubmitError(error instanceof Error ? error.message : t('submit.error.fallback'))
       setSubmitting(false)
     }
   }
@@ -610,8 +612,8 @@ export function NuevoCasoWizard({
   if (loadingRefs) {
     return (
       <WorkspaceLoadingState
-        title="Preparando el asistente de nuevo caso…"
-        detail="Cargando centros, profesionales y programa clínico activo."
+        title={t('state.loading.title')}
+        detail={t('state.loading.detail')}
       />
     )
   }
@@ -619,7 +621,7 @@ export function NuevoCasoWizard({
   if (refsError) {
     return (
       <WorkspaceErrorState
-        title="No se ha podido abrir el asistente."
+        title={t('state.error.title')}
         detail={refsError}
         onRetry={() => window.location.reload()}
       />
@@ -636,17 +638,17 @@ export function NuevoCasoWizard({
               className="mb-2 flex items-center gap-1.5 text-xs text-[#4a7068] hover:text-[#7b3fa0]"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
-              Volver a la cola de casos
+              {t('header.volver')}
             </button>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Nuevo caso</p>
-            <h1 className="mt-1 text-2xl font-semibold text-[#152520]">Alta estructurada con revisión humana</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">{t('header.nuevoCaso')}</p>
+            <h1 className="mt-1 text-2xl font-semibold text-[#152520]">{t('header.title')}</h1>
             <p className="mt-1 max-w-3xl text-sm text-[#4a7068]">
-              Captura clínica ampliada para que el caso nazca con contexto útil, determinantes claros y un siguiente paso gobernado.
+              {t('header.subtitle')}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[#4a7068]">
-            <p className="font-medium text-[#152520]">{activeProgram?.label ?? 'Crohn PK/PD'}</p>
-            <p>{activeProgram?.specialty ?? 'Digestivo'} · {selectedCenter?.name ?? 'Centro sin seleccionar'}</p>
+            <p className="font-medium text-[#152520]">{activeProgram?.label ?? t('program.fallback')}</p>
+            <p>{activeProgram?.specialty ?? t('specialty.fallback')} · {selectedCenter?.name ?? t('header.centroSinSeleccionar')}</p>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -667,7 +669,7 @@ export function NuevoCasoWizard({
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[11px]">
                     {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : index + 1}
                   </span>
-                  {step.label}
+                  {t(step.labelKey)}
                 </div>
                 {index < STEPS.length - 1 ? <div className="h-px w-4 bg-slate-200" /> : null}
               </div>
@@ -681,11 +683,11 @@ export function NuevoCasoWizard({
           <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">{activeStep.helper}</p>
-                <h2 className="mt-1 text-xl font-semibold text-[#152520]">{activeStep.label}</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">{t(activeStep.helperKey)}</p>
+                <h2 className="mt-1 text-xl font-semibold text-[#152520]">{t(activeStep.labelKey)}</h2>
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-[#4a7068]">
-                Paso {stepIndex + 1} de {STEPS.length}
+                {t('step.counter').replaceAll('{current}', String(stepIndex + 1)).replaceAll('{total}', String(STEPS.length))}
               </div>
             </div>
 
@@ -697,19 +699,19 @@ export function NuevoCasoWizard({
 
             {activeStep.id === 'trigger' ? (
               <div className="space-y-5">
-                <Field label="Motivo o trigger principal">
+                <Field label={t('trigger.label')}>
                   <textarea
                     className={textAreaCls}
                     rows={4}
                     value={form.trigger}
                     onChange={(event) => setField('trigger', event.target.value)}
-                    placeholder="Ejemplo: pérdida de respuesta secundaria con sospecha de baja exposición y biomarcadores elevados."
+                    placeholder={t('trigger.placeholder')}
                   />
                 </Field>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Centro solicitante">
+                  <Field label={t('field.centro')}>
                     <select className={inputCls} value={form.centerId} onChange={(event) => setField('centerId', event.target.value)}>
-                      <option value="">Seleccionar centro…</option>
+                      <option value="">{t('select.centro')}</option>
                       {centers.map((center) => (
                         <option key={center._id} value={center._id}>
                           {center.name}
@@ -717,9 +719,9 @@ export function NuevoCasoWizard({
                       ))}
                     </select>
                   </Field>
-                  <Field label="Profesional solicitante">
+                  <Field label={t('field.profesional')}>
                     <select className={inputCls} value={form.requesterId} onChange={(event) => setField('requesterId', event.target.value)}>
-                      <option value="">Seleccionar profesional…</option>
+                      <option value="">{t('select.profesional')}</option>
                       {professionals
                         .filter((item) => !form.centerId || item.centerId === form.centerId)
                         .map((professional) => (
@@ -729,56 +731,56 @@ export function NuevoCasoWizard({
                         ))}
                     </select>
                   </Field>
-                  <Field label="Tipo de consulta">
+                  <Field label={t('field.tipoConsulta')}>
                     <select className={inputCls} value={form.caseType} onChange={(event) => setField('caseType', event.target.value)}>
-                      <option value="">Seleccionar tipo…</option>
+                      <option value="">{t('select.tipo')}</option>
                       {CASE_TYPES.map((item) => (
                         <option key={item} value={item}>
-                          {item}
+                          {t(item)}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Prioridad">
+                  <Field label={t('field.prioridad')}>
                     <select className={inputCls} value={form.priority} onChange={(event) => setField('priority', event.target.value)}>
                       {PRIORITIES.map((item) => (
                         <option key={item} value={item}>
-                          {item}
+                          {t(item)}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Origen de la solicitud">
+                  <Field label={t('field.origen')}>
                     <select className={inputCls} value={form.entrySource} onChange={(event) => setField('entrySource', event.target.value)}>
                       {ENTRY_SOURCES.map((item) => (
                         <option key={item} value={item}>
-                          {item}
+                          {t(item)}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Modo del caso">
+                  <Field label={t('field.modo')}>
                     <select className={inputCls} value={form.caseMode} onChange={(event) => setField('caseMode', event.target.value)}>
-                      <option value="Nuevo caso">Nuevo caso</option>
-                      <option value="Seguimiento">Seguimiento</option>
+                      <option value="Nuevo caso">{t('Nuevo caso')}</option>
+                      <option value="Seguimiento">{t('Seguimiento')}</option>
                     </select>
                   </Field>
                 </div>
 
                 {form.priority === 'Urgente' ? (
                   <div className="rounded-3xl border border-red-200 bg-red-50/70 p-5">
-                    <p className="text-sm font-semibold text-red-800">Circuito urgente de la red (UC-07)</p>
+                    <p className="text-sm font-semibold text-red-800">{t('urgente.title')}</p>
                     <p className="mt-1 text-sm text-red-700">
-                      Los casos urgentes se resuelven de forma bilateral en menos de 24-48 h, sin esperar la sesión quincenal.
+                      {t('urgente.desc')}
                     </p>
                     <div className="mt-3 grid gap-4 md:grid-cols-2">
-                      <Field label="Situación del paciente">
+                      <Field label={t('urgente.situacion')}>
                         <select className={inputCls} value={form.urgencyContext} onChange={(event) => setField('urgencyContext', event.target.value)}>
-                          <option value="Ingresado">Ingresado</option>
-                          <option value="Ambulatorio">Ambulatorio con fecha límite de tratamiento</option>
+                          <option value="Ingresado">{t('Ingresado')}</option>
+                          <option value="Ambulatorio">{t('urgente.ambulatorio')}</option>
                         </select>
                       </Field>
-                      <Field label="Fecha límite de respuesta">
+                      <Field label={t('urgente.fechaLimite')}>
                         <input type="datetime-local" className={inputCls} value={form.responseDeadline} onChange={(event) => setField('responseDeadline', event.target.value)} />
                       </Field>
                     </div>
@@ -790,49 +792,49 @@ export function NuevoCasoWizard({
             {activeStep.id === 'patient' ? (
               <div className="space-y-5">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Código de paciente">
+                  <Field label={t('patient.codigo')}>
                     <input className={inputCls} value={form.patientCode} onChange={(event) => setField('patientCode', event.target.value)} placeholder="P-1048" />
                   </Field>
-                  <Field label="Sexo">
+                  <Field label={t('patient.sexo')}>
                     <select className={inputCls} value={form.sex} onChange={(event) => setField('sex', event.target.value)}>
-                      <option value="">Seleccionar…</option>
-                      <option>Varón</option>
-                      <option>Mujer</option>
-                      <option>No especificado</option>
+                      <option value="">{t('select.sexo')}</option>
+                      <option value="Varón">{t('Varón')}</option>
+                      <option value="Mujer">{t('Mujer')}</option>
+                      <option value="No especificado">{t('No especificado')}</option>
                     </select>
                   </Field>
-                  <Field label="Edad">
+                  <Field label={t('patient.edad')}>
                     <input className={inputCls} value={form.age} onChange={(event) => setField('age', event.target.value)} placeholder="34" />
                   </Field>
-                  <Field label="Peso actual (kg)">
+                  <Field label={t('patient.peso')}>
                     <input className={inputCls} value={form.weightKg} onChange={(event) => setField('weightKg', event.target.value)} placeholder="71" />
                   </Field>
-                  <Field label="Altura (cm)">
+                  <Field label={t('patient.altura')}>
                     <input className={inputCls} value={form.heightCm} onChange={(event) => setField('heightCm', event.target.value)} placeholder="175" />
                   </Field>
-                  <Field label="Actividad clínica">
-                    <input className={inputCls} value={form.activity} onChange={(event) => setField('activity', event.target.value)} placeholder="Moderada" />
+                  <Field label={t('patient.actividad')}>
+                    <input className={inputCls} value={form.activity} onChange={(event) => setField('activity', event.target.value)} placeholder={t('patient.actividad.placeholder')} />
                   </Field>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Diagnóstico">
+                  <Field label={t('patient.diagnostico')}>
                     <input className={inputCls} value={form.diagnosis} onChange={(event) => setField('diagnosis', event.target.value)} />
                   </Field>
-                  <Field label="Fenotipo">
+                  <Field label={t('patient.fenotipo')}>
                     <input className={inputCls} value={form.phenotype} onChange={(event) => setField('phenotype', event.target.value)} />
                   </Field>
                 </div>
-                <Field label="Resumen clínico para el caso">
+                <Field label={t('patient.resumen')}>
                   <textarea
                     className={textAreaCls}
                     rows={5}
                     value={form.summary}
                     onChange={(event) => setField('summary', event.target.value)}
-                    placeholder="Resume aquí el motivo de consulta, biomarcadores, sospecha clínica y contexto relevante."
+                    placeholder={t('patient.resumen.placeholder')}
                   />
                 </Field>
                 <div>
-                  <p className="mb-2 text-sm font-medium text-[#152520]">Poblaciones especiales</p>
+                  <p className="mb-2 text-sm font-medium text-[#152520]">{t('patient.poblaciones')}</p>
                   <div className="flex flex-wrap gap-2">
                     {SPECIAL_POPULATION_OPTIONS.map((option) => {
                       const active = form.specialPopulation.includes(option)
@@ -854,7 +856,7 @@ export function NuevoCasoWizard({
                               : 'border-slate-200 bg-white text-[#4a7068]'
                           }`}
                         >
-                          {option}
+                          {t(option)}
                         </button>
                       )
                     })}
@@ -869,9 +871,9 @@ export function NuevoCasoWizard({
                   <div className="rounded-3xl border border-[#7b3fa0]/20 bg-[#faf6fd] p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Asistencia de Agentes</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">{t('agent.title')}</p>
                         <p className="mt-1 text-sm text-[#4a7068]">
-                          Los Agentes están proponiendo contexto, determinantes y señales de revisión para este tratamiento.
+                          {t('agent.desc')}
                         </p>
                       </div>
                       <Bot className="h-5 w-5 text-[#7b3fa0]" />
@@ -881,16 +883,16 @@ export function NuevoCasoWizard({
                         <div key={item.id} className="rounded-2xl border border-white bg-white/85 px-4 py-3 shadow-sm">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-[#152520]">{item.label}</p>
+                              <p className="text-sm font-medium text-[#152520]">{item.kind === 'history' ? item.label : t(item.label)}</p>
                               <p className="mt-1 text-xs leading-6 text-[#4a7068]">{item.detail}</p>
                             </div>
                             {item.kind === 'determinant' ? (
                               <Button size="sm" variant="outline" className="shrink-0 rounded-xl text-xs" onClick={() => applyDeterminantSuggestion(item.label)}>
-                                Añadir
+                                {t('agent.add')}
                               </Button>
                             ) : item.kind === 'history' ? (
                               <Button size="sm" variant="outline" className="shrink-0 rounded-xl text-xs" onClick={applyPatientHistoryPrefill}>
-                                Aplicar
+                                {t('agent.apply')}
                               </Button>
                             ) : (
                               <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
@@ -902,22 +904,22 @@ export function NuevoCasoWizard({
                   </div>
                 ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Fármaco actual o candidato">
+                  <Field label={t('therapy.farmaco')}>
                     <input className={inputCls} value={form.currentDrug} onChange={(event) => setField('currentDrug', event.target.value)} placeholder="Infliximab" />
                   </Field>
-                  <Field label="Dosis actual">
+                  <Field label={t('therapy.dosis')}>
                     <input className={inputCls} value={form.currentDose} onChange={(event) => setField('currentDose', event.target.value)} placeholder="5 mg/kg" />
                   </Field>
-                  <Field label="Intervalo">
-                    <input className={inputCls} value={form.interval} onChange={(event) => setField('interval', event.target.value)} placeholder="Cada 8 semanas" />
+                  <Field label={t('therapy.intervalo')}>
+                    <input className={inputCls} value={form.interval} onChange={(event) => setField('interval', event.target.value)} placeholder={t('therapy.intervalo.placeholder')} />
                   </Field>
-                  <Field label="Vía de administración">
-                    <input className={inputCls} value={form.route} onChange={(event) => setField('route', event.target.value)} placeholder="Intravenosa" />
+                  <Field label={t('therapy.via')}>
+                    <input className={inputCls} value={form.route} onChange={(event) => setField('route', event.target.value)} placeholder={t('therapy.via.placeholder')} />
                   </Field>
-                  <Field label="Fecha de inicio del tratamiento">
+                  <Field label={t('therapy.inicioTratamiento')}>
                     <input type="date" className={inputCls} value={form.treatmentStartDate} onChange={(event) => setField('treatmentStartDate', event.target.value)} />
                   </Field>
-                  <Field label="Fecha de inicio de la pauta actual">
+                  <Field label={t('therapy.inicioPauta')}>
                     <input type="date" className={inputCls} value={form.regimenStartDate} onChange={(event) => setField('regimenStartDate', event.target.value)} />
                   </Field>
                 </div>
@@ -925,48 +927,48 @@ export function NuevoCasoWizard({
                 <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-[#152520]">Administraciones registradas</p>
-                      <p className="text-sm text-[#4a7068]">Últimas 4 en mantenimiento, o todas en inducción, con fecha, dosis y peso.</p>
+                      <p className="text-sm font-semibold text-[#152520]">{t('doses.title')}</p>
+                      <p className="text-sm text-[#4a7068]">{t('doses.subtitle')}</p>
                     </div>
                     <Button type="button" variant="outline" className="rounded-2xl text-sm" onClick={addDose}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Añadir administración
+                      {t('doses.add')}
                     </Button>
                   </div>
                   {form.doses.length === 0 ? (
                     <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-6 text-center text-sm text-[#4a7068]">
-                      Sin administraciones registradas. Son necesarias para el análisis farmacocinético y la simulación.
+                      {t('doses.empty')}
                     </p>
                   ) : (
                     <div className="space-y-3">
                       {form.doses.map((dose, index) => (
                         <div key={dose.id} className="rounded-2xl border border-slate-200 bg-white p-4">
                           <div className="mb-3 flex items-center justify-between">
-                            <p className="text-sm font-semibold text-[#152520]">Administración {index + 1}</p>
+                            <p className="text-sm font-semibold text-[#152520]">{t('doses.administracion').replaceAll('{n}', String(index + 1))}</p>
                             <button type="button" onClick={() => removeDose(dose.id)} className="text-xs text-red-600 hover:text-red-700">
-                              Eliminar
+                              {t('common.eliminar')}
                             </button>
                           </div>
                           <div className="grid gap-3 md:grid-cols-3">
-                            <Field label="Fecha y hora">
+                            <Field label={t('doses.fechaHora')}>
                               <input type="datetime-local" className={inputCls} value={dose.administeredAt} onChange={(event) => setDose(dose.id, 'administeredAt', event.target.value)} />
                             </Field>
-                            <Field label="Dosis">
+                            <Field label={t('doses.dosis')}>
                               <input className={inputCls} value={dose.doseAmount} onChange={(event) => setDose(dose.id, 'doseAmount', event.target.value)} placeholder="5 mg/kg" />
                             </Field>
-                            <Field label="Unidad">
+                            <Field label={t('common.unidad')}>
                               <input className={inputCls} value={dose.unit} onChange={(event) => setDose(dose.id, 'unit', event.target.value)} placeholder="mg" />
                             </Field>
-                            <Field label="Vía">
+                            <Field label={t('therapy.via')}>
                               <input className={inputCls} value={dose.route} onChange={(event) => setDose(dose.id, 'route', event.target.value)} placeholder="IV" />
                             </Field>
-                            <Field label="Peso (kg)">
+                            <Field label={t('doses.peso')}>
                               <input className={inputCls} value={dose.weightKg} onChange={(event) => setDose(dose.id, 'weightKg', event.target.value)} placeholder="71" />
                             </Field>
-                            <Field label="Fase">
+                            <Field label={t('doses.fase')}>
                               <select className={inputCls} value={dose.phase} onChange={(event) => setDose(dose.id, 'phase', event.target.value)}>
                                 {DOSE_PHASES.map((phase) => (
-                                  <option key={phase} value={phase}>{phase}</option>
+                                  <option key={phase} value={phase}>{t(phase)}</option>
                                 ))}
                               </select>
                             </Field>
@@ -977,22 +979,22 @@ export function NuevoCasoWizard({
                   )}
                 </div>
 
-                <Field label="Tratamientos previos">
+                <Field label={t('therapy.previos')}>
                   <textarea
                     className={textAreaCls}
                     rows={4}
                     value={form.previousTherapies}
                     onChange={(event) => setField('previousTherapies', event.target.value)}
-                    placeholder="Ejemplo: corticoides, adalimumab, azatioprina."
+                    placeholder={t('therapy.previos.placeholder')}
                   />
                 </Field>
-                <Field label="Adherencia referida">
+                <Field label={t('therapy.adherencia')}>
                   <textarea
                     className={textAreaCls}
                     rows={3}
                     value={form.adherence}
                     onChange={(event) => setField('adherence', event.target.value)}
-                    placeholder="Describe si la adherencia está confirmada, dudosa o pendiente."
+                    placeholder={t('therapy.adherencia.placeholder')}
                   />
                 </Field>
               </div>
@@ -1002,8 +1004,8 @@ export function NuevoCasoWizard({
               <div className="space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium text-[#152520]">Determinantes PK/PD</p>
-                    <p className="text-sm text-[#4a7068]">Añade valores y relación temporal con la dosis para que el caso sea interpretable.</p>
+                    <p className="text-sm font-medium text-[#152520]">{t('labs.title')}</p>
+                    <p className="text-sm text-[#4a7068]">{t('labs.subtitle')}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {DETERMINANT_SUGGESTIONS.map((suggestion) => (
@@ -1013,13 +1015,13 @@ export function NuevoCasoWizard({
                         onClick={() => addDeterminant(suggestion)}
                         className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-[#4a7068] hover:border-[#7b3fa0]/30 hover:bg-[#faf6fd] hover:text-[#7b3fa0]"
                       >
-                        + {suggestion}
+                        + {t(suggestion)}
                       </button>
                     ))}
                     {missingSuggestedDeterminants.length > 0 ? (
                       <Button type="button" variant="outline" className="rounded-full text-xs" onClick={applyAllDeterminantSuggestions} disabled={assistBusy}>
                         {assistBusy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-                        Aplicar sugerencias de Agentes
+                        {t('labs.aplicarSugerencias')}
                       </Button>
                     ) : null}
                   </div>
@@ -1029,46 +1031,46 @@ export function NuevoCasoWizard({
                   {form.determinants.map((determinant, index) => (
                     <div key={determinant.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
                       <div className="mb-3 flex items-center justify-between">
-                        <p className="text-sm font-semibold text-[#152520]">Determinante {index + 1}</p>
+                        <p className="text-sm font-semibold text-[#152520]">{t('labs.determinante.n').replaceAll('{n}', String(index + 1))}</p>
                         {form.determinants.length > 1 ? (
                           <button
                             type="button"
                             onClick={() => removeDeterminant(determinant.id)}
                             className="text-xs text-red-600 hover:text-red-700"
                           >
-                            Eliminar
+                            {t('common.eliminar')}
                           </button>
                         ) : null}
                       </div>
                       <div className="grid gap-4 md:grid-cols-2">
-                        <Field label="Nombre">
+                        <Field label={t('labs.nombre')}>
                           <input className={inputCls} value={determinant.label} onChange={(event) => setDeterminant(determinant.id, 'label', event.target.value)} />
                         </Field>
-                        <Field label="Valor">
+                        <Field label={t('labs.valor')}>
                           <input className={inputCls} value={determinant.value} onChange={(event) => setDeterminant(determinant.id, 'value', event.target.value)} placeholder="1.8" />
                         </Field>
-                        <Field label="Unidad">
+                        <Field label={t('common.unidad')}>
                           <input className={inputCls} value={determinant.unit} onChange={(event) => setDeterminant(determinant.id, 'unit', event.target.value)} placeholder="µg/mL" />
                         </Field>
-                        <Field label="Relación con la dosis">
-                          <input className={inputCls} value={determinant.relationToDose} onChange={(event) => setDeterminant(determinant.id, 'relationToDose', event.target.value)} placeholder="Valle confirmado" />
+                        <Field label={t('labs.relacion')}>
+                          <input className={inputCls} value={determinant.relationToDose} onChange={(event) => setDeterminant(determinant.id, 'relationToDose', event.target.value)} placeholder={t('labs.relacion.placeholder')} />
                         </Field>
-                        <Field label="Fecha y hora de extracción">
+                        <Field label={t('labs.fechaExtraccion')}>
                           <input type="datetime-local" className={inputCls} value={determinant.sampleDateTime} onChange={(event) => setDeterminant(determinant.id, 'sampleDateTime', event.target.value)} />
                         </Field>
-                        <Field label="Tipo de muestra">
+                        <Field label={t('labs.tipoMuestra')}>
                           <select className={inputCls} value={determinant.sampleType} onChange={(event) => setDeterminant(determinant.id, 'sampleType', event.target.value)}>
-                            <option value="">Pendiente de indicar</option>
+                            <option value="">{t('labs.pendienteIndicar')}</option>
                             {SAMPLE_TYPES.map((sampleType) => (
                               <option key={sampleType} value={sampleType}>{sampleType}</option>
                             ))}
                           </select>
                         </Field>
-                        <Field label="Fuente">
-                          <input className={inputCls} value={determinant.source} onChange={(event) => setDeterminant(determinant.id, 'source', event.target.value)} placeholder="Laboratorio" />
+                        <Field label={t('labs.fuente')}>
+                          <input className={inputCls} value={determinant.source} onChange={(event) => setDeterminant(determinant.id, 'source', event.target.value)} placeholder={t('labs.fuente.placeholder')} />
                         </Field>
-                        <Field label="Interpretación preliminar">
-                          <input className={inputCls} value={determinant.interpretation} onChange={(event) => setDeterminant(determinant.id, 'interpretation', event.target.value)} placeholder="Baja exposición" />
+                        <Field label={t('labs.interpretacion')}>
+                          <input className={inputCls} value={determinant.interpretation} onChange={(event) => setDeterminant(determinant.id, 'interpretation', event.target.value)} placeholder={t('labs.interpretacion.placeholder')} />
                         </Field>
                       </div>
                     </div>
@@ -1077,7 +1079,7 @@ export function NuevoCasoWizard({
 
                 <Button type="button" variant="outline" className="rounded-2xl text-sm" onClick={() => addDeterminant()}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Añadir otro determinante
+                  {t('labs.addOtro')}
                 </Button>
               </div>
             ) : null}
@@ -1085,30 +1087,30 @@ export function NuevoCasoWizard({
             {activeStep.id === 'completeness' ? (
               <div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-3">
-                  <MetricCard label="Completitud" value={`${completeness.score}%`} />
-                  <MetricCard label="Campos bloqueantes" value={String(completeness.missing.length)} />
-                  <MetricCard label="Advertencias" value={String(completeness.warnings.length)} />
+                  <MetricCard label={t('comp.metric.completitud')} value={`${completeness.score}%`} />
+                  <MetricCard label={t('comp.metric.bloqueantes')} value={String(completeness.missing.length)} />
+                  <MetricCard label={t('comp.metric.advertencias')} value={String(completeness.warnings.length)} />
                 </div>
                 <div className="grid gap-5 xl:grid-cols-2">
                   <StatusList
-                    title="Faltan datos obligatorios"
+                    title={t('comp.faltan')}
                     icon={AlertCircle}
                     color="red"
-                    items={completeness.missing}
-                    emptyLabel="No hay bloqueos críticos."
+                    items={completeness.missing.map((item) => t(item))}
+                    emptyLabel={t('comp.noBloqueos')}
                   />
                   <StatusList
-                    title="Advertencias operativas"
+                    title={t('comp.advertenciasOp')}
                     icon={Sparkles}
                     color="amber"
-                    items={completeness.warnings}
-                    emptyLabel="No se han detectado advertencias."
+                    items={completeness.warnings.map((item) => t(item))}
+                    emptyLabel={t('comp.noAdvertencias')}
                   />
                 </div>
                 <div className="rounded-3xl border border-[#7b3fa0]/20 bg-[#faf6fd] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">Sugerencia del sistema</p>
-                  <p className="mt-2 text-base font-semibold text-[#152520]">Estado inicial sugerido: {completeness.suggestedStage}</p>
-                  <p className="mt-1 text-sm text-[#4a7068]">Siguiente paso sugerido: {completeness.suggestedNextAction}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">{t('comp.sugerencia')}</p>
+                  <p className="mt-2 text-base font-semibold text-[#152520]">{t('comp.estadoInicial').replaceAll('{stage}', t(completeness.suggestedStage))}</p>
+                  <p className="mt-1 text-sm text-[#4a7068]">{t('comp.siguientePaso').replaceAll('{action}', t(completeness.suggestedNextAction))}</p>
                 </div>
               </div>
             ) : null}
@@ -1117,26 +1119,26 @@ export function NuevoCasoWizard({
               <div className="space-y-6">
                 <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
                   <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">Resumen de alta</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">{t('submit.resumen')}</p>
                     <h3 className="mt-2 text-lg font-semibold text-[#152520]">
-                      {form.caseType || 'Tipo pendiente'} · {form.currentDrug || 'Fármaco pendiente'}
+                      {form.caseType ? t(form.caseType) : t('submit.tipoPendiente')} · {form.currentDrug || t('submit.farmacoPendiente')}
                     </h3>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      <SummaryLine label="Paciente" value={form.patientCode || 'Pendiente'} />
-                      <SummaryLine label="Centro" value={selectedCenter?.name ?? 'Pendiente'} />
-                      <SummaryLine label="Solicitante" value={selectedRequester?.name ?? 'Pendiente'} />
-                      <SummaryLine label="Prioridad" value={form.priority} />
-                      <SummaryLine label="Determinantes con valor" value={String(form.determinants.filter((item) => item.label && item.value).length)} />
-                      <SummaryLine label="Estado inicial" value={completeness.suggestedStage} />
+                      <SummaryLine label={t('submit.paciente')} value={form.patientCode || t('common.pendiente')} />
+                      <SummaryLine label={t('submit.centro')} value={selectedCenter?.name ?? t('common.pendiente')} />
+                      <SummaryLine label={t('submit.solicitante')} value={selectedRequester?.name ?? t('common.pendiente')} />
+                      <SummaryLine label={t('submit.prioridad')} value={t(form.priority)} />
+                      <SummaryLine label={t('submit.determinantesValor')} value={String(form.determinants.filter((item) => item.label && item.value).length)} />
+                      <SummaryLine label={t('submit.estadoInicial')} value={t(completeness.suggestedStage)} />
                     </div>
                     <p className="mt-4 text-sm leading-6 text-[#4a7068]">{form.summary || form.trigger}</p>
                   </div>
                   <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">Resultado esperado</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4a7068]">{t('submit.resultado')}</p>
                     <ul className="mt-3 space-y-2 text-sm text-[#152520]">
-                      <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#7b3fa0]" /> Caso estructurado listo para la cola operativa.</li>
-                      <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#7b3fa0]" /> Gaps iniciales detectados y siguiente paso sugerido.</li>
-                      <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#7b3fa0]" /> Datos clínicos visibles al abrir el Case Cockpit.</li>
+                      <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#7b3fa0]" /> {t('submit.res1')}</li>
+                      <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#7b3fa0]" /> {t('submit.res2')}</li>
+                      <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[#7b3fa0]" /> {t('submit.res3')}</li>
                     </ul>
                   </div>
                 </div>
@@ -1159,7 +1161,7 @@ export function NuevoCasoWizard({
             <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
               <Button type="button" variant="outline" className="rounded-2xl text-sm" onClick={stepIndex === 0 ? onCancel : () => setStepIndex((value) => value - 1)}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                {stepIndex === 0 ? 'Cancelar' : 'Anterior'}
+                {stepIndex === 0 ? t('submit.cancelar') : t('submit.anterior')}
               </Button>
               <div className="flex gap-2">
                 {stepIndex < STEPS.length - 1 ? (
@@ -1169,13 +1171,13 @@ export function NuevoCasoWizard({
                     disabled={activeStep ? getStepErrors(activeStep.id).length > 0 : false}
                     onClick={() => setStepIndex((value) => value + 1)}
                   >
-                    Continuar
+                    {t('submit.continuar')}
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Button type="button" className="rounded-2xl bg-[#7b3fa0] text-sm text-white hover:bg-[#6a3490]" onClick={handleSubmit} disabled={submitting}>
                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                    Crear caso estructurado
+                    {t('submit.crear')}
                   </Button>
                 )}
               </div>
@@ -1186,63 +1188,63 @@ export function NuevoCasoWizard({
             <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
                 <Stethoscope className="h-4 w-4 text-[#7b3fa0]" />
-                <p className="text-sm font-semibold text-[#152520]">Ficha rápida del caso</p>
+                <p className="text-sm font-semibold text-[#152520]">{t('aside.ficha')}</p>
               </div>
               <div className="mt-4 space-y-3">
-                <SummaryLine label="Programa" value={activeProgram?.label ?? 'Crohn PK/PD'} />
-                <SummaryLine label="Tipo" value={form.caseType || 'Pendiente'} />
-                <SummaryLine label="Paciente" value={form.patientCode || 'Pendiente'} />
-                <SummaryLine label="Fármaco" value={form.currentDrug || 'Pendiente'} />
-                <SummaryLine label="Prioridad" value={form.priority} />
-                <SummaryLine label="Determinantes" value={String(form.determinants.filter((item) => item.label).length)} />
+                <SummaryLine label={t('aside.programa')} value={activeProgram?.label ?? t('program.fallback')} />
+                <SummaryLine label={t('aside.tipo')} value={form.caseType ? t(form.caseType) : t('common.pendiente')} />
+                <SummaryLine label={t('submit.paciente')} value={form.patientCode || t('common.pendiente')} />
+                <SummaryLine label={t('aside.farmaco')} value={form.currentDrug || t('common.pendiente')} />
+                <SummaryLine label={t('submit.prioridad')} value={t(form.priority)} />
+                <SummaryLine label={t('aside.determinantes')} value={String(form.determinants.filter((item) => item.label).length)} />
               </div>
             </div>
 
             <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
                 <FlaskConical className="h-4 w-4 text-[#7b3fa0]" />
-                <p className="text-sm font-semibold text-[#152520]">Completitud en vivo</p>
+                <p className="text-sm font-semibold text-[#152520]">{t('aside.completitudViva')}</p>
               </div>
               <div className="mt-4 rounded-2xl border border-[#7b3fa0]/20 bg-[#faf6fd] px-4 py-3">
                 <p className="text-2xl font-semibold text-[#152520]">{completeness.score}%</p>
-                <p className="mt-1 text-sm text-[#4a7068]">Se recalcula a medida que rellenas el formulario.</p>
+                <p className="mt-1 text-sm text-[#4a7068]">{t('aside.recalcula')}</p>
               </div>
               <div className="mt-4 space-y-2">
-                <InlineStatus label="Bloqueos" value={String(completeness.missing.length)} tone="red" />
-                <InlineStatus label="Advertencias" value={String(completeness.warnings.length)} tone="amber" />
-                <InlineStatus label="Siguiente paso" value={completeness.suggestedNextAction} tone="teal" />
+                <InlineStatus label={t('aside.bloqueos')} value={String(completeness.missing.length)} tone="red" />
+                <InlineStatus label={t('comp.metric.advertencias')} value={String(completeness.warnings.length)} tone="amber" />
+                <InlineStatus label={t('aside.siguientePaso')} value={t(completeness.suggestedNextAction)} tone="teal" />
               </div>
             </div>
 
             <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
                 <Bot className="h-4 w-4 text-[#7b3fa0]" />
-                <p className="text-sm font-semibold text-[#152520]">Agentes asistiendo la creación</p>
+                <p className="text-sm font-semibold text-[#152520]">{t('aside.agentes')}</p>
               </div>
               {assistBusy || historyLoading ? (
                 <div className="mt-4 space-y-2">
                   {[
-                    'Revisando el contexto del caso',
-                    'Comparando con patrones terapéuticos',
-                    'Preparando sugerencias aplicables',
+                    'aside.busy1',
+                    'aside.busy2',
+                    'aside.busy3',
                   ].map((step, index) => (
                     <div key={step} className="flex items-center gap-2 rounded-2xl border border-slate-100 bg-[#faf6fd] px-3 py-2 text-xs text-[#7b3fa0]">
                       {index === 1 ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Clock3 className="h-3.5 w-3.5" />}
-                      <span>{step}</span>
+                      <span>{t(step)}</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <>
                   <div className="mt-4 space-y-2">
-                    <InlineStatus label="Sugerencias" value={String(agentSuggestions.length)} tone="teal" />
-                    <InlineStatus label="Determinantes propuestos" value={String(missingSuggestedDeterminants.length)} tone="amber" />
-                    <InlineStatus label="Warnings de pauta" value={String(therapyWarnings.length)} tone={therapyWarnings.length > 0 ? 'red' : 'teal'} />
+                    <InlineStatus label={t('aside.sugerencias')} value={String(agentSuggestions.length)} tone="teal" />
+                    <InlineStatus label={t('aside.detPropuestos')} value={String(missingSuggestedDeterminants.length)} tone="amber" />
+                    <InlineStatus label={t('aside.warningsPauta')} value={String(therapyWarnings.length)} tone={therapyWarnings.length > 0 ? 'red' : 'teal'} />
                   </div>
 
                   {patientHistory?.items?.length ? (
                     <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4a7068]">Historial del paciente</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4a7068]">{t('aside.historial')}</p>
                       <p className="mt-1 text-sm font-semibold text-[#152520]">{patientHistory.patientCode}</p>
                       <div className="mt-3 space-y-2">
                         {patientHistory.items.slice(0, 3).map((item) => (
@@ -1254,12 +1256,12 @@ export function NuevoCasoWizard({
                         ))}
                       </div>
                       <Button size="sm" variant="outline" className="mt-3 w-full rounded-xl text-xs" onClick={applyPatientHistoryPrefill}>
-                        Reutilizar último contexto
+                        {t('aside.reutilizar')}
                       </Button>
                     </div>
                   ) : form.patientCode.trim().length >= 3 ? (
                     <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-xs text-[#4a7068]">
-                      No hay casos previos de este paciente en la red.
+                      {t('aside.sinCasos')}
                     </div>
                   ) : null}
                 </>

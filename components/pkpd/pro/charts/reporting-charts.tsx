@@ -22,6 +22,8 @@ import {
   YAxis,
 } from 'recharts'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
+
 type Datum = { label: string; value: number }
 
 const CHART_COLORS = ['#8dc63f', '#7b3fa0', '#1f8a70', '#4f46e5', '#f97316', '#dc2626', '#0f766e']
@@ -33,6 +35,7 @@ export function ReportingChartCard({
   label: string
   data: Datum[]
 }) {
+  const t = useXarxaT('charts-reporting')
   const variant = pickVariant(label, data)
   const icon = pickIcon(label)
 
@@ -40,7 +43,7 @@ export function ReportingChartCard({
     <section className="rounded-[24px] border border-slate-100 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">Indicador</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">{t('indicator.kicker')}</p>
           <h3 className="mt-1 text-sm font-semibold text-[#152520]">{label}</h3>
         </div>
         <div className="rounded-2xl bg-[#f5f8f5] p-2 text-[#4a7068]">
@@ -50,7 +53,7 @@ export function ReportingChartCard({
 
       {data.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-[#fbfcfb] px-4 py-8 text-center text-sm text-slate-400">
-          Sin datos para este indicador con los filtros actuales.
+          {t('indicator.empty')}
         </div>
       ) : variant === 'pie' ? (
         <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-center">
@@ -136,12 +139,13 @@ function DefaultTooltip({
   payload?: Array<{ value?: number; name?: string; payload?: Datum }>
   label?: string
 }) {
+  const t = useXarxaT('charts-reporting')
   if (!active || !payload?.length) return null
   const datum = payload[0]?.payload
   return (
     <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg">
       <p className="text-xs font-semibold text-[#152520]">{datum?.label ?? label}</p>
-      <p className="mt-1 text-xs text-[#4a7068]">Valor: {payload[0]?.value ?? 0}</p>
+      <p className="mt-1 text-xs text-[#4a7068]">{t('tooltip.value')}{payload[0]?.value ?? 0}</p>
     </div>
   )
 }

@@ -2,22 +2,24 @@
 
 import { AlertCircle, Inbox, Loader2, RefreshCw } from 'lucide-react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { Button } from '@/components/ui/button'
 
 export function WorkspaceLoadingState({
-  title = 'Cargando datos…',
+  title,
   detail,
 }: {
   title?: string
   detail?: string
 }) {
+  const t = useXarxaT('workspace-state')
   return (
     <div className="flex h-full min-h-[240px] items-center justify-center px-6 py-10">
       <div className="flex max-w-md flex-col items-center text-center">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2a9e90]/10 text-[#2a9e90]">
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
-        <p className="text-sm font-semibold text-[#152520]">{title}</p>
+        <p className="text-sm font-semibold text-[#152520]">{title ?? t('loading.title')}</p>
         {detail ? <p className="mt-1 text-sm text-[#4a7068]">{detail}</p> : null}
       </div>
     </div>
@@ -25,9 +27,9 @@ export function WorkspaceLoadingState({
 }
 
 export function WorkspaceErrorState({
-  title = 'No se han podido cargar los datos.',
+  title,
   detail,
-  actionLabel = 'Reintentar',
+  actionLabel,
   onRetry,
 }: {
   title?: string
@@ -35,13 +37,14 @@ export function WorkspaceErrorState({
   actionLabel?: string
   onRetry?: () => void
 }) {
+  const t = useXarxaT('workspace-state')
   return (
     <div className="flex h-full min-h-[240px] items-center justify-center px-6 py-10">
       <div className="flex max-w-md flex-col items-center rounded-3xl border border-red-100 bg-white px-8 py-8 text-center shadow-sm">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
           <AlertCircle className="h-5 w-5" />
         </div>
-        <p className="text-sm font-semibold text-[#152520]">{title}</p>
+        <p className="text-sm font-semibold text-[#152520]">{title ?? t('error.title')}</p>
         {detail ? <p className="mt-1 text-sm text-[#4a7068]">{detail}</p> : null}
         {onRetry ? (
           <Button
@@ -51,7 +54,7 @@ export function WorkspaceErrorState({
             onClick={onRetry}
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            {actionLabel}
+            {actionLabel ?? t('error.retry')}
           </Button>
         ) : null}
       </div>

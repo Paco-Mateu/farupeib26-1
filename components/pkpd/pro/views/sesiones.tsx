@@ -3,6 +3,7 @@
 import { Bot, Calendar, ChevronRight, ClipboardEdit, Clock, FlaskConical, Loader2, Mic, Monitor, Plus, Save, Sparkles, Users, Video, VideoOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { Button } from '@/components/ui/button'
 import {
   WorkspaceEmptyState,
@@ -69,19 +70,19 @@ const STATUS_META: Record<
   live: {
     dot: 'bg-emerald-500',
     pill: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-300',
-    label: 'En directo',
+    label: 'status.live',
     border: '#8dc63f',
   },
   scheduled: {
     dot: 'bg-[#7b3fa0]',
     pill: 'bg-purple-50 text-purple-700',
-    label: 'Programada',
+    label: 'status.scheduled',
     border: '#7b3fa0',
   },
   done: {
     dot: 'bg-slate-400',
     pill: 'bg-slate-100 text-slate-500',
-    label: 'Completada',
+    label: 'status.done',
     border: '#cbd5e1',
   },
 }
@@ -96,8 +97,9 @@ function tileInitials(name: string): string {
 }
 
 function MockVideoGrid({ participants }: { participants: string[] }) {
+  const t = useXarxaT('sesiones')
   const tiles = [...participants.slice(0, 4)]
-  while (tiles.length < 2) tiles.push('Moderador')
+  while (tiles.length < 2) tiles.push(t('mock.moderador'))
 
   return (
     <div className="relative overflow-hidden rounded-xl bg-slate-900" style={{ aspectRatio: '16/7' }}>
@@ -125,7 +127,7 @@ function MockVideoGrid({ participants }: { participants: string[] }) {
       <div className="absolute inset-0 flex items-center justify-center bg-slate-900/40 backdrop-blur-[1px]">
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-slate-800/70 px-6 py-5 text-center shadow-xl">
           <VideoOff className="h-7 w-7 text-slate-400" />
-          <p className="text-sm font-medium text-slate-200">Sesión no iniciada</p>
+          <p className="text-sm font-medium text-slate-200">{t('mock.sesion.no.iniciada')}</p>
         </div>
       </div>
 
@@ -151,6 +153,7 @@ function LlmExecutionRail({
   title: string
   steps: string[]
 }) {
+  const t = useXarxaT('sesiones')
   const [activeStep, setActiveStep] = useState(0)
 
   useEffect(() => {
@@ -168,7 +171,7 @@ function LlmExecutionRail({
           <Bot className="h-4 w-4 text-[#7b3fa0]" />
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#7b3fa0]">Agentes en ejecución</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#7b3fa0]">{t('rail.agentes.ejecucion')}</p>
           <p className="text-sm font-semibold text-[#152520]">{title}</p>
         </div>
       </div>
@@ -208,6 +211,7 @@ type SesionesProps = {
 }
 
 export function Sesiones({ onOpenCaso }: SesionesProps) {
+  const t = useXarxaT('sesiones')
   const [items, setItems] = useState<SessionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -224,7 +228,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       const response = await fetchJson<SessionsResponse>('/api/xarxa/sessions')
       setItems(response.items ?? [])
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'No se han podido cargar las sesiones.')
+      setError(loadError instanceof Error ? loadError.message : t('error.cargar.sesiones'))
     } finally {
       setLoading(false)
     }
@@ -244,9 +248,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
         body: JSON.stringify({}),
       })
       await loadSessions()
-      setNotice('Sesión manual creada.')
+      setNotice(t('notice.sesion.creada'))
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido crear la sesión.')
+      setError(actionError instanceof Error ? actionError.message : t('error.crear.sesion'))
     } finally {
       setBusyKey(null)
     }
@@ -263,9 +267,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       ])
       await loadSessions()
       setFocusSessionId(session.sessionId)
-      setNotice('Los Agentes han propuesto una nueva sesión de red con agenda inicial y justificación clínica.')
+      setNotice(t('notice.sesion.propuesta'))
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido proponer la sesión.')
+      setError(actionError instanceof Error ? actionError.message : t('error.proponer.sesion'))
     } finally {
       setBusyKey(null)
     }
@@ -282,9 +286,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       ])
       await loadSessions()
       setFocusSessionId(session.sessionId)
-      setNotice('Los Agentes han preparado el borrador de invitación para la sesión.')
+      setNotice(t('notice.invitacion.preparada'))
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido preparar la invitación.')
+      setError(actionError instanceof Error ? actionError.message : t('error.preparar.invitacion'))
     } finally {
       setBusyKey(null)
     }
@@ -302,7 +306,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       )
       await loadSessions()
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido actualizar la sesión.')
+      setError(actionError instanceof Error ? actionError.message : t('error.actualizar.sesion'))
     } finally {
       setBusyKey(null)
     }
@@ -348,9 +352,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
         }
       )
       await loadSessions()
-      setNotice(`Consenso registrado para ${caseId} y notificado en el expediente del caso.`)
+      setNotice(t('notice.consenso.registrado').replaceAll('{caseId}', caseId))
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido registrar el consenso.')
+      setError(actionError instanceof Error ? actionError.message : t('error.registrar.consenso'))
     } finally {
       setBusyKey(null)
     }
@@ -368,9 +372,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
       await loadSessions()
       setMinutesDrafts((current) => ({ ...current, [sessionId]: session.minutes ?? '' }))
       setFocusSessionId(sessionId)
-      setNotice('Borrador de acta generado a partir de la agenda y los consensos. Requiere revisión humana.')
+      setNotice(t('notice.acta.borrador'))
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido generar el acta.')
+      setError(actionError instanceof Error ? actionError.message : t('error.generar.acta'))
     } finally {
       setBusyKey(null)
     }
@@ -391,9 +395,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
         }
       )
       await loadSessions()
-      setNotice('Acta validada y registrada por el profesional.')
+      setNotice(t('notice.acta.validada'))
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido guardar el acta.')
+      setError(actionError instanceof Error ? actionError.message : t('error.guardar.acta'))
     } finally {
       setBusyKey(null)
     }
@@ -402,23 +406,23 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
   const activeLlmRail = useMemo(() => {
     if (busyKey === 'propose') {
       return {
-        title: 'Propuesta quincenal de sesión de red',
+        title: 'rail.propuesta.title',
         steps: [
-          'Analizando casos con valor clínico y docente',
-          'Priorizando centros y patrones a discutir',
-          'Proponiendo fecha y agenda inicial',
-          'Preparando la sesión para revisión humana',
+          'rail.propuesta.step1',
+          'rail.propuesta.step2',
+          'rail.propuesta.step3',
+          'rail.propuesta.step4',
         ],
       }
     }
     if (busyKey?.startsWith('invite:')) {
       return {
-        title: 'Preparación de invitación y agenda',
+        title: 'rail.invitacion.title',
         steps: [
-          'Leyendo agenda propuesta',
-          'Consolidando participantes y centros',
-          'Redactando invitación de red',
-          'Dejando borrador listo para validar',
+          'rail.invitacion.step1',
+          'rail.invitacion.step2',
+          'rail.invitacion.step3',
+          'rail.invitacion.step4',
         ],
       }
     }
@@ -428,8 +432,8 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
   if (loading && items.length === 0) {
     return (
       <WorkspaceLoadingState
-        title="Cargando sesiones de red…"
-        detail="Recuperando agenda colaborativa y casos preparados para discusión."
+        title={t('loading.title')}
+        detail={t('loading.detail')}
       />
     )
   }
@@ -437,7 +441,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
   if (error && items.length === 0) {
     return (
       <WorkspaceErrorState
-        title="No se han podido cargar las sesiones de red."
+        title={t('error.title')}
         detail={error}
         onRetry={() => void loadSessions()}
       />
@@ -447,9 +451,9 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
   if (items.length === 0) {
     return (
       <WorkspaceEmptyState
-        title="No hay sesiones de red preparadas."
-        detail="Cuando los casos se escalen para discusión colaborativa aparecerán aquí."
-        actionLabel="Proponer sesión con Agentes"
+        title={t('empty.title')}
+        detail={t('empty.detail')}
+        actionLabel={t('empty.action')}
         onAction={() => void proposeSession()}
       />
     )
@@ -462,10 +466,10 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-[#152520]">Sesiones de red</h2>
+              <h2 className="text-sm font-semibold text-[#152520]">{t('header.title')}</h2>
             </div>
             <p className="text-xs text-[#4a7068]">
-              Agenda colaborativa para casos con incertidumbre clínica o pendientes de discusión compartida.
+              {t('header.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -481,7 +485,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
               ) : (
                 <Video className="h-3.5 w-3.5" />
               )}
-              Nueva sesión manual
+              {t('header.nueva.manual')}
             </Button>
             <Button
               size="sm"
@@ -494,13 +498,16 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
               ) : (
                 <Bot className="h-3.5 w-3.5" />
               )}
-              Proponer sesión con Agentes
+              {t('header.proponer.agentes')}
             </Button>
           </div>
         </div>
         {activeLlmRail ? (
           <div className="mt-4">
-            <LlmExecutionRail title={activeLlmRail.title} steps={activeLlmRail.steps} />
+            <LlmExecutionRail
+              title={t(activeLlmRail.title)}
+              steps={activeLlmRail.steps.map((key) => t(key))}
+            />
           </div>
         ) : null}
         {notice ? (
@@ -548,10 +555,10 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                           ) : (
                             <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                           )}
-                          {meta.label}
+                          {t(meta.label)}
                         </span>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">
-                          {session.casesCount} caso{session.casesCount !== 1 ? 's' : ''}
+                          {t(session.casesCount !== 1 ? 'count.caso.many' : 'count.caso.one').replaceAll('{count}', String(session.casesCount))}
                         </span>
                       </div>
 
@@ -578,7 +585,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="h-3.5 w-3.5" />
-                          {session.participants.length} centro{session.participants.length !== 1 ? 's' : ''}
+                          {t(session.participants.length !== 1 ? 'count.centro.many' : 'count.centro.one').replaceAll('{count}', String(session.participants.length))}
                         </span>
                       </div>
 
@@ -609,7 +616,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                           ) : (
                             <Video className="h-3.5 w-3.5" />
                           )}
-                          Iniciar sesión
+                          {t('accion.iniciar')}
                         </Button>
                       )}
                       {isScheduled && (
@@ -625,13 +632,13 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                           ) : (
                             <Bot className="h-3.5 w-3.5" />
                           )}
-                          Invitación con Agentes
+                          {t('accion.invitacion.agentes')}
                         </Button>
                       )}
                       {isScheduled && (
                         <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] text-slate-400">
                           <VideoOff className="h-3 w-3" />
-                          Sala no iniciada
+                          {t('estado.sala.no.iniciada')}
                         </div>
                       )}
                       {isLive && (
@@ -646,11 +653,11 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                             {busyKey === `done:${session.sessionId}` ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             ) : null}
-                            Cerrar sesión
+                            {t('accion.cerrar')}
                           </Button>
                           <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] text-slate-400">
                             <Video className="h-3 w-3" />
-                            Sala activa
+                            {t('estado.sala.activa')}
                           </div>
                         </>
                       )}
@@ -661,12 +668,12 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                 {busyKey === `invite:${session.sessionId}` ? (
                   <div className="border-t border-slate-100 px-5 py-4">
                     <LlmExecutionRail
-                      title="Agentes redactando invitación y agenda"
+                      title={t('rail.invitacion.inline.title')}
                       steps={[
-                        'Revisando casos incluidos',
-                        'Agrupando participantes de la red',
-                        'Redactando el mensaje de invitación',
-                        'Dejando borrador listo para validar',
+                        t('rail.invitacion.inline.step1'),
+                        t('rail.invitacion.inline.step2'),
+                        t('rail.invitacion.inline.step3'),
+                        t('rail.invitacion.inline.step4'),
                       ]}
                     />
                   </div>
@@ -678,7 +685,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                       <div className="flex items-center gap-2">
                         <Bot className="h-4 w-4 text-[#7b3fa0]" />
                         <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">
-                          Propuesta de Agentes
+                          {t('label.propuesta.agentes')}
                         </p>
                       </div>
                       <p className="mt-2 text-sm leading-6 text-[#152520]">{session.proposalReason}</p>
@@ -699,7 +706,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                 {isLive && (
                   <div className="border-t border-slate-100 px-5 pb-4 pt-3">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
-                      Sala de videoconferencia
+                      {t('label.sala.videoconferencia')}
                     </p>
                     <MockVideoGrid participants={session.participants} />
                   </div>
@@ -709,7 +716,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                 {(session.cases ?? []).length > 0 && (
                   <div className="border-t border-slate-100 px-5 pb-4 pt-3">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
-                      Casos en agenda
+                      {t('label.casos.agenda')}
                     </p>
                     <div className="space-y-2">
                       {(session.cases ?? []).map((caso) => {
@@ -737,7 +744,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                                     className="rounded-xl text-xs"
                                     onClick={() => onOpenCaso(caso.caseId)}
                                   >
-                                    Abrir caso
+                                    {t('accion.abrir.caso')}
                                   </Button>
                                 ) : null}
                               </div>
@@ -745,39 +752,39 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
 
                             {savedConsensus ? (
                               <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-800">
-                                <span className="font-semibold">Consenso:</span> {savedConsensus.decision}
-                                {savedConsensus.dose ? ` · Pauta: ${savedConsensus.dose}` : ''}
-                                {savedConsensus.interval ? ` · Intervalo: ${savedConsensus.interval}` : ''}
-                                {savedConsensus.nextControl ? ` · Próximo control: ${savedConsensus.nextControl}` : ''}
+                                <span className="font-semibold">{t('consenso.label')}</span> {savedConsensus.decision}
+                                {savedConsensus.dose ? `${t('consenso.pauta')}${savedConsensus.dose}` : ''}
+                                {savedConsensus.interval ? `${t('consenso.intervalo')}${savedConsensus.interval}` : ''}
+                                {savedConsensus.nextControl ? `${t('consenso.proximo.control')}${savedConsensus.nextControl}` : ''}
                                 {savedConsensus.agreedBy ? ` — ${savedConsensus.agreedBy}` : ''}
                               </div>
                             ) : session.status !== 'done' ? (
                               <div className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5">
                                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
-                                  Registrar consenso de la comisión (UC-05)
+                                  {t('consenso.form.title')}
                                 </p>
                                 <div className="grid gap-2 md:grid-cols-2">
                                   <input
                                     className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
-                                    placeholder="Decisión (p. ej. Intensificar a q5 semanas)"
+                                    placeholder={t('consenso.placeholder.decision')}
                                     value={draft.decision}
                                     onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'decision', event.target.value)}
                                   />
                                   <input
                                     className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
-                                    placeholder="Pauta (p. ej. 90 mg)"
+                                    placeholder={t('consenso.placeholder.pauta')}
                                     value={draft.dose}
                                     onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'dose', event.target.value)}
                                   />
                                   <input
                                     className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
-                                    placeholder="Intervalo (p. ej. cada 5 semanas)"
+                                    placeholder={t('consenso.placeholder.intervalo')}
                                     value={draft.interval}
                                     onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'interval', event.target.value)}
                                   />
                                   <input
                                     className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
-                                    placeholder="Próximo control"
+                                    placeholder={t('consenso.placeholder.proximo.control')}
                                     value={draft.nextControl}
                                     onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'nextControl', event.target.value)}
                                   />
@@ -785,7 +792,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                                 <div className="mt-2 flex items-center justify-between gap-2">
                                   <input
                                     className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#7b3fa0]"
-                                    placeholder="Notas del debate (opcional)"
+                                    placeholder={t('consenso.placeholder.notas')}
                                     value={draft.notes}
                                     onChange={(event) => setConsensusDraft(session.sessionId, caso.caseId, 'notes', event.target.value)}
                                   />
@@ -796,13 +803,13 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                                     disabled={!!busyKey || !draft.decision.trim()}
                                   >
                                     {consensusBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ClipboardEdit className="h-3.5 w-3.5" />}
-                                    Registrar
+                                    {t('consenso.registrar')}
                                   </Button>
                                 </div>
                               </div>
                             ) : (
                               <div className="mt-2 rounded-lg bg-slate-100 px-3 py-2 text-[11px] text-slate-500">
-                                Sin consenso registrado en el acta.
+                                {t('consenso.sin.registro')}
                               </div>
                             )}
                           </div>
@@ -818,7 +825,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                       <div className="flex items-center gap-2">
                         <ChevronRight className="h-4 w-4 text-[#7b3fa0]" />
                         <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#4a7068]">
-                          Invitación preparada por Agentes
+                          {t('label.invitacion.preparada')}
                         </p>
                       </div>
                       <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-6 text-[#152520]">
@@ -833,7 +840,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                   <div className="border-t border-slate-100 px-5 pb-4 pt-3">
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <p className="text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
-                        Acta de la sesión {session.minutesEditedBy ? '· validada por humanos' : session.minutes ? '· borrador pendiente de validación' : ''}
+                        {t('acta.title')} {session.minutesEditedBy ? t('acta.validada') : session.minutes ? t('acta.borrador.pendiente') : ''}
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -848,7 +855,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                           ) : (
                             <Bot className="h-3.5 w-3.5" />
                           )}
-                          Borrador con Agentes
+                          {t('acta.borrador.agentes')}
                         </Button>
                         <Button
                           size="sm"
@@ -861,13 +868,13 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                           ) : (
                             <Save className="h-3.5 w-3.5" />
                           )}
-                          Validar acta
+                          {t('acta.validar')}
                         </Button>
                       </div>
                     </div>
                     <textarea
                       className="min-h-[180px] w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 font-mono text-xs leading-6 text-[#152520] outline-none transition focus:border-[#7b3fa0]"
-                      placeholder="El acta se generará a partir de la agenda y los consensos registrados. También puede redactarse a mano."
+                      placeholder={t('acta.placeholder')}
                       value={minutesDrafts[session.sessionId] ?? session.minutes ?? ''}
                       onChange={(event) =>
                         setMinutesDrafts((current) => ({ ...current, [session.sessionId]: event.target.value }))
@@ -875,7 +882,7 @@ export function Sesiones({ onOpenCaso }: SesionesProps) {
                     />
                     {session.minutesEditedBy ? (
                       <p className="mt-1.5 text-[10px] text-[#4a7068]">
-                        Acta editada por {session.minutesEditedBy}
+                        {t('acta.editada.por').replaceAll('{name}', session.minutesEditedBy)}
                         {session.minutesEditedAt ? ` · ${new Date(session.minutesEditedAt).toLocaleString('es-ES')}` : ''}
                       </p>
                     ) : null}
@@ -918,6 +925,7 @@ const TRAINING_STATUS_STYLE: Record<string, string> = {
 }
 
 function TrainingRequestsSection() {
+  const t = useXarxaT('sesiones')
   const [items, setItems] = useState<TrainingRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -933,7 +941,7 @@ function TrainingRequestsSection() {
       const response = await fetchJson<{ items: TrainingRequest[] }>('/api/xarxa/training-requests')
       setItems(response.items ?? [])
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'No se han podido cargar las solicitudes de formación.')
+      setError(loadError instanceof Error ? loadError.message : t('training.error.cargar'))
     } finally {
       setLoading(false)
     }
@@ -956,9 +964,9 @@ function TrainingRequestsSection() {
       setDraft({ title: '', drugDisease: '', justification: '', currentSituation: '', expectedImpact: '', bibliography: '', proposedDate: '', centerName: draft.centerName, requesterName: draft.requesterName, requesterCollegiate: draft.requesterCollegiate })
       setShowForm(false)
       await load()
-      setNotice('Solicitud de formación registrada y a disposición del HUB para su programación.')
+      setNotice(t('training.notice.registrada'))
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'No se ha podido registrar la solicitud.')
+      setError(submitError instanceof Error ? submitError.message : t('training.error.registrar'))
     } finally {
       setCreating(false)
     }
@@ -975,7 +983,7 @@ function TrainingRequestsSection() {
       })
       await load()
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido actualizar la solicitud.')
+      setError(actionError instanceof Error ? actionError.message : t('training.error.actualizar'))
     } finally {
       setBusyKey(null)
     }
@@ -987,12 +995,12 @@ function TrainingRequestsSection() {
     <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-[#152520]">Formación de la red (UC-03)</p>
-          <p className="text-xs text-[#4a7068]">Solicitudes de formación o revisión monográfica para las sesiones quincenales.</p>
+          <p className="text-sm font-semibold text-[#152520]">{t('training.title')}</p>
+          <p className="text-xs text-[#4a7068]">{t('training.subtitle')}</p>
         </div>
         <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => setShowForm((current) => !current)}>
           <Plus className={`mr-1.5 h-3.5 w-3.5 ${showForm ? 'rotate-45' : ''}`} />
-          {showForm ? 'Cerrar formulario' : 'Nueva solicitud'}
+          {showForm ? t('training.cerrar.formulario') : t('training.nueva.solicitud')}
         </Button>
       </div>
 
@@ -1002,31 +1010,31 @@ function TrainingRequestsSection() {
       {showForm ? (
         <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div className="grid gap-3 md:grid-cols-2">
-            <input className={inputCls} placeholder="Título resumido del tema (obligatorio)" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-            <input className={inputCls} placeholder="Fármaco y/o enfermedad" value={draft.drugDisease} onChange={(e) => setDraft({ ...draft, drugDisease: e.target.value })} />
-            <input className={inputCls} placeholder="Centro" value={draft.centerName} onChange={(e) => setDraft({ ...draft, centerName: e.target.value })} />
-            <input className={inputCls} placeholder="Fecha propuesta (AAAA-MM-DD)" value={draft.proposedDate} onChange={(e) => setDraft({ ...draft, proposedDate: e.target.value })} />
-            <input className={inputCls} placeholder="Solicitante" value={draft.requesterName} onChange={(e) => setDraft({ ...draft, requesterName: e.target.value })} />
-            <input className={inputCls} placeholder="Número de colegiado" value={draft.requesterCollegiate} onChange={(e) => setDraft({ ...draft, requesterCollegiate: e.target.value })} />
+            <input className={inputCls} placeholder={t('training.placeholder.titulo')} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+            <input className={inputCls} placeholder={t('training.placeholder.farmaco')} value={draft.drugDisease} onChange={(e) => setDraft({ ...draft, drugDisease: e.target.value })} />
+            <input className={inputCls} placeholder={t('training.placeholder.centro')} value={draft.centerName} onChange={(e) => setDraft({ ...draft, centerName: e.target.value })} />
+            <input className={inputCls} placeholder={t('training.placeholder.fecha')} value={draft.proposedDate} onChange={(e) => setDraft({ ...draft, proposedDate: e.target.value })} />
+            <input className={inputCls} placeholder={t('training.placeholder.solicitante')} value={draft.requesterName} onChange={(e) => setDraft({ ...draft, requesterName: e.target.value })} />
+            <input className={inputCls} placeholder={t('training.placeholder.colegiado')} value={draft.requesterCollegiate} onChange={(e) => setDraft({ ...draft, requesterCollegiate: e.target.value })} />
           </div>
-          <textarea className={`${inputCls} min-h-[70px]`} placeholder="Justificación de la necesidad formativa (obligatoria)" value={draft.justification} onChange={(e) => setDraft({ ...draft, justification: e.target.value })} />
+          <textarea className={`${inputCls} min-h-[70px]`} placeholder={t('training.placeholder.justificacion')} value={draft.justification} onChange={(e) => setDraft({ ...draft, justification: e.target.value })} />
           <div className="grid gap-3 md:grid-cols-2">
-            <textarea className={`${inputCls} min-h-[60px]`} placeholder="Situación actual en tu centro" value={draft.currentSituation} onChange={(e) => setDraft({ ...draft, currentSituation: e.target.value })} />
-            <textarea className={`${inputCls} min-h-[60px]`} placeholder="Impacto esperado" value={draft.expectedImpact} onChange={(e) => setDraft({ ...draft, expectedImpact: e.target.value })} />
+            <textarea className={`${inputCls} min-h-[60px]`} placeholder={t('training.placeholder.situacion')} value={draft.currentSituation} onChange={(e) => setDraft({ ...draft, currentSituation: e.target.value })} />
+            <textarea className={`${inputCls} min-h-[60px]`} placeholder={t('training.placeholder.impacto')} value={draft.expectedImpact} onChange={(e) => setDraft({ ...draft, expectedImpact: e.target.value })} />
           </div>
-          <textarea className={`${inputCls} min-h-[50px]`} placeholder="Referencias bibliográficas que justifican la solicitud" value={draft.bibliography} onChange={(e) => setDraft({ ...draft, bibliography: e.target.value })} />
+          <textarea className={`${inputCls} min-h-[50px]`} placeholder={t('training.placeholder.bibliografia')} value={draft.bibliography} onChange={(e) => setDraft({ ...draft, bibliography: e.target.value })} />
           <Button size="sm" className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]" onClick={() => void submit()} disabled={creating || !draft.title.trim() || !draft.justification.trim()}>
             {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
-            Registrar solicitud
+            {t('training.registrar')}
           </Button>
         </div>
       ) : null}
 
       {loading ? (
-        <div className="mt-4 flex items-center gap-2 text-xs text-[#4a7068]"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Cargando…</div>
+        <div className="mt-4 flex items-center gap-2 text-xs text-[#4a7068]"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('training.cargando')}</div>
       ) : items.length === 0 ? (
         <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-xs text-[#4a7068]">
-          No hay solicitudes de formación registradas.
+          {t('training.vacio')}
         </p>
       ) : (
         <div className="mt-4 space-y-2">
@@ -1037,11 +1045,11 @@ function TrainingRequestsSection() {
                   <p className="text-sm font-semibold text-[#152520]">{item.title}</p>
                   <p className="mt-0.5 text-[11px] text-[#4a7068]">
                     {item.requestId} · {item.type} · {item.centerName} · {item.requesterName}
-                    {item.requesterCollegiate ? ` (col. ${item.requesterCollegiate})` : ''}
-                    {item.proposedDate ? ` · fecha propuesta: ${item.proposedDate}` : ''}
+                    {item.requesterCollegiate ? t('training.col').replaceAll('{num}', item.requesterCollegiate) : ''}
+                    {item.proposedDate ? t('training.fecha.propuesta').replaceAll('{date}', item.proposedDate) : ''}
                   </p>
                   <p className="mt-1 text-xs text-[#4a7068]">{item.justification}</p>
-                  {item.expectedImpact ? <p className="mt-1 text-[11px] text-slate-500">Impacto esperado: {item.expectedImpact}</p> : null}
+                  {item.expectedImpact ? <p className="mt-1 text-[11px] text-slate-500">{t('training.impacto.esperado').replaceAll('{impact}', item.expectedImpact)}</p> : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${TRAINING_STATUS_STYLE[item.status] ?? 'bg-slate-100 text-slate-600'}`}>
@@ -1050,13 +1058,13 @@ function TrainingRequestsSection() {
                   {item.status === 'Propuesta' ? (
                     <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => void updateStatus(item.requestId, 'Programada')} disabled={!!busyKey}>
                       {busyKey === `Programada:${item.requestId}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Calendar className="h-3.5 w-3.5" />}
-                      Programar
+                      {t('training.programar')}
                     </Button>
                   ) : null}
                   {item.status === 'Programada' ? (
                     <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => void updateStatus(item.requestId, 'Impartida')} disabled={!!busyKey}>
                       {busyKey === `Impartida:${item.requestId}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                      Marcar impartida
+                      {t('training.marcar.impartida')}
                     </Button>
                   ) : null}
                 </div>

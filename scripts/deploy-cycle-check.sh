@@ -115,13 +115,11 @@ BACKEND_PORT="$(cat logs/pids/backend.port)"
 
 wait_for_url "http://127.0.0.1:${BACKEND_PORT}/api/health"
 wait_for_url "http://127.0.0.1:${FRONTEND_PORT}/"
-wait_for_url "http://127.0.0.1:${FRONTEND_PORT}/app"
 wait_for_url "http://127.0.0.1:${FRONTEND_PORT}/pro"
 
 echo "5. Verifying local routes..."
 curl -fsS "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null
 curl -fsS "http://127.0.0.1:${FRONTEND_PORT}/" >/dev/null
-curl -fsS "http://127.0.0.1:${FRONTEND_PORT}/app" >/dev/null
 curl -fsS "http://127.0.0.1:${FRONTEND_PORT}/pro" >/dev/null
 
 if [ -n "${OPENAI_API_KEY:-}" ]; then
@@ -176,10 +174,8 @@ if [ "$REMOTE_MODE" = "--remote-preview" ]; then
   fi
 
   echo "11. Verifying remote preview routes..."
-  validate_remote_route "/" "We are building this prototype live today\\." || CHECK_FAILURE=1
-  validate_remote_route "/app" "End-user portal" || CHECK_FAILURE=1
-  validate_remote_route "/pro" "Professional portal" || CHECK_FAILURE=1
-  validate_remote_route "/api/health" "\"service\":\"Prototype Sprint Kit API\"" || CHECK_FAILURE=1
+  validate_remote_route "/" "plataforma colaborativa" || CHECK_FAILURE=1
+  validate_remote_route "/api/health" "\"service\":\"Xarxa PK/PD API\"" || CHECK_FAILURE=1
 fi
 
 if [ "$REMOTE_MODE" = "--remote-production" ]; then
@@ -199,10 +195,8 @@ if [ "$REMOTE_MODE" = "--remote-production" ]; then
   fi
 
   echo "11. Verifying remote production routes..."
-  validate_remote_route "/" "We are building this prototype live today\\." || CHECK_FAILURE=1
-  validate_remote_route "/app" "End-user portal" || CHECK_FAILURE=1
-  validate_remote_route "/pro" "Professional portal" || CHECK_FAILURE=1
-  validate_remote_route "/api/health" "\"service\":\"Prototype Sprint Kit API\"" || CHECK_FAILURE=1
+  validate_remote_route "/" "plataforma colaborativa" || CHECK_FAILURE=1
+  validate_remote_route "/api/health" "\"service\":\"Xarxa PK/PD API\"" || CHECK_FAILURE=1
 fi
 
 if [ "$CHECK_FAILURE" -ne 0 ]; then

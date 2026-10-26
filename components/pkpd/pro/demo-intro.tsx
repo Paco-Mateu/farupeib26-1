@@ -1,17 +1,22 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Award } from 'lucide-react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { DemoTabs } from '@/components/pkpd/pro/demo-tabs'
 
 export function DemoIntro() {
+  const t = useXarxaT('demo-intro')
+
   return (
     <main className="min-h-screen bg-white text-[#152520]">
       {/* Clinical disclaimer */}
       <div className="border-b border-amber-200 bg-amber-50 px-6 py-3">
         <div className="mx-auto max-w-7xl">
           <p className="text-xs leading-relaxed text-amber-800">
-            <strong>Aviso importante:</strong> Este prototipo ha sido desarrollado exclusivamente para demostrar las capacidades actuales de la IA en el desarrollo acelerado de aplicaciones. El contenido clínico — workflows, interpretaciones PK/PD, recomendaciones y datos — puede contener errores y <strong>no ha sido diseñado ni validado para uso clínico real</strong>. No debe utilizarse para tomar decisiones terapéuticas.
+            <strong>{t('intro.disclaimer.label')}</strong> {t('intro.disclaimer.body')}<strong>{t('intro.disclaimer.strong')}</strong>{t('intro.disclaimer.tail')}
           </p>
         </div>
       </div>
@@ -22,7 +27,7 @@ export function DemoIntro() {
           <div className="flex flex-wrap items-center gap-3">
             <Image src="/brand/xarxapkpd.png" alt="Xarxa PK/PD" width={180} height={42} style={{ width: 'auto', height: '42px' }} />
             <span className="rounded-full bg-[#f3ebfa] px-3 py-1 text-xs font-semibold text-[#7b3fa0]">
-              Plataforma colaborativa de inteligencia clínica PK/PD
+              {t('intro.badge')}
             </span>
           </div>
         </div>
@@ -33,31 +38,31 @@ export function DemoIntro() {
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
             <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-[#152520]">
-              Xarxa PK/PD es una plataforma colaborativa donde cada caso de optimización terapéutica se convierte en conocimiento compartido, trazable y aumentado por IA.
+              {t('intro.h1')}
             </h1>
             <p className="mt-5 max-w-4xl text-base leading-8 text-[#4a7068]">
-              Nace del proyecto <em>&quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;</em>, liderado por la Dra. María Badia desde 2025 en el Hospital Universitari de Bellvitge, presentado en la 10ª Jornada FARUPEIB y construido como prototipo conceptual para explorar cómo la IA generativa puede convertir una visión clínica en una experiencia digital tangible.
+              {t('intro.story.a')}<em>{t('intro.story.project')}</em>{t('intro.story.b')}
             </p>
             <p className="mt-4 max-w-4xl text-base leading-8 text-[#4a7068]">
-              La IA estructura, detecta gaps y prepara borradores. El farmacéutico hospitalario revisa, ajusta, valida y decide. <strong className="text-[#152520]">La decisión final siempre permanece en manos del equipo clínico.</strong>
+              {t('intro.ai.a')}<strong className="text-[#152520]">{t('intro.ai.strong')}</strong>
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/?vista=bandeja"
                 className="inline-flex items-center rounded-2xl bg-[#7b3fa0] px-5 py-3 text-sm font-semibold text-white! shadow-sm transition hover:bg-[#6a3490]"
               >
-                Iniciar demo guiada
+                {t('intro.cta.demo')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
                 href="/?vista=casos"
                 className="inline-flex items-center rounded-2xl border border-[#7b3fa0] bg-white px-5 py-3 text-sm font-semibold text-[#7b3fa0] transition hover:border-[#6a3490] hover:bg-[#faf6fd] hover:text-[#6a3490]"
               >
-                Entrar en la cola de casos
+                {t('intro.cta.queue')}
               </Link>
             </div>
             <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 lg:hidden">
-              La demo interactiva está pensada para escritorio. Desde móvil puedes revisar esta introducción y abrir el entorno completo más tarde en un ordenador.
+              {t('intro.mobile.note')}
             </div>
           </div>
 
@@ -71,14 +76,14 @@ export function DemoIntro() {
             >
               <Image
                 src="/brand/Jornades-FARUPEIB_14-05.png"
-                alt="10ª Jornadas FARUPEIB Lazareto — Illa Llatzeret, Menorca"
+                alt={t('intro.alt.jornades')}
                 width={800}
                 height={400}
                 className="h-40 w-full object-cover transition group-hover:brightness-90"
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
                 <span className="rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
-                  Ver programa FARUPEIB 2026 ↗
+                  {t('intro.ver.programa')}
                 </span>
               </div>
             </a>
@@ -86,14 +91,14 @@ export function DemoIntro() {
               <div className="flex items-center gap-2">
                 <Award className="h-4 w-4 text-[#7b3fa0]" />
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">
-                  Origen del prototipo
+                  {t('intro.origin.kicker')}
                 </p>
               </div>
               <p className="mt-4 text-sm leading-7 text-[#4a7068]">
-                Este prototipo surge de la actividad <strong className="text-[#152520]">Networking Lazareto, Proyectos de Innovación</strong>, celebrada en el marco de la <strong className="text-[#152520]">10ª Jornada FARUPEIB</strong>.
+                {t('intro.origin.a')}<strong className="text-[#152520]">{t('intro.origin.activity')}</strong>{t('intro.origin.b')}<strong className="text-[#152520]">{t('intro.origin.jornada')}</strong>{t('intro.origin.c')}
               </p>
               <p className="mt-3 text-sm leading-7 text-[#4a7068]">
-                El proyecto <strong className="text-[#152520]">&quot;Cómo innovar en PK/PD desde la Farmacia Hospitalaria&quot;</strong>, liderado por la <strong className="text-[#152520]">Dra. María Badia, Jefa del Servicio de Farmacia del Hospital Universitari de Bellvitge</strong>, fue seleccionado como proyecto ganador.
+                {t('intro.origin.project.a')}<strong className="text-[#152520]">{t('intro.origin.project.name')}</strong>{t('intro.origin.project.b')}<strong className="text-[#152520]">{t('intro.origin.project.leader')}</strong>{t('intro.origin.project.c')}
               </p>
               <div className="mt-4 rounded-2xl border border-[#7b3fa0]/10 bg-white p-4 shadow-sm">
                 <Image
@@ -105,7 +110,7 @@ export function DemoIntro() {
                 />
               </div>
               <p className="mt-4 text-sm leading-7 text-[#4a7068]">
-                Prototipo desarrollado por <strong className="text-[#152520]">Francesc Mateu, Field CTO, Healthcare at MongoDB</strong>.
+                {t('intro.credit.a')}<strong className="text-[#152520]">Francesc Mateu, Field CTO, Healthcare at MongoDB</strong>{t('intro.credit.b')}
               </p>
             </div>
           </div>
@@ -118,17 +123,17 @@ export function DemoIntro() {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#7b3fa0]/15 bg-[#faf6fd] px-8 py-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">
-                Explorar la demo
+                {t('intro.explore.kicker')}
               </p>
               <h2 className="mt-1.5 text-2xl font-semibold text-[#152520]">
-                Todo lo que verás, cuando lo necesites
+                {t('intro.explore.title')}
               </h2>
             </div>
             <Link
               href="/?vista=bandeja"
               className="inline-flex items-center rounded-2xl bg-[#7b3fa0] px-4 py-2.5 text-sm font-semibold text-white! transition hover:bg-[#6a3490]"
             >
-              Entrar en la demo
+              {t('intro.explore.cta')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>

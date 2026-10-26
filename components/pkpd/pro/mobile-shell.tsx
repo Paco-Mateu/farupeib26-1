@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { AgentesIa } from '@/components/pkpd/pro/views/agentes-ia'
 import { BandejaIa } from '@/components/pkpd/pro/views/bandeja-ia'
 import { CaseCockpit, type CaseCockpitLaunchPreset } from '@/components/pkpd/pro/views/case-cockpit'
@@ -82,17 +83,14 @@ function SectionEmpty({ icon: Icon, label }: { icon: React.ElementType; label: s
 
 // ── LLM Execution Rail (mirrors CaseLlmExecutionRail + AgentLlmStream) ────────
 
-const AGENT_STEPS = [
-  'Releyendo determinantes y contexto clínico',
-  'Reconstruyendo interpretación PK/PD',
-  'Preparando recomendación trazable',
-  'Actualizando borrador de nota HCE',
-]
+const AGENT_STEPS = ['rail.step.1', 'rail.step.2', 'rail.step.3', 'rail.step.4']
 
-function LlmExecutionRail({ headline = 'Actualizando el paquete del caso' }: { headline?: string }) {
+function LlmExecutionRail({ headline }: { headline?: string }) {
+  const t = useXarxaT('mobile-shell')
+  const resolvedHeadline = headline ?? t('rail.headline')
   const [activeStep, setActiveStep] = useState(0)
   const [visibleChars, setVisibleChars] = useState(0)
-  const outputText = 'Análisis PK/PD completado. Patrón identificado. Borrador de recomendación preparado para revisión farmacéutica.'
+  const outputText = t('rail.output')
 
   useEffect(() => {
     setActiveStep(0)
@@ -117,8 +115,8 @@ function LlmExecutionRail({ headline = 'Actualizando el paquete del caso' }: { h
           <Bot className="h-4 w-4 text-[#7b3fa0]" />
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">Agentes en ejecución</p>
-          <p className="text-xs font-semibold text-[#152520]">{headline}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">{t('rail.agents')}</p>
+          <p className="text-xs font-semibold text-[#152520]">{resolvedHeadline}</p>
         </div>
       </div>
 
@@ -143,7 +141,7 @@ function LlmExecutionRail({ headline = 'Actualizando el paquete del caso' }: { h
                   ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
                   : <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-slate-200" />
               }
-              <span className={isRunning ? 'font-semibold' : ''}>{step}</span>
+              <span className={isRunning ? 'font-semibold' : ''}>{t(step)}</span>
             </div>
           )
         })}
@@ -151,7 +149,7 @@ function LlmExecutionRail({ headline = 'Actualizando el paquete del caso' }: { h
 
       {/* Typewriter output */}
       <div className="mt-3 rounded-xl border border-slate-100 bg-[#faf9ff] p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068]">Salida de Agentes</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068]">{t('rail.output.label')}</p>
         <p className="mt-1.5 min-h-[40px] text-xs leading-5 text-[#152520]">
           {outputText.slice(0, visibleChars)}
           {visibleChars < outputText.length && (
@@ -178,6 +176,7 @@ function AutomationPanel({
   onOrchestrate: () => void
   onOpenCase: () => void
 }) {
+  const t = useXarxaT('mobile-shell')
   return (
     <div className="border-t border-[#7b3fa0]/10 bg-[#faf9ff] px-4 py-4 space-y-3">
       {/* Agent metrics */}
@@ -188,15 +187,15 @@ function AutomationPanel({
               <Bot className="h-3.5 w-3.5 text-[#7b3fa0]" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">Agentes trabajando</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b3fa0]">{t('panel.agents.working')}</p>
               <p className="text-xs font-semibold text-[#152520]">{automation.headline}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: 'Agentes',    value: automation.agentsInvolved?.length ?? 0 },
-              { label: 'Borradores', value: automation.draftsReady ?? 0 },
-              { label: 'Tareas',     value: automation.pendingTasks ?? 0 },
+              { label: t('panel.metric.agentes'),    value: automation.agentsInvolved?.length ?? 0 },
+              { label: t('panel.metric.borradores'), value: automation.draftsReady ?? 0 },
+              { label: t('panel.metric.tareas'),     value: automation.pendingTasks ?? 0 },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-xl bg-[#faf6fd] px-2.5 py-2 text-center">
                 <p className="text-[9px] uppercase tracking-[0.1em] text-[#4a7068]">{label}</p>
@@ -224,7 +223,7 @@ function AutomationPanel({
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#7b3fa0] py-3 text-sm font-semibold text-white transition active:scale-95"
       >
         <ExternalLink className="h-4 w-4" />
-        Abrir caso completo
+        {t('panel.open')}
       </button>
     </div>
   )
@@ -275,12 +274,12 @@ function MobileTopBar({
 
 // ── Bottom Navigation ─────────────────────────────────────────────────────────
 
-const BOTTOM_TABS: Array<{ id: MobileTab; label: string; icon: React.ElementType }> = [
-  { id: 'casos',         label: 'Casos',    icon: LayoutDashboard },
-  { id: 'bandeja',       label: 'Bandeja',  icon: Inbox },
-  { id: 'profesionales', label: 'Red',      icon: Users2 },
-  { id: 'sesiones',      label: 'Sesiones', icon: Video },
-  { id: 'reporting',     label: 'Informes', icon: BarChart3 },
+const BOTTOM_TABS: Array<{ id: MobileTab; labelKey: string; icon: React.ElementType }> = [
+  { id: 'casos',         labelKey: 'tab.casos',    icon: LayoutDashboard },
+  { id: 'bandeja',       labelKey: 'tab.bandeja',  icon: Inbox },
+  { id: 'profesionales', labelKey: 'tab.red',      icon: Users2 },
+  { id: 'sesiones',      labelKey: 'tab.sesiones', icon: Video },
+  { id: 'reporting',     labelKey: 'tab.informes', icon: BarChart3 },
 ]
 
 const PRIMARY_TABS: MobileTab[] = ['casos', 'bandeja', 'profesionales', 'sesiones', 'reporting']
@@ -295,13 +294,14 @@ function MobileBottomNav({
   bandejaCount: number
 }) {
   const activeRoot: MobileTab = PRIMARY_TABS.includes(active) ? active : 'mas'
+  const t = useXarxaT('mobile-shell')
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-20 flex h-16 items-stretch border-t border-slate-200 bg-white"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      {BOTTOM_TABS.map(({ id, label, icon: Icon }) => {
+      {BOTTOM_TABS.map(({ id, labelKey, icon: Icon }) => {
         const isActive = activeRoot === id
         return (
           <button
@@ -318,7 +318,7 @@ function MobileBottomNav({
               )}
             </div>
             <span className={`text-[10px] font-medium transition ${isActive ? 'text-[#7b3fa0]' : 'text-[#4a7068]'}`}>
-              {label}
+              {t(labelKey)}
             </span>
             {isActive && (
               <span className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-t-full bg-[#7b3fa0]" />
@@ -347,6 +347,7 @@ function MobileCasoCard({
   onToggleExpand: (id: string) => void
   onOrchestrate: (id: string) => void
 }) {
+  const t = useXarxaT('mobile-shell')
   const stage = STAGE_LABEL[caso.pipelineStage] ?? caso.pipelineStage
   const stageStyle = STAGE_STYLE[caso.pipelineStage] ?? 'bg-slate-400 text-white'
   const border = priorityBorder(caso.priority)
@@ -398,8 +399,8 @@ function MobileCasoCard({
           <Bot className={`h-3.5 w-3.5 shrink-0 ${orchestrating ? 'animate-pulse' : ''} text-[#7b3fa0]`} />
           <span className="flex-1 text-left text-[11px] text-[#4a7068]">
             {orchestrating
-              ? 'Agentes trabajando…'
-              : `${caso.automationSummary!.draftsReady} borrad. · ${caso.automationSummary!.pendingTasks} tarea${caso.automationSummary!.pendingTasks === 1 ? '' : 's'}`
+              ? t('card.automation.working')
+              : `${caso.automationSummary!.draftsReady} ${t('card.automation.borrad')} · ${caso.automationSummary!.pendingTasks} ${t(caso.automationSummary!.pendingTasks === 1 ? 'card.automation.tarea' : 'card.automation.tareas')}`
             }
           </span>
           <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-[#7b3fa0]/60 transition-transform ${expanded ? 'rotate-180' : ''}`} />
@@ -433,6 +434,7 @@ function MobileCasosList({
   onNuevo: () => void
   onCasosChanged: () => Promise<void>
 }) {
+  const t = useXarxaT('mobile-shell')
   const [search, setSearch] = useState('')
   const [expandedAutomationId, setExpandedAutomationId] = useState<string | null>(null)
   const [orchestratingId, setOrchestratingId] = useState<string | null>(null)
@@ -473,7 +475,7 @@ function MobileCasosList({
             <ClipboardEdit className="h-4 w-4 text-[#7b3fa0]" />
           </div>
           <div>
-            <p className="text-[11px] text-[#4a7068]">Requieren acción</p>
+            <p className="text-[11px] text-[#4a7068]">{t('list.requieren')}</p>
             <p className="text-lg font-bold text-[#7b3fa0]">{urgentes}</p>
           </div>
         </div>
@@ -482,7 +484,7 @@ function MobileCasosList({
             <AlertTriangle className="h-4 w-4 text-amber-600" />
           </div>
           <div>
-            <p className="text-[11px] text-[#4a7068]">Incompletos</p>
+            <p className="text-[11px] text-[#4a7068]">{t('list.incompletos')}</p>
             <p className="text-lg font-bold text-amber-600">{incompletos}</p>
           </div>
         </div>
@@ -494,7 +496,7 @@ function MobileCasosList({
           <Search className="h-4 w-4 shrink-0 text-[#4a7068]" />
           <input
             type="text"
-            placeholder="Buscar paciente o título…"
+            placeholder={t('list.search.placeholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="flex-1 bg-transparent text-sm text-[#152520] outline-none placeholder:text-[#4a7068]/60"
@@ -509,7 +511,7 @@ function MobileCasosList({
 
       {/* Case cards */}
       {filtered.length === 0
-        ? <SectionEmpty icon={LayoutDashboard} label="Sin casos para mostrar" />
+        ? <SectionEmpty icon={LayoutDashboard} label={t('list.empty')} />
         : filtered.map(c => (
             <MobileCasoCard
               key={c.caseId}
@@ -528,7 +530,7 @@ function MobileCasosList({
         onClick={onNuevo}
         className="fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#7b3fa0] shadow-lg transition active:scale-95"
         style={{ boxShadow: '0 4px 20px rgba(123,63,160,0.35)' }}
-        title="Nuevo caso"
+        title={t('fab.nuevo.title')}
       >
         <FilePlus className="h-6 w-6 text-white" />
       </button>
@@ -539,25 +541,26 @@ function MobileCasosList({
 // ── Más ───────────────────────────────────────────────────────────────────────
 
 function MobileMas({ onNavigateTo }: { onNavigateTo: (tab: MobileTab) => void }) {
+  const t = useXarxaT('mobile-shell')
   const sections = [
     {
-      label: 'Red clínica',
+      label: t('mas.section.red'),
       items: [
-        { label: 'Red de profesionales', icon: Users2,   tab: 'profesionales' as MobileTab },
-        { label: 'Sesiones de red',          icon: Video,    tab: 'sesiones'      as MobileTab },
+        { label: t('mas.profesionales'), icon: Users2,   tab: 'profesionales' as MobileTab },
+        { label: t('mas.sesiones'),          icon: Video,    tab: 'sesiones'      as MobileTab },
       ],
     },
     {
-      label: 'Analítica',
+      label: t('mas.section.analitica'),
       items: [
-        { label: 'Informes y actividad', icon: BarChart3, tab: 'reporting' as MobileTab },
+        { label: t('mas.informes'), icon: BarChart3, tab: 'reporting' as MobileTab },
       ],
     },
     {
-      label: 'Administración',
+      label: t('mas.section.admin'),
       items: [
-        { label: 'Agentes IA',  icon: Bot,       tab: 'agentes' as MobileTab },
-        { label: 'Config.',     icon: Cog,       tab: null as unknown as MobileTab },
+        { label: t('mas.agentes'),  icon: Bot,       tab: 'agentes' as MobileTab },
+        { label: t('mas.config'),     icon: Cog,       tab: null as unknown as MobileTab },
       ],
     },
   ]
@@ -584,7 +587,7 @@ function MobileMas({ onNavigateTo }: { onNavigateTo: (tab: MobileTab) => void })
           </div>
         </div>
       ))}
-      <p className="mt-2 text-center text-[11px] text-slate-400">Xarxa PK/PD Intelligence Hub · v0.1</p>
+      <p className="mt-2 text-center text-[11px] text-slate-400">{t('mas.footer')}</p>
     </div>
   )
 }
@@ -592,6 +595,7 @@ function MobileMas({ onNavigateTo }: { onNavigateTo: (tab: MobileTab) => void })
 // ── Main MobileShell export ───────────────────────────────────────────────────
 
 export function MobileShell() {
+  const t = useXarxaT('mobile-shell')
   const [activeTab, setActiveTab] = useState<MobileTab>('casos')
 
   // Case drill-in state
@@ -667,14 +671,14 @@ export function MobileShell() {
 
   // Secondary tab titles (shown in top bar)
   const TITLE_MAP: Partial<Record<MobileTab, string>> = {
-    casos:         'Casos PK/PD',
-    bandeja:       'Bandeja IA',
-    sesiones:      'Sesiones',
-    mas:           'Xarxa PK/PD',
-    profesionales: 'Red de profesionales',
-    reporting:     'Informes',
-    agentes:       'Agentes IA',
-    nuevo:         'Nuevo caso',
+    casos:         t('title.casos'),
+    bandeja:       t('title.bandeja'),
+    sesiones:      t('title.sesiones'),
+    mas:           t('title.mas'),
+    profesionales: t('title.profesionales'),
+    reporting:     t('title.reporting'),
+    agentes:       t('title.agentes'),
+    nuevo:         t('title.nuevo'),
   }
 
   const SECONDARY_TABS: MobileTab[] = ['agentes']
@@ -721,7 +725,7 @@ export function MobileShell() {
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2">
               <AlertTriangle className="h-8 w-8 text-amber-400" />
-              <p className="text-sm text-[#4a7068]">No se pudo cargar el caso</p>
+              <p className="text-sm text-[#4a7068]">{t('shell.error.caso')}</p>
             </div>
           )
         )}

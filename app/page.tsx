@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 
 import { DemoIntro } from '@/components/pkpd/pro/demo-intro'
+import { WorkspaceLoadingFallback } from '@/components/pkpd/pro/workspace-loading-fallback'
 import { XarraPro } from '@/components/pkpd/pro/xarxa-pro'
 
 export default function Home({
@@ -19,13 +20,7 @@ export default function Home({
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f7faf9] text-sm text-[#4a7068]">
-          Cargando espacio de trabajo…
-        </div>
-      }
-    >
+    <Suspense fallback={<WorkspaceLoadingFallback />}>
       <XarraPro />
     </Suspense>
   )

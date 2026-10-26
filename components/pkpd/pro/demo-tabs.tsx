@@ -18,87 +18,85 @@ import {
   Zap,
 } from 'lucide-react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
+
 const DEMO_HIGHLIGHTS = [
   {
     icon: Bot,
-    tag: 'Entrada inteligente',
-    title: 'Del email al caso estructurado',
-    text: 'Un correo clínico se convierte automáticamente en un caso revisable, con campos sugeridos, highlights y validación humana antes de entrar al pipeline.',
+    tag: 'demo.highlight.entry.tag',
+    title: 'demo.highlight.entry.title',
+    text: 'demo.highlight.entry.text',
   },
   {
     icon: Users2,
-    tag: 'Colaboración multidisciplinar',
-    title: 'Un caso, varios especialistas',
-    text: 'Farmacia, Digestivo, Enfermería y Laboratorio trabajan sobre el mismo caso con un siguiente paso compartido, trazas de agentes y decisiones documentadas.',
+    tag: 'demo.highlight.collab.tag',
+    title: 'demo.highlight.collab.title',
+    text: 'demo.highlight.collab.text',
   },
   {
     icon: FileText,
-    tag: 'Trazabilidad total',
-    title: 'Cada decisión queda registrada',
-    text: 'Recomendación, borrador HCE, tareas y outcome quedan trazados como conocimiento reutilizable — no solo para el caso, sino para toda la red.',
+    tag: 'demo.highlight.trace.tag',
+    title: 'demo.highlight.trace.title',
+    text: 'demo.highlight.trace.text',
   },
 ]
 
 const DEMO_STEPS = [
   {
-    title: 'Bandeja IA',
-    description:
-      'Parte de una solicitud clínica realista. La IA identifica el tipo de caso, extrae información útil, detecta gaps y propone las primeras tareas antes de que el equipo empiece.',
+    title: 'demo.step.inbox.title',
+    description: 'demo.step.inbox.description',
     href: '/?vista=bandeja',
-    action: 'Abrir Bandeja IA',
+    action: 'demo.step.inbox.action',
   },
   {
-    title: 'Cola de casos PK/PD',
-    description:
-      'La solicitud se convierte en un caso estructurado con timeline, determinantes, estado del pipeline, profesionales implicados y trazas de agentes listos para validación.',
+    title: 'demo.step.queue.title',
+    description: 'demo.step.queue.description',
     href: '/?vista=casos',
-    action: 'Ir a Casos PK/PD',
+    action: 'demo.step.queue.action',
   },
   {
-    title: 'Case Cockpit',
-    description:
-      'El equipo trabaja sobre una visión única: datos clínicos, tratamiento, laboratorio, gaps, tareas, interpretación PK/PD, escenarios posibles, recomendación e informe HCE.',
+    title: 'demo.step.cockpit.title',
+    description: 'demo.step.cockpit.description',
     href: '/?vista=casos',
-    action: 'Ver Case Cockpit',
+    action: 'demo.step.cockpit.action',
   },
   {
-    title: 'Validación de la recomendación',
-    description:
-      'El farmacéutico revisa la interpretación preparada por los agentes, ajusta el razonamiento si es necesario y genera una recomendación farmacoterapéutica trazable.',
+    title: 'demo.step.validation.title',
+    description: 'demo.step.validation.description',
     href: '/?vista=casos',
-    action: 'Revisar recomendación',
+    action: 'demo.step.validation.action',
   },
   {
-    title: 'Cierre del ciclo de aprendizaje',
-    description:
-      'El caso queda vinculado a seguimiento, outcomes y aprendizaje de red. La plataforma acompaña el resultado y convierte cada caso validado en conocimiento compartible.',
+    title: 'demo.step.closure.title',
+    description: 'demo.step.closure.description',
     href: '/?vista=reporting',
-    action: 'Abrir Informes y aprendizaje',
+    action: 'demo.step.closure.action',
   },
 ]
 
 const WORKFLOW_POINTS = [
-  { icon: Bot,    text: 'El email se estructura con LLM y se revisa antes de crear el caso.' },
-  { icon: Layers, text: 'El caso pasa a un cockpit clínico con validación humana campo a campo.' },
-  { icon: Zap,    text: 'La recomendación, la nota HCE y el outcome quedan trazados como conocimiento de red.' },
+  { icon: Bot,    text: 'demo.workflow.email' },
+  { icon: Layers, text: 'demo.workflow.cockpit' },
+  { icon: Zap,    text: 'demo.workflow.traced' },
 ]
 
 const PROTOTYPE_NOTES = [
-  'No es un producto final. Es una demostración de posibilidades.',
-  'Convierte una visión clínica en una experiencia tangible y compartible.',
-  'Está pensado para crecer desde Crohn PK/PD hacia nuevos circuitos y especialidades.',
+  'demo.prototype.notProduct',
+  'demo.prototype.vision',
+  'demo.prototype.grow',
 ]
 
 type TabId = 'highlights' | 'journey' | 'positioning' | 'nextsteps'
 
 const TABS: Array<{ id: TabId; label: string }> = [
-  { id: 'highlights',  label: 'Qué verás' },
-  { id: 'journey',     label: 'Recorrido' },
-  { id: 'positioning', label: 'Posicionamiento' },
-  { id: 'nextsteps',   label: 'Próximos pasos' },
+  { id: 'highlights',  label: 'demo.tab.highlights' },
+  { id: 'journey',     label: 'demo.tab.journey' },
+  { id: 'positioning', label: 'demo.tab.positioning' },
+  { id: 'nextsteps',   label: 'demo.tab.nextsteps' },
 ]
 
 export function DemoTabs() {
+  const t = useXarxaT('demo-intro')
   const [active, setActive] = useState<TabId>('highlights')
 
   return (
@@ -118,7 +116,7 @@ export function DemoTabs() {
                 : 'text-[#7b3fa0]/70 hover:bg-[#7b3fa0]/10 hover:text-[#7b3fa0]',
             ].join(' ')}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </div>
@@ -127,10 +125,10 @@ export function DemoTabs() {
       <div className={active === 'highlights' ? 'mt-6' : 'hidden'}>
         <div className="mb-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">
-            Tres capacidades clave
+            {t('demo.highlights.kicker')}
           </p>
           <p className="mt-1 text-lg font-semibold text-[#152520]">
-            Lo que diferencia esta plataforma de una lista de tareas clínicas
+            {t('demo.highlights.title')}
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -141,11 +139,11 @@ export function DemoTabs() {
                   <Icon className="h-5 w-5" />
                 </div>
                 <span className="rounded-full bg-[#7b3fa0]/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#7b3fa0]">
-                  {tag}
+                  {t(tag)}
                 </span>
               </div>
-              <h3 className="mt-4 text-base font-semibold text-[#152520]">{title}</h3>
-              <p className="mt-2 text-sm leading-7 text-[#4a7068]">{text}</p>
+              <h3 className="mt-4 text-base font-semibold text-[#152520]">{t(title)}</h3>
+              <p className="mt-2 text-sm leading-7 text-[#4a7068]">{t(text)}</p>
             </article>
           ))}
         </div>
@@ -155,7 +153,7 @@ export function DemoTabs() {
             className="inline-flex items-center gap-2 rounded-2xl bg-[#7b3fa0] px-5 py-2.5 text-sm font-semibold text-white! transition hover:bg-[#6a3490]"
           >
             <Sparkles className="h-4 w-4" />
-            Probar la demo
+            {t('demo.cta.try')}
           </Link>
         </div>
       </div>
@@ -164,10 +162,10 @@ export function DemoTabs() {
       <div className={active === 'journey' ? 'mt-6' : 'hidden'}>
         <div className="mb-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">
-            Flujo de trabajo
+            {t('demo.journey.kicker')}
           </p>
           <p className="mt-1 text-lg font-semibold text-[#152520]">
-            Cinco pasos, desde el email hasta el cierre del caso
+            {t('demo.journey.title')}
           </p>
         </div>
         <div className="relative">
@@ -184,11 +182,11 @@ export function DemoTabs() {
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <p className="font-semibold text-[#152520]">{step.title}</p>
-                    <p className="mt-1 text-sm leading-6 text-[#4a7068]">{step.description}</p>
+                    <p className="font-semibold text-[#152520]">{t(step.title)}</p>
+                    <p className="mt-1 text-sm leading-6 text-[#4a7068]">{t(step.description)}</p>
                   </div>
                   <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#7b3fa0]/20 bg-white px-3 py-2 text-xs font-semibold text-[#7b3fa0] transition group-hover:border-[#7b3fa0]/40 group-hover:bg-[#f3ebfa]">
-                    {step.action}
+                    {t(step.action)}
                     <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                   </div>
                 </div>
@@ -203,25 +201,25 @@ export function DemoTabs() {
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="rounded-2xl bg-[#7b3fa0] p-7 text-white shadow-md">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
-              Propuesta de valor
+              {t('demo.value.kicker')}
             </p>
             <p className="mt-4 text-lg font-semibold leading-8">
-              Xarxa PK/PD Intelligence Hub es una plataforma colaborativa de inteligencia clínica que ayuda a equipos hospitalarios multidisciplinares a optimizar terapias complejas mediante workflows PK/PD estructurados, agentes IA supervisados, validación humana y aprendizaje descentralizado de red.
+              {t('demo.value.text')}
             </p>
           </div>
           <div className="space-y-2.5">
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Flujo de trabajo</p>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">{t('demo.workflow.kicker')}</p>
             {WORKFLOW_POINTS.map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-start gap-3 rounded-xl border border-[#7b3fa0]/15 bg-[#faf6fd] px-4 py-3">
                 <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#7b3fa0]" />
-                <p className="text-sm leading-6 text-[#152520]">{text}</p>
+                <p className="text-sm leading-6 text-[#152520]">{t(text)}</p>
               </div>
             ))}
-            <p className="mb-1 mt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Sobre el prototipo</p>
+            <p className="mb-1 mt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('demo.about.kicker')}</p>
             {PROTOTYPE_NOTES.map((item) => (
               <div key={item} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                <p className="text-sm leading-6 text-[#4a7068]">{item}</p>
+                <p className="text-sm leading-6 text-[#4a7068]">{t(item)}</p>
               </div>
             ))}
           </div>
@@ -233,39 +231,39 @@ export function DemoTabs() {
 
         {/* Demo disclaimer */}
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700">Contexto importante</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700">{t('demo.context.kicker')}</p>
           <p className="mt-2 text-sm leading-7 text-amber-800">
-            Este prototipo demuestra <strong>posibilidades</strong>, no está preparado para producción. Llegar ahí requiere trabajo en dos dimensiones paralelas: infraestructura profesional y nuevas capacidades clínicas.
+            {t('demo.context.a')}<strong>{t('demo.context.strong')}</strong>{t('demo.context.b')}
           </p>
         </div>
 
         {/* Production requirements */}
         <div>
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Para ir a producción</p>
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">{t('demo.production.kicker')}</p>
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               {
                 icon: Lock,
-                title: 'Autenticación y acceso',
-                text: 'Identidad federada con los sistemas hospitalarios, roles clínicos, SSO y auditoría de acceso conforme a normativa sanitaria.',
+                title: 'demo.prod.auth.title',
+                text: 'demo.prod.auth.text',
               },
               {
                 icon: Layers,
-                title: 'Multi-tenancy y centros',
-                text: 'Aislamiento de datos por hospital y programa terapéutico, con gobernanza por red y posibilidad de compartir conocimiento de forma controlada.',
+                title: 'demo.prod.multitenant.title',
+                text: 'demo.prod.multitenant.text',
               },
               {
                 icon: FileText,
-                title: 'Seguridad y cumplimiento',
-                text: 'Cifrado en tránsito y en reposo, trazabilidad de agentes IA, cumplimiento RGPD/LOPDGDD y preparación para certificación como producto sanitario.',
+                title: 'demo.prod.security.title',
+                text: 'demo.prod.security.text',
               },
             ].map(({ icon: Icon, title, text }) => (
               <div key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-200 text-slate-600">
                   <Icon className="h-4 w-4" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[#152520]">{title}</p>
-                <p className="mt-1.5 text-xs leading-6 text-[#4a7068]">{text}</p>
+                <p className="mt-3 text-sm font-semibold text-[#152520]">{t(title)}</p>
+                <p className="mt-1.5 text-xs leading-6 text-[#4a7068]">{t(text)}</p>
               </div>
             ))}
           </div>
@@ -278,9 +276,9 @@ export function DemoTabs() {
               <Database className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">De casos a conocimiento</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">{t('demo.knowledge.kicker')}</p>
               <p className="mt-2 text-base font-semibold leading-7">
-                Cada caso validado es un dato estructurado. La visión es convertir esta colección en una base de conocimiento clínico consultable: a través de un copiloto conversacional y a través de consultas estructuradas sobre cohortes, efectos y patrones terapéuticos.
+                {t('demo.knowledge.text')}
               </p>
             </div>
           </div>
@@ -288,32 +286,32 @@ export function DemoTabs() {
 
         {/* 4 next capabilities */}
         <div>
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">Próximas capacidades</p>
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7b3fa0]">{t('demo.next.kicker')}</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
               {
                 icon: Users2,
                 num: '01',
-                title: 'Aprendizaje sobre cohortes',
-                text: 'Identificar patrones entre pacientes con perfiles similares: qué fármacos funcionan mejor, en qué rangos de dosis, con qué respuestas clínicas. La red aprende de sí misma.',
+                title: 'demo.cap.cohorts.title',
+                text: 'demo.cap.cohorts.text',
               },
               {
                 icon: TrendingUp,
                 num: '02',
-                title: 'Aprendizaje sobre efectos',
-                text: 'Correlacionar niveles PK/PD con outcomes reales: respuesta clínica, eventos adversos, tiempo hasta remisión. Cada cierre de caso alimenta el modelo de conocimiento.',
+                title: 'demo.cap.effects.title',
+                text: 'demo.cap.effects.text',
               },
               {
                 icon: GitMerge,
                 num: '03',
-                title: 'Integración con sistemas',
-                text: 'Conectar con HIS, LIS y HCE de forma síncrona (determinantes en tiempo real) o asíncrona (importación por batch), según las posibilidades de cada centro.',
+                title: 'demo.cap.integration.title',
+                text: 'demo.cap.integration.text',
               },
               {
                 icon: MessageCircle,
                 num: '04',
-                title: 'Interacción y co-creación',
-                text: 'Posibilidades de opinión, preguntas y protocolos por programa terapéutico. Conversaciones entre especialistas, decisiones compartidas y co-creación de guías clínicas sobre los datos reales de la red.',
+                title: 'demo.cap.cocreation.title',
+                text: 'demo.cap.cocreation.text',
               },
             ].map(({ icon: Icon, num, title, text }) => (
               <div key={title} className="flex gap-4 rounded-2xl border border-[#7b3fa0]/15 bg-[#faf6fd] p-5">
@@ -323,9 +321,9 @@ export function DemoTabs() {
                 <div>
                   <div className="flex items-center gap-2">
                     <Icon className="h-4 w-4 text-[#7b3fa0]" />
-                    <p className="text-sm font-semibold text-[#152520]">{title}</p>
+                    <p className="text-sm font-semibold text-[#152520]">{t(title)}</p>
                   </div>
-                  <p className="mt-1.5 text-xs leading-6 text-[#4a7068]">{text}</p>
+                  <p className="mt-1.5 text-xs leading-6 text-[#4a7068]">{t(text)}</p>
                 </div>
               </div>
             ))}
