@@ -7,6 +7,7 @@ from typing import Any
 from backend.auth.admin_token import require_admin_token
 from backend.services.xarxa_seed import seed_xarxa_demo
 from backend.services.xarxa_terminology import list_xarxa_drug_panels, list_xarxa_pathology_scores
+from backend.services.xarxa_similarity import find_similar_cases
 from backend.services.xarxa_training import (
     create_xarxa_training_request,
     list_xarxa_training_requests,
@@ -432,6 +433,17 @@ async def post_run_bayes(case_id: str):
         return run_xarxa_bayes(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=_error_status(exc), detail=str(exc)) from exc
+
+
+@router.post("/cases/{case_id}/similar-cases")
+async def post_similar_cases(case_id: str):
+    try:
+        return find_similar_cases(case_id)
+    except ValueError as exc:
+        status = 503 if "vectorial" in str(exc) or "Vector Search" in str(exc) else _error_status(exc)
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+    except OpenAIConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/cases/{case_id}/orchestrate")

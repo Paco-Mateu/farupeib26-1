@@ -567,6 +567,95 @@ function BayesMipdCard({
   )
 }
 
+type SimilarCaseItem = {
+  caseId: string
+  title: string
+  centerName: string
+  caseType: string
+  pipelineStage: string
+  patientCode: string
+  recommendation?: { text?: string; status?: string }
+  score: number
+}
+
+function SimilarCasesCard({ caso }: { caso: CasoCompleto }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [items, setItems] = useState<SimilarCaseItem[] | null>(null)
+  const [note, setNote] = useState<string | null>(null)
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    setNote(null)
+    try {
+      const payload = await fetchJson<{ caseId: string; items: SimilarCaseItem[]; total: number; note: string }>(
+        `/api/xarxa/cases/${caso.caseId}/similar-cases`,
+        { method: 'POST' },
+      )
+      setItems(payload.items)
+      setNote(payload.note)
+    } catch (runError) {
+      setError(runError instanceof Error ? runError.message : 'No se han podido buscar casos similares.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100">
+            <Layers className="h-4 w-4 text-slate-600" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Memoria de la red · Atlas Vector Search</p>
+            <p className="text-sm font-semibold text-[#152520]">Casos similares resueltos por la red</p>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => void run()} disabled={busy}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+          Buscar casos similares
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>
+      ) : null}
+
+      {items && items.length === 0 ? (
+        <p className="mt-3 text-xs text-[#4a7068]">No hay casos lo bastante parecidos en la memoria de la red.</p>
+      ) : null}
+
+      {items && items.length > 0 ? (
+        <div className="mt-3 space-y-2">
+          {items.map((item) => (
+            <div key={item.caseId} className="rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-[#152520]">
+                  {item.caseId} · {item.title}
+                </p>
+                <span className="rounded-full bg-[#7b3fa0]/10 px-2 py-0.5 text-[10px] font-semibold text-[#7b3fa0]">
+                  similitud {item.score.toFixed(3)}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] text-[#4a7068]">
+                {item.centerName} · {item.caseType} · {item.pipelineStage}
+              </p>
+              {item.recommendation?.text ? (
+                <p className="mt-1 line-clamp-2 text-[11px] text-slate-600">Decisión de la red: {item.recommendation.text}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {note ? <p className="mt-2 text-[10px] text-slate-500">{note}</p> : null}
+    </div>
+  )
+}
+
 function UrgentSlaChip({ caso }: { caso: CasoCompleto }) {
   const resolved = ['Informe validado', 'Registrado en HCE', 'Seguimiento 4 semanas', 'Seguimiento 8 semanas', 'Cerrado con resultado']
     .includes(caso.pipelineStage)
@@ -1332,6 +1421,8 @@ export function CaseCockpit({
                   <PkpdRulesCard caso={currentCase} onCaseUpdated={setCurrentCase} />
                   <div className="my-6 border-t border-slate-100" />
                   <BayesMipdCard caso={currentCase} onCaseUpdated={setCurrentCase} />
+                  <div className="my-6 border-t border-slate-100" />
+                  <SimilarCasesCard caso={currentCase} />
                   <div className="my-6 border-t border-slate-100" />
                   <TabAnalisis caso={currentCase} program={program} />
                   <div className="my-6 border-t border-slate-100" />
