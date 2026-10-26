@@ -2,6 +2,7 @@
 
 import { ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar, Cell, CartesianGrid } from 'recharts'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import type { TimelineEvent } from '@/components/pkpd/pro/xarxa-types'
 
 const LANE_PALETTE: Record<string, string> = {
@@ -27,16 +28,18 @@ export function TimelineLaneOverview({
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value)
 
+  const t = useXarxaT('charts-timeline')
+
   if (!counts.length) return null
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Actividad por pista</p>
-          <p className="mt-1 text-sm font-semibold text-[#152520]">Qué tipo de trabajo concentra este caso</p>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{t('lanes.kicker')}</p>
+          <p className="mt-1 text-sm font-semibold text-[#152520]">{t('lanes.title')}</p>
         </div>
-        <p className="text-xs text-[#4a7068]">{timeline.length} eventos registrados</p>
+        <p className="text-xs text-[#4a7068]">{t('lanes.events.count').replaceAll('{count}', String(timeline.length))}</p>
       </div>
 
       <div className="h-[220px]">
@@ -70,12 +73,13 @@ function LaneTooltip({
   active?: boolean
   payload?: Array<{ value?: number; payload?: { label: string; value: number } }>
 }) {
+  const t = useXarxaT('charts-timeline')
   if (!active || !payload?.length) return null
   const datum = payload[0]?.payload
   return (
     <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg">
       <p className="text-xs font-semibold text-[#152520]">{datum?.label}</p>
-      <p className="mt-1 text-xs text-[#4a7068]">{datum?.value} eventos</p>
+      <p className="mt-1 text-xs text-[#4a7068]">{t('lanes.tooltip.count').replaceAll('{count}', String(datum?.value ?? ''))}</p>
     </div>
   )
 }

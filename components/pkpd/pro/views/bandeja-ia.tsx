@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { Button } from '@/components/ui/button'
 import { ActionConfirmDialog } from '@/components/ui/action-confirm-dialog'
 import {
@@ -59,31 +60,31 @@ type ExtractionCategory = 'paciente' | 'medicacion' | 'determinante' | 'contexto
 
 const EXTRACTION_CATEGORY_META: Record<
   ExtractionCategory,
-  { label: string; mark: string; chip: string; section: string }
+  { labelKey: string; mark: string; chip: string; sectionKey: string }
 > = {
   paciente: {
-    label: 'Paciente',
+    labelKey: 'cat.paciente.label',
     mark: 'bg-sky-50 text-sky-800 ring-1 ring-sky-200',
     chip: 'bg-sky-100 text-sky-700',
-    section: 'Paciente y perfil',
+    sectionKey: 'cat.paciente.section',
   },
   medicacion: {
-    label: 'Medicación',
+    labelKey: 'cat.medicacion.label',
     mark: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200',
     chip: 'bg-emerald-100 text-emerald-700',
-    section: 'Tratamiento',
+    sectionKey: 'cat.medicacion.section',
   },
   determinante: {
-    label: 'Determinante',
+    labelKey: 'cat.determinante.label',
     mark: 'bg-amber-50 text-amber-900 ring-1 ring-amber-200',
     chip: 'bg-amber-100 text-amber-800',
-    section: 'Determinantes y biomarcadores',
+    sectionKey: 'cat.determinante.section',
   },
   contexto: {
-    label: 'Contexto',
+    labelKey: 'cat.contexto.label',
     mark: 'bg-rose-50 text-rose-800 ring-1 ring-rose-200',
     chip: 'bg-rose-100 text-rose-700',
-    section: 'Contexto clínico',
+    sectionKey: 'cat.contexto.section',
   },
 }
 
@@ -108,17 +109,18 @@ const EXTRACTION_FIELD_CATEGORIES: Record<string, ExtractionCategory> = {
 }
 
 function AgentStatusBadge({ status }: { status: InboxItem['agentStatus'] }) {
-  const map: Record<InboxItem['agentStatus'], { label: string; className: string }> = {
-    pending: { label: 'En cola', className: 'bg-slate-100 text-slate-500' },
-    processing: { label: 'Procesando', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
-    ready: { label: 'Listo para crear caso', className: 'bg-[#faf6fd] text-[#7b3fa0] ring-1 ring-[#7b3fa0]/30' },
-    error: { label: 'Error de extracción', className: 'bg-red-50 text-red-700 ring-1 ring-red-200' },
-    created: { label: 'Caso creado', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
+  const t = useXarxaT('bandeja-ia')
+  const map: Record<InboxItem['agentStatus'], { labelKey: string; className: string }> = {
+    pending: { labelKey: 'status.pending', className: 'bg-slate-100 text-slate-500' },
+    processing: { labelKey: 'status.processing', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
+    ready: { labelKey: 'status.ready', className: 'bg-[#faf6fd] text-[#7b3fa0] ring-1 ring-[#7b3fa0]/30' },
+    error: { labelKey: 'status.error', className: 'bg-red-50 text-red-700 ring-1 ring-red-200' },
+    created: { labelKey: 'status.created', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
   }
   const variant = map[status]
   return (
     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${variant.className}`}>
-      {variant.label}
+      {t(variant.labelKey)}
     </span>
   )
 }
@@ -155,13 +157,14 @@ function AgentThinkingPanel({ steps }: { steps: Array<{ label: string; status: I
 }
 
 function AgentCreateCasePanel() {
+  const t = useXarxaT('bandeja-ia')
   return (
     <AgentThinkingPanel
       steps={[
-        { label: 'Creando caso clínico', status: 'done' },
-        { label: 'Validando completitud del caso', status: 'running' },
-        { label: 'Preparando tareas iniciales', status: 'pending' },
-        { label: 'Caso listo para abrir', status: 'pending' },
+        { label: t('create.step.1'), status: 'done' },
+        { label: t('create.step.2'), status: 'running' },
+        { label: t('create.step.3'), status: 'pending' },
+        { label: t('create.step.4'), status: 'pending' },
       ]}
     />
   )
@@ -174,13 +177,14 @@ function ProcessingPanel({
   steps: Array<{ label: string; status: InboxStepStatus }>
   extraction?: InboxItem['extraction']
 }) {
+  const t = useXarxaT('bandeja-ia')
   const fields = getStructuredFields(extraction)
 
   return (
     <div className="space-y-4">
       <AgentThinkingPanel steps={steps} />
       <div className="rounded-xl border border-[#7b3fa0]/15 bg-[#faf6fd] p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">Borrador en curso</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t('processing.draft')}</p>
         {fields.length > 0 ? (
           <div className="mt-2 space-y-2">
             {fields.slice(0, 8).map((field) => (
@@ -188,7 +192,7 @@ function ProcessingPanel({
                 key={field.key}
                 className="flex items-center justify-between gap-3 rounded-xl border border-white/70 bg-white/80 px-2.5 py-2 text-xs shadow-sm"
               >
-                <span className="text-[#7b3fa0]">{field.label}</span>
+                <span className="text-[#7b3fa0]">{t(field.label)}</span>
                 <span className="font-semibold text-[#152520]">{field.value}</span>
               </div>
             ))}
@@ -196,7 +200,7 @@ function ProcessingPanel({
         ) : (
           <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-100 bg-white/70 px-3 py-2 text-xs text-slate-500">
             <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7b3fa0]" />
-            Esperando primeros campos estructurados…
+            {t('processing.waiting')}
           </div>
         )}
       </div>
@@ -205,12 +209,13 @@ function ProcessingPanel({
 }
 
 function PendingPanel() {
+  const t = useXarxaT('bandeja-ia')
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
         <Sparkles className="h-5 w-5 text-slate-400" />
       </div>
-      <p className="text-sm font-medium text-slate-500">Solicitud pendiente</p>
+      <p className="text-sm font-medium text-slate-500">{t('pending.title')}</p>
     </div>
   )
 }
@@ -224,9 +229,10 @@ function ReadyPanel({
   activeFieldKey: string | null
   onFieldClick: (field: StructuredField) => void
 }) {
+  const t = useXarxaT('bandeja-ia')
   const extractedFields = getStructuredFields(extraction)
   const groupedFields = extractedFields.reduce<Record<string, typeof extractedFields>>((groups, field) => {
-    const group = EXTRACTION_CATEGORY_META[field.category].section
+    const group = EXTRACTION_CATEGORY_META[field.category].sectionKey
     groups[group] = groups[group] ?? []
     groups[group].push(field)
     return groups
@@ -235,11 +241,11 @@ function ReadyPanel({
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">Leyenda de extracción</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t('ready.legend')}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {(Object.entries(EXTRACTION_CATEGORY_META) as Array<[ExtractionCategory, (typeof EXTRACTION_CATEGORY_META)[ExtractionCategory]]>).map(([key, meta]) => (
             <span key={key} className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${meta.chip}`}>
-              {meta.label}
+              {t(meta.labelKey)}
             </span>
           ))}
         </div>
@@ -250,7 +256,7 @@ function ReadyPanel({
         <div className="mb-2 flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 text-[#7b3fa0]" />
           <p className="text-xs font-semibold text-[#152520]">
-            Borrador estructurado — {extractedFields.length} campos
+            {t('ready.draft.count').replaceAll('{count}', String(extractedFields.length))}
           </p>
         </div>
         <div className="overflow-hidden rounded-xl border border-[#7b3fa0]/20 bg-[#faf6fd]">
@@ -258,7 +264,7 @@ function ReadyPanel({
             <div className="divide-y divide-[#8dc63f]/10">
               {Object.entries(groupedFields).map(([groupLabel, fields]) => (
                 <div key={groupLabel} className="px-3 py-3">
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{groupLabel}</p>
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4a7068]">{t(groupLabel)}</p>
                   <dl className="space-y-2">
                     {fields.map((field) => (
                       <button
@@ -271,7 +277,7 @@ function ReadyPanel({
                             : 'hover:bg-white/80'
                         }`}
                       >
-                        <dt className="text-[#7b3fa0]">{field.label}</dt>
+                        <dt className="text-[#7b3fa0]">{t(field.label)}</dt>
                         <dd className="font-semibold text-[#152520]">{field.value}</dd>
                       </button>
                     ))}
@@ -280,12 +286,12 @@ function ReadyPanel({
               ))}
             </div>
           ) : (
-            <p className="px-3 py-3 text-xs text-[#4a7068]">Extracción no disponible aún.</p>
+            <p className="px-3 py-3 text-xs text-[#4a7068]">{t('ready.unavailable')}</p>
           )}
         </div>
       </div>
       <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-700">
-        ✓ La solicitud ya está estructurada. El siguiente paso es crear el caso para lanzar la validación clínica.
+        {t('ready.structured.notice')}
       </div>
     </div>
   )
@@ -298,6 +304,7 @@ function CreatedPanel({
   item: InboxItem
   onOpen?: (caseId: string) => void
 }) {
+  const t = useXarxaT('bandeja-ia')
   if (!item.createdCaseId) return null
   return (
     <div className="space-y-4">
@@ -306,12 +313,12 @@ function CreatedPanel({
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#152520]">Caso creado con éxito</p>
+          <p className="text-sm font-semibold text-[#152520]">{t('created.success')}</p>
           <p className="text-xs text-[#4a7068]">{item.createdCaseId}</p>
         </div>
       </div>
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
-        <p className="text-xs text-slate-500">Case ID</p>
+        <p className="text-xs text-slate-500">{t('created.caseId')}</p>
         <p className="mt-0.5 text-base font-bold text-[#152520]">{item.createdCaseId}</p>
         {onOpen && (
           <Button
@@ -319,7 +326,7 @@ function CreatedPanel({
             className="mt-3 w-full gap-1.5 rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
             onClick={() => onOpen(item.createdCaseId!)}
           >
-            Abrir Case Cockpit
+            {t('created.open')}
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         )}
@@ -343,6 +350,7 @@ function ContextPanel({
   createBusy: boolean
   processingExtraction?: InboxItem['extraction']
 }) {
+  const t = useXarxaT('bandeja-ia')
   if (createBusy) {
     return <AgentCreateCasePanel />
   }
@@ -360,7 +368,7 @@ function ContextPanel({
       <div className="rounded-xl border border-red-100 bg-red-50 p-4">
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle className="h-4 w-4 text-red-500" />
-          <p className="text-sm font-semibold text-red-800">Error en la extracción</p>
+          <p className="text-sm font-semibold text-red-800">{t('error.title')}</p>
         </div>
         <div className="space-y-1.5">
           {item.agentSteps.map((step) => (
@@ -370,7 +378,7 @@ function ContextPanel({
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xs text-red-600">Puedes reintentar el procesamiento desde el panel principal.</p>
+        <p className="mt-3 text-xs text-red-600">{t('error.retry.hint')}</p>
       </div>
     )
   }
@@ -428,33 +436,33 @@ function renderHighlightedEmail(
 function getStructuredFields(extraction?: InboxItem['extraction']) {
   if (!extraction) return [] as StructuredField[]
 
-  const labels: Record<string, string> = {
-    patientCode: 'Paciente',
-    drug: 'Fármaco',
-    indication: 'Indicación',
-    weight: 'Peso',
-    recentDose: 'Última administración',
-    levelResult: 'Nivel detectado',
-    requestType: 'Tipo de consulta',
-    currentDose: 'Dosis actual',
-    interval: 'Intervalo',
-    route: 'Vía',
-    crp: 'PCR',
-    calprotectin: 'Calprotectina',
-    antibodies: 'Anticuerpos',
-    phenotype: 'Fenotipo',
-    activity: 'Actividad',
-    sex: 'Sexo',
-    age: 'Edad',
+  const labelKeys: Record<string, string> = {
+    patientCode: 'field.patientCode',
+    drug: 'field.drug',
+    indication: 'field.indication',
+    weight: 'field.weight',
+    recentDose: 'field.recentDose',
+    levelResult: 'field.levelResult',
+    requestType: 'field.requestType',
+    currentDose: 'field.currentDose',
+    interval: 'field.interval',
+    route: 'field.route',
+    crp: 'field.crp',
+    calprotectin: 'field.calprotectin',
+    antibodies: 'field.antibodies',
+    phenotype: 'field.phenotype',
+    activity: 'field.activity',
+    sex: 'field.sex',
+    age: 'field.age',
   }
 
-  return Object.entries(labels)
-    .map(([key, label]) => {
+  return Object.entries(labelKeys)
+    .map(([key, labelKey]) => {
       const value = extraction[key as keyof typeof extraction]
       if (value === null || value === undefined || value === '') return null
       return {
         key,
-        label,
+        label: labelKey,
         value: String(value),
         category: EXTRACTION_FIELD_CATEGORIES[key] ?? 'contexto',
       }
@@ -467,6 +475,7 @@ function escapeRegExp(value: string) {
 }
 
 export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
+  const t = useXarxaT('bandeja-ia')
   const [items, setItems] = useState<InboxItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
@@ -488,7 +497,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
       setStatus('ready')
     } catch (loadError) {
       setStatus('error')
-      setError(loadError instanceof Error ? loadError.message : 'No se ha podido cargar la bandeja IA.')
+      setError(loadError instanceof Error ? loadError.message : t('error.load'))
     }
   }
 
@@ -565,7 +574,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
       setSelectedId(item._id)
       setStatus('ready')
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido generar la solicitud.')
+      setError(actionError instanceof Error ? actionError.message : t('error.generate'))
     } finally {
       setBusyAction(null)
     }
@@ -593,7 +602,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
       setItems((current) => current.map((entry) => (entry._id === item._id ? item : entry)))
       setSelectedId(item._id)
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido procesar la solicitud.')
+      setError(actionError instanceof Error ? actionError.message : t('error.process'))
     } finally {
       setBusyAction(null)
     }
@@ -613,7 +622,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
       setDeleteConfirmOpen(false)
       if (mobile) setMobileDetailOpen(false)
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido eliminar la solicitud.')
+      setError(actionError instanceof Error ? actionError.message : t('error.delete'))
     } finally {
       setBusyAction(null)
     }
@@ -636,11 +645,10 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
         source: 'inbox',
         initialTab: 'datos',
         openEditor: true,
-        notice:
-          'Revisa y confirma los campos estructurados por los Agentes antes de continuar con la validación clínica del caso.',
+        notice: t('notice.create'),
       })
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'No se ha podido crear el caso desde la solicitud.')
+      setError(actionError instanceof Error ? actionError.message : t('error.create'))
     } finally {
       setBusyAction(null)
     }
@@ -649,8 +657,8 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
   if (status === 'loading' && items.length === 0) {
     return (
       <WorkspaceLoadingState
-        title="Cargando bandeja IA…"
-        detail="Preparando solicitudes entrantes y extracción estructurada."
+        title={t('loading.title')}
+        detail={t('loading.detail')}
       />
     )
   }
@@ -658,7 +666,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
   if (status === 'error' && items.length === 0) {
     return (
       <WorkspaceErrorState
-        title="No se ha podido cargar la bandeja IA."
+        title={t('error.load')}
         detail={error ?? undefined}
         onRetry={() => void loadInbox()}
       />
@@ -668,9 +676,9 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
   if (items.length === 0 || !selected) {
     return (
       <WorkspaceEmptyState
-        title="No hay solicitudes pendientes en la bandeja IA."
-        detail="Puedes generar una solicitud simulada por email y estructurarla antes de crear el caso."
-        actionLabel="Generar solicitud por email"
+        title={t('empty.title')}
+        detail={t('empty.detail')}
+        actionLabel={t('action.generate')}
         onAction={() => void generateInboxItem()}
       />
     )
@@ -688,13 +696,13 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-[#4a7068]" />
-              <span className="text-sm font-semibold text-[#152520]">Solicitudes recibidas</span>
+              <span className="text-sm font-semibold text-[#152520]">{t('list.title')}</span>
               <span className="rounded-full bg-[#7b3fa0] px-1.5 py-0.5 text-[10px] font-bold text-white">{items.length}</span>
             </div>
             <button
               className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
               onClick={() => { setBusyAction('refresh'); void loadInbox().finally(() => setBusyAction(null)) }}
-              aria-label="Actualizar bandeja"
+              aria-label={t('list.refresh.aria')}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${busyAction === 'refresh' ? 'animate-spin' : ''}`} />
             </button>
@@ -708,7 +716,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               disabled={busyAction !== null}
             >
               {busyAction === 'generate' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-              Generar solicitud por email
+              {t('action.generate')}
             </Button>
           </div>
         </div>
@@ -757,7 +765,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
             className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-50 hover:text-red-600"
             onClick={() => setDeleteConfirmOpen(true)}
             disabled={busyAction !== null}
-            aria-label="Eliminar solicitud"
+            aria-label={t('delete.label')}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -766,10 +774,10 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
         <ActionConfirmDialog
           open={deleteConfirmOpen}
           onOpenChange={setDeleteConfirmOpen}
-          title="Eliminar solicitud"
-          description="Se eliminará esta solicitud de la bandeja IA. Esta acción limpia el correo entrante, pero no afecta a casos ya creados."
-          confirmLabel="Eliminar solicitud"
-          cancelLabel="Cancelar"
+          title={t('delete.label')}
+          description={t('delete.description')}
+          confirmLabel={t('delete.label')}
+          cancelLabel={t('cancel')}
           tone="danger"
           icon={<Trash2 className="h-5 w-5" />}
           confirmBusy={busyAction === 'delete'}
@@ -795,7 +803,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
             disabled={!canProcess || busyAction !== null}
           >
             {busyAction === 'process' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
-            Estructurar con Agentes
+            {t('action.process')}
           </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button
@@ -806,7 +814,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               disabled={!canCreate || busyAction !== null}
             >
               {busyAction === 'create' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
-              Crear caso
+              {t('action.create')}
             </Button>
             <Button
               size="sm"
@@ -816,7 +824,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               disabled={!canOpenCase || busyAction !== null}
             >
               <ChevronRight className="h-3.5 w-3.5" />
-              Abrir caso
+              {t('action.open')}
             </Button>
           </div>
           {error && (
@@ -828,20 +836,20 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
           {/* Email original */}
           <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">Email original</p>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">{t('email.original')}</p>
             <div ref={emailBodyRef} className="overflow-hidden rounded-xl border border-slate-200 bg-[#f8f7f4] shadow-sm">
               {/* Email header */}
               <div className="border-b border-slate-200 bg-white px-4 py-3 space-y-0.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-10">De</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-10">{t('email.from')}</span>
                   <span className="text-xs font-medium text-[#152520]">{selected.from}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-10">Asunto</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-10">{t('email.subject')}</span>
                   <span className="text-xs text-[#4a7068] truncate">{selected.subject}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-10">Fecha</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-10">{t('email.date')}</span>
                   <span className="text-[10px] text-[#4a7068]">{formatReceivedAt(selected.receivedAt)}</span>
                 </div>
               </div>
@@ -853,13 +861,13 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
             {visibleFields.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {(Object.entries(EXTRACTION_CATEGORY_META) as Array<[ExtractionCategory, (typeof EXTRACTION_CATEGORY_META)[ExtractionCategory]]>).map(([key, meta]) => (
-                  <span key={key} className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${meta.chip}`}>{meta.label}</span>
+                  <span key={key} className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${meta.chip}`}>{t(meta.labelKey)}</span>
                 ))}
               </div>
             )}
             <div className="mt-3 grid grid-cols-3 gap-2">
               <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">Solicitante</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">{t('meta.requester')}</p>
                 <span className="mt-1 flex items-center gap-1.5">
                   <PersonAvatar name={selected.requesterName ?? ''} size="xs" />
                   <span className="text-xs font-semibold text-[#152520]">{selected.requesterName}</span>
@@ -867,15 +875,15 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
                 <p className="text-[10px] text-[#4a7068]">{selected.centerName}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">Programa</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">{t('meta.program')}</p>
                 <p className="mt-0.5 text-xs font-semibold text-[#152520]">{selected.programSuggestion ?? 'Crohn PK/PD'}</p>
                 <p className="text-[10px] text-[#4a7068]">{selected.caseTypeSuggestion ?? 'Consulta PK/PD'}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">Extracción IA</p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#4a7068]">{t('meta.extraction')}</p>
                 <p className="mt-0.5 text-xs font-semibold text-[#152520]">{visibleFields.length || '—'}</p>
                 <p className="text-[10px] text-[#4a7068]">
-                  {selected.agentStatus === 'ready' ? 'Lista' : selected.agentStatus === 'processing' ? 'Procesando' : selected.agentStatus === 'created' ? 'Generado' : 'Pendiente'}
+                  {selected.agentStatus === 'ready' ? t('meta.extraction.ready') : selected.agentStatus === 'processing' ? t('status.processing') : selected.agentStatus === 'created' ? t('meta.extraction.created') : t('meta.extraction.pending')}
                 </p>
               </div>
             </div>
@@ -887,7 +895,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#7b3fa0]">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <p className="text-sm font-semibold text-[#152520]">Borrador estructurado</p>
+              <p className="text-sm font-semibold text-[#152520]">{t('draft.title')}</p>
             </div>
             <ContextPanel
               item={selected}
@@ -911,7 +919,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-[#4a7068]" />
-              <span className="text-sm font-semibold text-[#152520]">Solicitudes recibidas</span>
+              <span className="text-sm font-semibold text-[#152520]">{t('list.title')}</span>
               <span className="rounded-full bg-[#7b3fa0] px-1.5 py-0.5 text-[10px] font-bold text-white">
                 {items.length}
               </span>
@@ -922,7 +930,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
                 setBusyAction('refresh')
                 void loadInbox().finally(() => setBusyAction(null))
               }}
-              aria-label="Actualizar bandeja"
+              aria-label={t('list.refresh.aria')}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${busyAction === 'refresh' ? 'animate-spin' : ''}`} />
             </button>
@@ -940,7 +948,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               ) : (
                 <Sparkles className="h-3.5 w-3.5" />
               )}
-              Generar solicitud por email
+              {t('action.generate')}
             </Button>
           </div>
         </div>
@@ -988,7 +996,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
                 className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-50 hover:text-red-600"
                 onClick={() => setDeleteConfirmOpen(true)}
                 disabled={busyAction !== null}
-                aria-label="Eliminar solicitud"
+                aria-label={t('delete.label')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -1011,7 +1019,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               disabled={!canProcess || busyAction !== null}
             >
               {busyAction === 'process' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
-              Estructurar con Agentes
+              {t('action.process')}
             </Button>
             <Button
               size="sm"
@@ -1021,7 +1029,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               disabled={!canCreate || busyAction !== null}
             >
               {busyAction === 'create' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
-              Crear caso
+              {t('action.create')}
             </Button>
             <Button
               size="sm"
@@ -1033,15 +1041,14 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
                     source: 'inbox',
                     initialTab: 'datos',
                     openEditor: true,
-                    notice:
-                      'Este caso se creó desde email. Revisa y confirma los datos estructurados por los Agentes antes de seguir.',
+                    notice: t('notice.open'),
                   })
                 }
               }}
               disabled={!canOpenCase || busyAction !== null}
             >
               <ChevronRight className="h-3.5 w-3.5" />
-              Abrir caso
+              {t('action.open')}
             </Button>
           </div>
 
@@ -1057,21 +1064,21 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
           {/* Email body */}
           <div className="flex-1 overflow-y-auto border-r border-slate-100 px-6 py-5">
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[#4a7068]">
-              Email original
+              {t('email.original')}
             </p>
             <div ref={emailBodyRef} className="overflow-hidden rounded-xl border border-slate-200 bg-[#f8f7f4] shadow-sm">
               {/* Email header */}
               <div className="border-b border-slate-200 bg-white px-5 py-3.5 space-y-1">
                 <div className="flex items-baseline gap-3">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-12">De</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-12">{t('email.from')}</span>
                   <span className="text-xs font-medium text-[#152520]">{selected.from}</span>
                 </div>
                 <div className="flex items-baseline gap-3">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-12">Asunto</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-12">{t('email.subject')}</span>
                   <span className="text-xs text-[#4a7068]">{selected.subject}</span>
                 </div>
                 <div className="flex items-baseline gap-3">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-12">Fecha</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a7068] w-12">{t('email.date')}</span>
                   <span className="text-[10px] text-[#4a7068]">{formatReceivedAt(selected.receivedAt)}</span>
                 </div>
               </div>
@@ -1084,7 +1091,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               <div className="mt-3 flex flex-wrap gap-2">
                 {(Object.entries(EXTRACTION_CATEGORY_META) as Array<[ExtractionCategory, (typeof EXTRACTION_CATEGORY_META)[ExtractionCategory]]>).map(([key, meta]) => (
                   <span key={key} className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${meta.chip}`}>
-                    {meta.label}
+                    {t(meta.labelKey)}
                   </span>
                 ))}
               </div>
@@ -1096,26 +1103,26 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
             {/* Meta summary */}
             <div className="mb-4 space-y-2">
               <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Solicitante</p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{t('meta.requester')}</p>
                 <p className="mt-1 text-xs font-semibold text-[#152520]">{selected.requesterName}</p>
                 <p className="text-[10px] text-[#4a7068]">{selected.centerName}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Programa sugerido</p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{t('meta.program.suggested')}</p>
                 <p className="mt-1 text-xs font-semibold text-[#152520]">{selected.programSuggestion ?? 'Crohn PK/PD'}</p>
                 <p className="text-[10px] text-[#4a7068]">{selected.caseTypeSuggestion ?? 'Consulta PK/PD'}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">Extracción IA</p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#4a7068]">{t('meta.extraction')}</p>
                 <p className="mt-1 text-xs font-semibold text-[#152520]">{visibleFields.length || '—'}</p>
                 <p className="text-[10px] text-[#4a7068]">
                   {selected.agentStatus === 'ready'
-                    ? 'Lista para crear caso'
+                    ? t('meta.extraction.ready.long')
                     : selected.agentStatus === 'processing'
-                      ? 'Estructurando borrador'
+                      ? t('meta.extraction.processing.long')
                       : selected.agentStatus === 'created'
-                        ? 'Caso ya generado'
-                        : 'Pendiente de estructurar'}
+                        ? t('meta.extraction.created.long')
+                        : t('meta.extraction.pending.long')}
                 </p>
               </div>
             </div>
@@ -1123,7 +1130,7 @@ export function BandejaIa({ onCaseCreated, mobile = false }: BandejaIaProps) {
               <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#7b3fa0]">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <p className="text-sm font-semibold text-[#152520]">Borrador estructurado</p>
+              <p className="text-sm font-semibold text-[#152520]">{t('draft.title')}</p>
             </div>
             <ContextPanel
               item={selected}

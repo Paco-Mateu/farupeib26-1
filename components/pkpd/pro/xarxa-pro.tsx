@@ -53,6 +53,8 @@ import {
   WorkspaceErrorState,
   WorkspaceLoadingState,
 } from '@/components/pkpd/pro/workspace-state'
+import { LanguageSwitcher } from '@/components/i18n/language-switcher'
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { AdminClinico } from '@/components/pkpd/pro/views/admin-clinico'
 import { AgentesIa } from '@/components/pkpd/pro/views/agentes-ia'
 import { BandejaIa } from '@/components/pkpd/pro/views/bandeja-ia'
@@ -78,7 +80,7 @@ const DEMO_CURRENT_USER = {
 
 type NavItem = {
   vista: Vista
-  label: string
+  labelKey: string
   icon: ElementType
 }
 
@@ -120,17 +122,17 @@ type PaletteSection = {
 }
 
 const MAIN_NAV: NavItem[] = [
-  { vista: 'casos', label: 'Casos PK/PD', icon: LayoutDashboard },
-  { vista: 'bandeja', label: 'Bandeja IA', icon: Inbox },
-  { vista: 'profesionales', label: 'Red de profesionales', icon: Users2 },
-  { vista: 'sesiones', label: 'Sesiones de red', icon: Video },
-  { vista: 'reporting', label: 'Informes y actividad', icon: BarChart3 },
+  { vista: 'casos', labelKey: 'nav.casos', icon: LayoutDashboard },
+  { vista: 'bandeja', labelKey: 'nav.bandeja', icon: Inbox },
+  { vista: 'profesionales', labelKey: 'nav.profesionales', icon: Users2 },
+  { vista: 'sesiones', labelKey: 'nav.sesiones', icon: Video },
+  { vista: 'reporting', labelKey: 'nav.reporting', icon: BarChart3 },
 ]
 
 const ADMIN_NAV: NavItem[] = [
-  { vista: 'agentes', label: 'Agentes IA', icon: Bot },
-  { vista: 'admin', label: 'Programas', icon: ShieldCheck },
-  { vista: 'config', label: 'Configuración', icon: Cog },
+  { vista: 'agentes', labelKey: 'nav.agentes', icon: Bot },
+  { vista: 'admin', labelKey: 'nav.admin', icon: ShieldCheck },
+  { vista: 'config', labelKey: 'nav.config', icon: Cog },
 ]
 
 const NAV: NavItem[] = [...MAIN_NAV, ...ADMIN_NAV]
@@ -173,6 +175,7 @@ function Sidebar({
   onOpenIntro: () => void
   onPreviewAction: (message: string) => void
 }) {
+  const t = useXarxaT('xarxa-pro')
   const isAdminVista = ADMIN_VISTAS.includes(active)
   const [adminOpen, setAdminOpen] = useState(isAdminVista)
   const [collapsed, setCollapsed] = useState(false)
@@ -181,12 +184,12 @@ function Sidebar({
     if (isAdminVista) setAdminOpen(true)
   }, [isAdminVista])
 
-  function renderNavItem({ vista, label, icon: Icon }: NavItem) {
+  function renderNavItem({ vista, labelKey, icon: Icon }: NavItem) {
     const isActive = active === vista
     return (
       <li key={vista}>
         <button
-          title={collapsed ? label : undefined}
+          title={collapsed ? t(labelKey) : undefined}
           onClick={() => onNavigate(vista)}
           className={`relative flex w-full items-center rounded-xl px-2.5 py-2 text-sm transition ${
             collapsed ? 'justify-center' : 'gap-2.5'
@@ -197,7 +200,7 @@ function Sidebar({
           }`}
         >
           <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#7b3fa0]' : 'text-[#4a7068]'}`} />
-          {!collapsed && <span className="truncate">{label}</span>}
+          {!collapsed && <span className="truncate">{t(labelKey)}</span>}
           {!collapsed && vista === 'bandeja' && bandejaCount > 0 ? (
             <span className="ml-auto rounded-full bg-[#e8501e] px-1.5 py-0.5 text-[10px] font-bold text-white">
               {bandejaCount}
@@ -240,7 +243,7 @@ function Sidebar({
       <button
         onClick={() => setCollapsed((value) => !value)}
         className="absolute -right-3 top-[52px] z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-[#4a7068] shadow-sm transition hover:text-[#152520]"
-        title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+        title={collapsed ? t('sidebar.expandir') : t('sidebar.colapsar')}
       >
         <ChevronDown className={`h-3 w-3 transition-transform ${collapsed ? '-rotate-90' : 'rotate-90'}`} />
       </button>
@@ -256,7 +259,7 @@ function Sidebar({
               onClick={() => setAdminOpen((value) => !value)}
               className="flex w-full items-center gap-1 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7b3fa0] transition hover:text-[#6b30a0]"
             >
-              <span className="flex-1 text-left">Admin</span>
+              <span className="flex-1 text-left">{t('sidebar.admin')}</span>
               <ChevronDown className={`h-3 w-3 transition-transform ${adminOpen ? 'rotate-180' : ''}`} />
             </button>
           )}
@@ -269,7 +272,7 @@ function Sidebar({
           <div className="mb-2 flex justify-center">
             <button
               onClick={onOpenIntro}
-              title="Intro de la demo"
+              title={t('sidebar.intro.title')}
               className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-[#4a7068] transition hover:border-slate-300 hover:bg-white hover:text-[#152520]"
             >
               <BookOpenCheck className="h-4 w-4" />
@@ -284,9 +287,9 @@ function Sidebar({
               <BookOpenCheck className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-[#152520]">Intro de la demo</p>
+              <p className="text-[11px] font-semibold text-[#152520]">{t('sidebar.intro.title')}</p>
               <p className="mt-1 text-[10px] leading-5 text-[#4a7068]">
-                Explicación de negocio, recorrido recomendado y propuesta de valor.
+                {t('sidebar.intro.desc')}
               </p>
             </div>
           </button>
@@ -303,7 +306,7 @@ function Sidebar({
               <p className="truncate text-[10px] text-[#4a7068]">{DEMO_CURRENT_USER.center}</p>
             </div>
             <button
-              onClick={() => onPreviewAction('La gestión completa de sesión y salida del usuario sigue en vista previa dentro de la demo.')}
+              onClick={() => onPreviewAction(t('sidebar.logout.preview'))}
               className="text-[#4a7068]/40 hover:text-[#4a7068]"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -330,6 +333,7 @@ function MetricPill({ metric }: { metric: HeaderMetric }) {
 }
 
 function DesktopOnlyNotice() {
+  const t = useXarxaT('xarxa-pro')
   return (
     <div className="flex min-h-screen flex-col bg-[#f7faf9] px-5 py-8 lg:hidden">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
@@ -337,23 +341,22 @@ function DesktopOnlyNotice() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#7b3fa0]/10 text-[#7b3fa0]">
             <Monitor className="h-6 w-6" />
           </div>
-          <h1 className="mt-5 text-2xl font-semibold text-[#152520]">Demo interactiva disponible en escritorio</h1>
+          <h1 className="mt-5 text-2xl font-semibold text-[#152520]">{t('desktop.title')}</h1>
           <p className="mt-3 text-sm leading-7 text-[#4a7068]">
-            Desde el móvil puedes revisar la introducción de la plataforma, pero la demo operativa de
-            Bandeja IA, Case Cockpit, agentes y reporting está preparada para una experiencia de escritorio.
+            {t('desktop.p1')}
           </p>
           <p className="mt-3 text-sm leading-7 text-[#4a7068]">
-            Para iniciar la demo completa, abre Xarxa PK/PD Intelligence Hub desde un ordenador.
+            {t('desktop.p2')}
           </p>
           <div className="mt-6 flex flex-col gap-3">
             <a
               href="/"
               className="inline-flex items-center justify-center rounded-2xl bg-[#7b3fa0] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#6a3490]"
             >
-              Ver intro de la demo
+              {t('desktop.cta')}
             </a>
             <p className="text-center text-[11px] text-[#4a7068]">
-              La experiencia interactiva se activa automáticamente en pantallas de escritorio.
+              {t('desktop.note')}
             </p>
           </div>
         </div>
@@ -383,6 +386,7 @@ function TopHeader({
   onNavigateNotification: (vista: Vista) => void
   notificationContainerRef: RefObject<HTMLDivElement>
 }) {
+  const t = useXarxaT('xarxa-pro')
   const activeProgramLabel =
     programs.find((program) => program._id === selectedProgramId)?.label
     ?? programs.find((program) => program.status === 'Activo')?.label
@@ -402,7 +406,7 @@ function TopHeader({
               className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-[#4a7068] transition hover:border-slate-300 hover:bg-white"
             >
               <Search className="h-4 w-4 text-[#4a7068]" />
-              <span className="flex-1 truncate">Buscar caso, paciente, profesional o centro…</span>
+              <span className="flex-1 truncate">{t('top.search.placeholder')}</span>
               <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
                 ⌘K
               </span>
@@ -413,10 +417,12 @@ function TopHeader({
             {activeProgramLabel}
           </div>
 
+          <LanguageSwitcher compact />
+
           <button
             onClick={onOpenPalette}
             className="rounded-xl border border-slate-200 p-2 text-[#4a7068] transition hover:bg-slate-50 lg:hidden"
-            title="Buscar"
+            title={t('top.search.title')}
           >
             <Search className="h-4 w-4" />
           </button>
@@ -425,7 +431,7 @@ function TopHeader({
             <button
               onClick={onToggleNotifications}
               className="relative rounded-xl border border-slate-200 p-2 text-[#4a7068] transition hover:bg-slate-50"
-              title="Notificaciones"
+              title={t('top.notif.title')}
             >
               <Bell className="h-4 w-4" />
               {notifications.length > 0 ? (
@@ -438,8 +444,8 @@ function TopHeader({
             {notificationsOpen ? (
               <div className="absolute right-0 z-30 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
                 <div className="border-b border-slate-100 px-2 pb-2">
-                  <p className="text-sm font-semibold text-[#152520]">Notificaciones operativas</p>
-                  <p className="text-xs text-[#4a7068]">Pendientes que requieren atención humana o coordinación de red.</p>
+                  <p className="text-sm font-semibold text-[#152520]">{t('top.notif.heading')}</p>
+                  <p className="text-xs text-[#4a7068]">{t('top.notif.sub')}</p>
                 </div>
                 <div className="max-h-[26rem] space-y-1 overflow-y-auto px-1 py-2">
                   {notifications.length > 0 ? (
@@ -465,7 +471,7 @@ function TopHeader({
                     })
                   ) : (
                     <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-4 text-xs text-[#4a7068]">
-                      No hay alertas críticas en este momento.
+                      {t('top.notif.empty')}
                     </div>
                   )}
                 </div>
@@ -492,6 +498,7 @@ function CommandPalette({
   onQueryChange: (value: string) => void
   onClose: () => void
 }) {
+  const t = useXarxaT('xarxa-pro')
   const inputRef = useRef<HTMLInputElement | null>(null)
   const flatItems = sections.flatMap((section) => section.items)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -540,7 +547,7 @@ function CommandPalette({
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-20">
       <button
         type="button"
-        aria-label="Cerrar buscador"
+        aria-label={t('palette.close.aria')}
         onClick={onClose}
         className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px]"
       />
@@ -553,13 +560,13 @@ function CommandPalette({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar acciones, casos, centros o profesionales…"
+            placeholder={t('palette.placeholder')}
             className="flex-1 bg-transparent text-sm text-[#152520] outline-none placeholder:text-slate-400"
           />
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-[#4a7068] transition hover:bg-slate-100"
-            title="Cerrar"
+            title={t('palette.close.title')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -612,9 +619,9 @@ function CommandPalette({
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center">
-              <p className="text-sm font-semibold text-[#152520]">Sin resultados</p>
+              <p className="text-sm font-semibold text-[#152520]">{t('palette.empty.title')}</p>
               <p className="mt-1 text-xs text-[#4a7068]">
-                Prueba con un caso, un profesional, un centro o una acción del circuito.
+                {t('palette.empty.desc')}
               </p>
             </div>
           )}
@@ -627,6 +634,7 @@ function CommandPalette({
 export function XarraPro() {
   const router = useRouter()
   const params = useSearchParams()
+  const t = useXarxaT('xarxa-pro')
 
   const rawVista = params.get('vista') as Vista | null
   const activeVista: Vista = VALID_VISTAS.includes(rawVista as Vista) ? (rawVista as Vista) : 'casos'
@@ -774,7 +782,7 @@ export function XarraPro() {
       if (queueRequestRef.current !== requestId) return
       setQueueStatus('error')
       setQueueError(
-        error instanceof Error ? error.message : 'No se ha podido cargar la cola de casos.'
+        error instanceof Error ? error.message : t('error.queue')
       )
     }
   }, [caseDateRangeDays, selectedCenterId, selectedProgramId])
@@ -842,7 +850,7 @@ export function XarraPro() {
         if (cancelled) return
         setOpenCase(null)
         setCaseStatus('error')
-        setCaseError(error instanceof Error ? error.message : 'No se ha podido cargar el caso.')
+        setCaseError(error instanceof Error ? error.message : t('error.case'))
       }
     }
 
@@ -916,7 +924,7 @@ export function XarraPro() {
     setPaletteQuery('')
   }
 
-  const vistaLabel = NAV.find((item) => item.vista === activeVista)?.label ?? 'Casos PK/PD'
+  const vistaLabel = t(NAV.find((item) => item.vista === activeVista)?.labelKey ?? 'nav.casos')
   const readyInboxCount = inboxItems.filter((item) => item.agentStatus === 'ready').length
   const processingInboxCount = inboxItems.filter((item) => item.agentStatus === 'processing').length
   const createdInboxCount = inboxItems.filter((item) => item.agentStatus === 'created').length
@@ -958,20 +966,20 @@ export function XarraPro() {
             tone: index === 2 ? 'warning' : 'default',
           }))
         : [
-            { label: 'Casos activos', value: casos.length, tone: 'accent' },
-            { label: 'Listos para revisión', value: readyForReviewCount, tone: 'accent' },
-            { label: 'Gaps críticos', value: criticalCasesCount, tone: criticalCasesCount > 0 ? 'danger' : 'default' },
-            { label: 'Seguimiento pendiente', value: casos.filter((item) => item.pipelineStage.includes('Seguimiento')).length, tone: 'warning' },
+            { label: t('metric.casos.activos'), value: casos.length, tone: 'accent' },
+            { label: t('metric.casos.revision'), value: readyForReviewCount, tone: 'accent' },
+            { label: t('metric.casos.gaps'), value: criticalCasesCount, tone: criticalCasesCount > 0 ? 'danger' : 'default' },
+            { label: t('metric.casos.seguimiento'), value: casos.filter((item) => item.pipelineStage.includes('Seguimiento')).length, tone: 'warning' },
           ]
     }
 
     if (activeVista === 'bandeja') {
       return [
-        { label: 'Solicitudes listas', value: readyInboxCount, tone: 'accent' },
-        { label: 'En procesamiento', value: processingInboxCount, tone: 'warning' },
-        { label: 'Casos creados', value: createdInboxCount, tone: 'default' },
+        { label: t('metric.bandeja.listas'), value: readyInboxCount, tone: 'accent' },
+        { label: t('metric.bandeja.procesando'), value: processingInboxCount, tone: 'warning' },
+        { label: t('metric.bandeja.creados'), value: createdInboxCount, tone: 'default' },
         {
-          label: 'Borradores estructurados',
+          label: t('metric.bandeja.borradores'),
           value: inboxItems.filter(item => item.agentStatus === 'ready' || item.agentStatus === 'created').length,
           tone: 'default',
         },
@@ -980,10 +988,10 @@ export function XarraPro() {
 
     if (activeVista === 'sesiones') {
       return [
-        { label: 'Sesiones activas', value: liveSessionsCount, tone: liveSessionsCount > 0 ? 'accent' : 'default' },
-        { label: 'Programadas', value: scheduledSessionsCount, tone: 'default' },
-        { label: 'Casos en agenda', value: sessions.reduce((sum, session) => sum + session.casesCount, 0), tone: 'warning' },
-        { label: 'Centros participantes', value: new Set(sessions.flatMap((session) => session.participants)).size, tone: 'default' },
+        { label: t('metric.sesiones.activas'), value: liveSessionsCount, tone: liveSessionsCount > 0 ? 'accent' : 'default' },
+        { label: t('metric.sesiones.programadas'), value: scheduledSessionsCount, tone: 'default' },
+        { label: t('metric.sesiones.agenda'), value: sessions.reduce((sum, session) => sum + session.casesCount, 0), tone: 'warning' },
+        { label: t('metric.sesiones.centros'), value: new Set(sessions.flatMap((session) => session.participants)).size, tone: 'default' },
       ]
     }
 
@@ -994,50 +1002,50 @@ export function XarraPro() {
             value: item.value,
             tone: index === 0 ? 'accent' : 'default',
           }))
-        : [{ label: 'Casos activos', value: casos.length, tone: 'accent' }]) as HeaderMetric[]
+        : [{ label: t('metric.casos.activos'), value: casos.length, tone: 'accent' }]) as HeaderMetric[]
     }
 
     if (activeVista === 'profesionales') {
       return [
-        { label: 'Profesionales activos', value: activeProfessionalsCount, tone: 'accent' },
-        { label: 'Centros operativos', value: centers.filter((center) => center.status === 'Activo').length, tone: 'default' },
-        { label: 'Pendientes de acceso', value: pendingApprovals.length, tone: pendingApprovals.length > 0 ? 'warning' : 'default' },
-        { label: 'Farmacia experta', value: professionals.filter((professional) => professional.roleLabel === 'Farmacéutico experto').length, tone: 'default' },
+        { label: t('metric.prof.activos'), value: activeProfessionalsCount, tone: 'accent' },
+        { label: t('metric.prof.centros'), value: centers.filter((center) => center.status === 'Activo').length, tone: 'default' },
+        { label: t('metric.prof.pendientes'), value: pendingApprovals.length, tone: pendingApprovals.length > 0 ? 'warning' : 'default' },
+        { label: t('metric.prof.farmacia'), value: professionals.filter((professional) => professional.roleLabel === 'Farmacéutico experto').length, tone: 'default' },
       ]
     }
 
     if (activeVista === 'agentes') {
       return [
-        { label: 'Agentes activos', value: activeAgentsCount, tone: 'accent' },
-        { label: 'Validación humana', value: agentsWithHumanValidation, tone: 'warning' },
-        { label: 'Ejecuciones recientes', value: recentAgentRunsCount, tone: 'default' },
-        { label: 'Incidencias', value: agents.reduce((sum, agent) => sum + (agent.recentRuns?.filter((run) => run.status === 'Error').length ?? 0), 0), tone: 'danger' },
+        { label: t('metric.agentes.activos'), value: activeAgentsCount, tone: 'accent' },
+        { label: t('metric.agentes.validacion'), value: agentsWithHumanValidation, tone: 'warning' },
+        { label: t('metric.agentes.ejecuciones'), value: recentAgentRunsCount, tone: 'default' },
+        { label: t('metric.agentes.incidencias'), value: agents.reduce((sum, agent) => sum + (agent.recentRuns?.filter((run) => run.status === 'Error').length ?? 0), 0), tone: 'danger' },
       ]
     }
 
     if (activeVista === 'admin') {
       return [
-        { label: 'Programas activos', value: activeProgramsCount, tone: 'accent' },
-        { label: 'Borradores', value: draftProgramsCount, tone: 'warning' },
-        { label: 'Formularios', value: forms.length, tone: 'default' },
-        { label: 'Especialidades', value: new Set(programs.map((program) => program.specialty)).size, tone: 'default' },
+        { label: t('metric.admin.activos'), value: activeProgramsCount, tone: 'accent' },
+        { label: t('metric.admin.borradores'), value: draftProgramsCount, tone: 'warning' },
+        { label: t('metric.admin.formularios'), value: forms.length, tone: 'default' },
+        { label: t('metric.admin.especialidades'), value: new Set(programs.map((program) => program.specialty)).size, tone: 'default' },
       ]
     }
 
     if (activeVista === 'config') {
       return [
-        { label: 'Centros conectados', value: centers.length, tone: 'default' },
-        { label: 'Agentes configurados', value: agents.length, tone: 'accent' },
-        { label: 'Programas disponibles', value: programs.length, tone: 'default' },
-        { label: 'Sesiones trazables', value: sessions.length, tone: 'warning' },
+        { label: t('metric.config.centros'), value: centers.length, tone: 'default' },
+        { label: t('metric.config.agentes'), value: agents.length, tone: 'accent' },
+        { label: t('metric.config.programas'), value: programs.length, tone: 'default' },
+        { label: t('metric.config.sesiones'), value: sessions.length, tone: 'warning' },
       ]
     }
 
     return [
-      { label: 'Programa activo', value: programs.find((program) => program._id === selectedProgramId)?.label ?? 'Crohn PK/PD', tone: 'accent' },
-      { label: 'Centro', value: centers.find((center) => center._id === selectedCenterId)?.name ?? 'Todos los centros', tone: 'default' },
-      { label: 'Solicitudes en cola', value: bandejaCount, tone: 'warning' },
-      { label: 'Casos activos', value: casos.length, tone: 'default' },
+      { label: t('metric.default.programa'), value: programs.find((program) => program._id === selectedProgramId)?.label ?? 'Crohn PK/PD', tone: 'accent' },
+      { label: t('metric.default.centro'), value: centers.find((center) => center._id === selectedCenterId)?.name ?? t('metric.default.centro.todos'), tone: 'default' },
+      { label: t('metric.default.cola'), value: bandejaCount, tone: 'warning' },
+      { label: t('metric.casos.activos'), value: casos.length, tone: 'default' },
     ]
   }, [
     activeAgentsCount,
@@ -1075,8 +1083,9 @@ export function XarraPro() {
     if (pendingApprovals.length > 0) {
       items.push({
         id: 'pending-approvals',
-        title: `${pendingApprovals.length} acceso${pendingApprovals.length === 1 ? '' : 's'} pendiente${pendingApprovals.length === 1 ? '' : 's'}`,
-        detail: 'Requieren validación de rol y centro antes de incorporarse a la red.',
+        title: t(pendingApprovals.length === 1 ? 'notif.approvals.one' : 'notif.approvals.many')
+          .replaceAll('{count}', String(pendingApprovals.length)),
+        detail: t('notif.approvals.detail'),
         vista: 'profesionales',
         icon: Users2,
       })
@@ -1085,8 +1094,10 @@ export function XarraPro() {
     if (readyInboxCount > 0 || processingInboxCount > 0) {
       items.push({
         id: 'inbox-ready',
-        title: `${readyInboxCount} solicitudes listas y ${processingInboxCount} en procesamiento`,
-        detail: 'La bandeja IA tiene nuevas solicitudes para revisar o convertir en caso.',
+        title: t('notif.inbox.title')
+          .replaceAll('{ready}', String(readyInboxCount))
+          .replaceAll('{processing}', String(processingInboxCount)),
+        detail: t('notif.inbox.detail'),
         vista: 'bandeja',
         icon: Inbox,
       })
@@ -1095,8 +1106,8 @@ export function XarraPro() {
     if (criticalCasesCount > 0) {
       items.push({
         id: 'critical-cases',
-        title: `${criticalCasesCount} casos con riesgo o gaps críticos`,
-        detail: 'Conviene revisar la cola operativa y reasignar prioridades si hace falta.',
+        title: t('notif.criticos.title').replaceAll('{count}', String(criticalCasesCount)),
+        detail: t('notif.criticos.detail'),
         vista: 'casos',
         icon: TriangleAlert,
       })
@@ -1105,8 +1116,9 @@ export function XarraPro() {
     if (liveSessionsCount > 0) {
       items.push({
         id: 'live-sessions',
-        title: `${liveSessionsCount} sesión${liveSessionsCount === 1 ? '' : 'es'} de red en marcha`,
-        detail: 'Hay discusión colaborativa activa con casos pendientes de resolución.',
+        title: t(liveSessionsCount === 1 ? 'notif.sesiones.one' : 'notif.sesiones.many')
+          .replaceAll('{count}', String(liveSessionsCount)),
+        detail: t('notif.sesiones.detail'),
         vista: 'sesiones',
         icon: Video,
       })
@@ -1115,8 +1127,8 @@ export function XarraPro() {
     if (agents.some((agent) => agent.recentRuns?.some((run) => run.status === 'Error'))) {
       items.push({
         id: 'agent-incidents',
-        title: 'Se han detectado incidencias recientes en agentes',
-        detail: 'Revisa trazas, límites y resultados antes de confiar en el borrador automatizado.',
+        title: t('notif.agentes.title'),
+        detail: t('notif.agentes.detail'),
         vista: 'agentes',
         icon: Bot,
       })
@@ -1131,36 +1143,36 @@ export function XarraPro() {
     const actionItems: PaletteItem[] = [
       {
         id: 'action-new-case',
-        label: 'Crear nuevo caso',
-        description: 'Abrir el asistente para registrar un nuevo caso clínico.',
+        label: t('palette.action.newCase.label'),
+        description: t('palette.action.newCase.desc'),
         icon: FilePlus2,
         onSelect: () => navigate('nuevo'),
       },
       {
         id: 'action-open-inbox',
-        label: 'Abrir Bandeja IA',
-        description: 'Revisar emails entrantes y estructurarlos antes de crear el caso.',
+        label: t('palette.action.inbox.label'),
+        description: t('palette.action.inbox.desc'),
         icon: Inbox,
         onSelect: () => navigate('bandeja'),
       },
       {
         id: 'action-open-sessions',
-        label: 'Preparar sesión de red',
-        description: 'Consultar agenda, casos en discusión y sesiones próximas.',
+        label: t('palette.action.sesiones.label'),
+        description: t('palette.action.sesiones.desc'),
         icon: Video,
         onSelect: () => navigate('sesiones'),
       },
       {
         id: 'action-open-reporting',
-        label: 'Generar informe de actividad',
-        description: 'Abrir reporting operativo y aprendizaje de red.',
+        label: t('palette.action.reporting.label'),
+        description: t('palette.action.reporting.desc'),
         icon: BarChart3,
         onSelect: () => navigate('reporting'),
       },
       {
         id: 'action-open-admin',
-        label: 'Configurar programa clínico',
-        description: 'Entrar en Programas para revisar programas, formularios y workflow.',
+        label: t('palette.action.admin.label'),
+        description: t('palette.action.admin.desc'),
         icon: FolderCog,
         onSelect: () => navigate('admin'),
       },
@@ -1219,7 +1231,7 @@ export function XarraPro() {
       .map<PaletteItem>((professional) => ({
         id: `professional:${professional._id}`,
         label: professional.name,
-        description: `${professional.roleLabel} · ${professional.centerName ?? 'Centro no indicado'}`,
+        description: `${professional.roleLabel} · ${professional.centerName ?? t('palette.prof.sinCentro')}`,
         meta: professional.status,
         icon: UserRound,
         onSelect: () => navigate('profesionales'),
@@ -1235,7 +1247,7 @@ export function XarraPro() {
           id: `center:${center._id}`,
           label: center.name,
           description: `${center.city} · ${center.type}`,
-          meta: 'Centro',
+          meta: t('palette.meta.centro'),
           icon: Building2,
           onSelect: () => {
             setSelectedCenterId(center._id)
@@ -1251,7 +1263,7 @@ export function XarraPro() {
           id: `program:${program._id}`,
           label: program.label,
           description: `${program.specialty} · ${program.status}`,
-          meta: 'Programa',
+          meta: t('palette.meta.programa'),
           icon: FolderCog,
           onSelect: () => {
             setSelectedProgramId(program._id)
@@ -1262,13 +1274,13 @@ export function XarraPro() {
 
     const sections: PaletteSection[] = []
 
-    if (actionItems.length > 0) sections.push({ label: 'Acciones', items: actionItems })
-    if (caseItems.length > 0) sections.push({ label: 'Casos', items: caseItems })
+    if (actionItems.length > 0) sections.push({ label: t('palette.section.acciones'), items: actionItems })
+    if (caseItems.length > 0) sections.push({ label: t('palette.section.casos'), items: caseItems })
     if (professionalItems.length > 0) {
-      sections.push({ label: 'Profesionales', items: professionalItems })
+      sections.push({ label: t('palette.section.profesionales'), items: professionalItems })
     }
     if (centerAndProgramItems.length > 0) {
-      sections.push({ label: 'Centros y programas', items: centerAndProgramItems })
+      sections.push({ label: t('palette.section.centros'), items: centerAndProgramItems })
     }
 
     return sections
@@ -1279,15 +1291,15 @@ export function XarraPro() {
       if (caseStatus === 'loading' || caseStatus === 'idle') {
         return (
           <WorkspaceLoadingState
-            title="Cargando caso…"
-            detail="Estamos preparando el cockpit clínico y la trazabilidad del caso."
+            title={t('loading.case')}
+            detail={t('loading.case.detail')}
           />
         )
       }
       if (caseStatus === 'error') {
         return (
           <WorkspaceErrorState
-            title="No se ha podido abrir el caso."
+            title={t('error.case.open')}
             detail={caseError ?? undefined}
             onRetry={() => setCaseReloadKey((value) => value + 1)}
           />
@@ -1296,8 +1308,8 @@ export function XarraPro() {
       if (!openCase) {
         return (
           <WorkspaceLoadingState
-            title="Preparando caso…"
-            detail="Estamos recuperando los datos clínicos y la trazabilidad."
+            title={t('loading.case.prepare')}
+            detail={t('loading.case.prepare.detail')}
           />
         )
       }
@@ -1328,7 +1340,7 @@ export function XarraPro() {
         if (queueStatus === 'error' && casos.length === 0) {
           return (
             <WorkspaceErrorState
-              title="No se ha podido cargar la cola de casos."
+              title={t('error.queue')}
               detail={queueError ?? undefined}
               onRetry={() => void loadQueue()}
             />

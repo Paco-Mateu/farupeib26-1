@@ -3,15 +3,16 @@
 import { Bell, Globe, Lock, Shield } from 'lucide-react'
 import { useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { Button } from '@/components/ui/button'
 
-type Section = { id: string; label: string; icon: React.ElementType }
+type Section = { id: string; labelKey: string; icon: React.ElementType }
 
 const SECTIONS: Section[] = [
-  { id: 'notificaciones', label: 'Notificaciones', icon: Bell },
-  { id: 'seguridad', label: 'Seguridad y acceso', icon: Shield },
-  { id: 'privacidad', label: 'Privacidad y datos', icon: Lock },
-  { id: 'integraciones', label: 'Integraciones', icon: Globe },
+  { id: 'notificaciones', labelKey: 'section.notificaciones', icon: Bell },
+  { id: 'seguridad', labelKey: 'section.seguridad', icon: Shield },
+  { id: 'privacidad', labelKey: 'section.privacidad', icon: Lock },
+  { id: 'integraciones', labelKey: 'section.integraciones', icon: Globe },
 ]
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -30,6 +31,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 }
 
 export function Configuracion() {
+  const t = useXarxaT('configuracion')
   const [active, setActive] = useState('notificaciones')
   const [notifEmail, setNotifEmail] = useState(true)
   const [notifCaso, setNotifCaso] = useState(true)
@@ -46,7 +48,7 @@ export function Configuracion() {
       {/* section list */}
       <div className="w-56 shrink-0 border-r border-slate-100 bg-white px-2 py-4">
         <ul className="space-y-0.5">
-          {SECTIONS.map(({ id, label, icon: Icon }) => (
+          {SECTIONS.map(({ id, labelKey, icon: Icon }) => (
             <li key={id}>
               <button
                 onClick={() => setActive(id)}
@@ -57,7 +59,7 @@ export function Configuracion() {
                 }`}
               >
                 <Icon className={`h-4 w-4 ${active === id ? 'text-[#7b3fa0]' : 'text-[#4a7068]'}`} />
-                {label}
+                {t(labelKey)}
               </button>
             </li>
           ))}
@@ -73,14 +75,14 @@ export function Configuracion() {
         ) : null}
         {active === 'notificaciones' && (
           <div className="max-w-lg">
-            <h2 className="mb-1 text-sm font-semibold text-[#152520]">Notificaciones</h2>
-            <p className="mb-6 text-xs text-[#4a7068]">Configura qué notificaciones quieres recibir y por qué canal.</p>
+            <h2 className="mb-1 text-sm font-semibold text-[#152520]">{t('notif.title')}</h2>
+            <p className="mb-6 text-xs text-[#4a7068]">{t('notif.subtitle')}</p>
             <div className="space-y-4">
               {[
-                { label: 'Notificaciones por correo', sub: 'Recibe un resumen diario en tu correo', val: notifEmail, set: setNotifEmail },
-                { label: 'Nuevos casos asignados', sub: 'Aviso cuando un caso nuevo te es asignado', val: notifCaso, set: setNotifCaso },
-                { label: 'Recordatorios de sesión', sub: 'Aviso 30 min antes de cada sesión de red', val: notifSesion, set: setNotifSesion },
-                { label: 'Actividad de agentes IA', sub: 'Notificación cuando un agente completa una tarea', val: notifAgent, set: setNotifAgent },
+                { label: t('notif.email.label'), sub: t('notif.email.sub'), val: notifEmail, set: setNotifEmail },
+                { label: t('notif.caso.label'), sub: t('notif.caso.sub'), val: notifCaso, set: setNotifCaso },
+                { label: t('notif.sesion.label'), sub: t('notif.sesion.sub'), val: notifSesion, set: setNotifSesion },
+                { label: t('notif.agent.label'), sub: t('notif.agent.sub'), val: notifAgent, set: setNotifAgent },
               ].map((item) => (
                 <div key={item.label} className="flex items-start justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4">
                   <div>
@@ -95,9 +97,9 @@ export function Configuracion() {
               <Button
                 size="sm"
                 className="rounded-xl bg-[#7b3fa0] text-xs text-white hover:bg-[#6a3490]"
-                onClick={() => showPreview('La persistencia completa de configuración global sigue en vista previa. Los cambios visuales de esta pantalla son demostrativos.')}
+                onClick={() => showPreview(t('notif.save.preview'))}
               >
-                Guardar cambios
+                {t('notif.save')}
               </Button>
             </div>
           </div>
@@ -105,24 +107,24 @@ export function Configuracion() {
 
         {active === 'seguridad' && (
           <div className="max-w-lg">
-            <h2 className="mb-1 text-sm font-semibold text-[#152520]">Seguridad y acceso</h2>
-            <p className="mb-6 text-xs text-[#4a7068]">Gestiona el acceso, contraseñas y autenticación de tu cuenta.</p>
+            <h2 className="mb-1 text-sm font-semibold text-[#152520]">{t('seg.title')}</h2>
+            <p className="mb-6 text-xs text-[#4a7068]">{t('seg.subtitle')}</p>
             <div className="space-y-3">
               <div className="rounded-xl border border-slate-100 bg-white p-4">
-                <p className="text-sm font-medium text-[#152520]">Autenticación de dos factores</p>
-                <p className="mt-0.5 text-xs text-[#4a7068]">Estado: <span className="font-semibold text-teal-600">Activada</span></p>
+                <p className="text-sm font-medium text-[#152520]">{t('seg.2fa')}</p>
+                <p className="mt-0.5 text-xs text-[#4a7068]">{t('seg.estado')}<span className="font-semibold text-teal-600">{t('seg.activada')}</span></p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-white p-4">
-                <p className="text-sm font-medium text-[#152520]">Última sesión</p>
-                <p className="mt-0.5 text-xs text-[#4a7068]">Hoy a las 08:30 · Barcelona, España</p>
+                <p className="text-sm font-medium text-[#152520]">{t('seg.ultima')}</p>
+                <p className="mt-0.5 text-xs text-[#4a7068]">{t('seg.ultima.valor')}</p>
               </div>
               <Button
                 size="sm"
                 variant="outline"
                 className="rounded-xl text-xs"
-                onClick={() => showPreview('El cambio de contraseña sigue en vista previa en este entorno demo.')}
+                onClick={() => showPreview(t('seg.cambiar.preview'))}
               >
-                Cambiar contraseña · vista previa
+                {t('seg.cambiar')}
               </Button>
             </div>
           </div>
@@ -130,19 +132,17 @@ export function Configuracion() {
 
         {active === 'privacidad' && (
           <div className="max-w-lg">
-            <h2 className="mb-1 text-sm font-semibold text-[#152520]">Privacidad y datos</h2>
-            <p className="mb-6 text-xs text-[#4a7068]">Controla cómo se usan tus datos y los de los pacientes.</p>
+            <h2 className="mb-1 text-sm font-semibold text-[#152520]">{t('priv.title')}</h2>
+            <p className="mb-6 text-xs text-[#4a7068]">{t('priv.subtitle')}</p>
             <div className="rounded-xl border border-slate-100 bg-white p-4">
-              <p className="text-xs text-[#4a7068] leading-6">
-                Todos los datos de pacientes están seudonimizados según la normativa RGPD. Los datos clínicos no se usan para entrenar modelos sin consentimiento explícito.
-              </p>
+              <p className="text-xs text-[#4a7068] leading-6">{t('priv.rgpd')}</p>
               <Button
                 size="sm"
                 variant="outline"
                 className="mt-3 rounded-xl text-xs"
-                onClick={() => showPreview('La política extendida de privacidad se mostrará en una siguiente iteración. Por ahora esta sección funciona como vista previa.')}
+                onClick={() => showPreview(t('priv.politica.preview'))}
               >
-                Ver política completa · vista previa
+                {t('priv.politica')}
               </Button>
             </div>
           </div>
@@ -150,13 +150,13 @@ export function Configuracion() {
 
         {active === 'integraciones' && (
           <div className="max-w-lg">
-            <h2 className="mb-1 text-sm font-semibold text-[#152520]">Integraciones</h2>
-            <p className="mb-6 text-xs text-[#4a7068]">Conexiones con sistemas hospitalarios y externos.</p>
+            <h2 className="mb-1 text-sm font-semibold text-[#152520]">{t('int.title')}</h2>
+            <p className="mb-6 text-xs text-[#4a7068]">{t('int.subtitle')}</p>
             <div className="space-y-3">
               {[
-                { name: 'Historia Clínica Electrónica (HCE)', status: 'Conectado', cls: 'text-teal-600' },
-                { name: 'Laboratorio LIS', status: 'Pendiente configuración', cls: 'text-amber-600' },
-                { name: 'Correo corporativo', status: 'Conectado', cls: 'text-teal-600' },
+                { name: t('int.hce'), status: t('int.conectado'), cls: 'text-teal-600' },
+                { name: t('int.lis'), status: t('int.pendiente'), cls: 'text-amber-600' },
+                { name: t('int.correo'), status: t('int.conectado'), cls: 'text-teal-600' },
               ].map((intg) => (
                 <div key={intg.name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4">
                   <div>
@@ -167,9 +167,9 @@ export function Configuracion() {
                     size="sm"
                     variant="outline"
                     className="rounded-xl text-xs"
-                    onClick={() => showPreview(`La configuración detallada de «${intg.name}» sigue en vista previa dentro de la demo.`)}
+                    onClick={() => showPreview(t('int.configurar.preview').replaceAll('{name}', intg.name))}
                   >
-                    Configurar · vista previa
+                    {t('int.configurar')}
                   </Button>
                 </div>
               ))}

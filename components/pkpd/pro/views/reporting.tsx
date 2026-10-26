@@ -3,6 +3,7 @@
 import { BarChart3, Bot, GitBranch, Sparkles, TrendingDown, TrendingUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { ReportingChartCard } from '@/components/pkpd/pro/charts/reporting-charts'
 import { WorkspaceEmptyState, WorkspaceErrorState, WorkspaceLoadingState } from '@/components/pkpd/pro/workspace-state'
 import type { ReportingData } from '@/components/pkpd/pro/xarxa-types'
@@ -17,6 +18,7 @@ export function Reporting({
   centerId?: string
   programId?: string
 }) {
+  const t = useXarxaT('reporting')
   const [data, setData] = useState<ReportingData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +40,7 @@ export function Reporting({
         setData(payload)
       } catch (loadError) {
         if (cancelled) return
-        setError(loadError instanceof Error ? loadError.message : 'No se ha podido cargar el reporting.')
+        setError(loadError instanceof Error ? loadError.message : t('error.cargar'))
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -88,19 +90,31 @@ export function Reporting({
     const topCenter = automationByCenter.slice().sort((a, b) => b.value - a.value)[0]
     const insights = []
     if (casesByStage[0]) {
-      insights.push(`La mayor concentración de casos está en «${casesByStage[0].label}» con ${casesByStage[0].value} caso(s).`)
+      insights.push(
+        t('insight.casos')
+          .replaceAll('{label}', casesByStage[0].label)
+          .replaceAll('{value}', String(casesByStage[0].value))
+      )
     }
     if (gaps[0]) {
-      insights.push(`El gap más repetido ahora es «${gaps[0].label}» y aparece en ${gaps[0].value} caso(s).`)
+      insights.push(
+        t('insight.gap')
+          .replaceAll('{label}', gaps[0].label)
+          .replaceAll('{value}', String(gaps[0].value))
+      )
     }
     if (topModule) {
-      insights.push(`La automatización se concentra sobre todo en ${topModule.label.toLowerCase()} (${topModule.value} ejecuciones).`)
+      insights.push(
+        t('insight.modulo')
+          .replaceAll('{label}', topModule.label.toLowerCase())
+          .replaceAll('{value}', String(topModule.value))
+      )
     }
     if (topCenter) {
-      insights.push(`${topCenter.label} es el centro con mayor actividad asistida por LLM en este período.`)
+      insights.push(t('insight.centro').replaceAll('{label}', topCenter.label))
     }
     return insights.slice(0, 4)
-  }, [automationByCenter, automationByModule, chartByLabel])
+  }, [automationByCenter, automationByModule, chartByLabel, t])
   const visibleCharts = chartGroups.filter(
     (group) =>
       ![
@@ -117,9 +131,9 @@ export function Reporting({
       <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-4">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-[#4a7068]" />
-          <h2 className="text-sm font-semibold text-[#152520]">Informes y actividad</h2>
+          <h2 className="text-sm font-semibold text-[#152520]">{t('header.titulo')}</h2>
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
-            Programa: Crohn PK/PD
+            {t('header.programa')}
           </span>
         </div>
       </div>
@@ -127,20 +141,20 @@ export function Reporting({
       <div className="flex-1 px-6 py-5">
         {loading ? (
           <WorkspaceLoadingState
-            title="Cargando reporting de la red…"
-            detail="Preparando KPIs, actividad y distribución de casos."
+            title={t('loading.titulo')}
+            detail={t('loading.detalle')}
           />
         ) : error ? (
           <WorkspaceErrorState
-            title="No se ha podido cargar el reporting."
+            title={t('error.cargar')}
             detail={error}
             onRetry={() => setReloadKey((value) => value + 1)}
           />
         ) : !data || (kpis.length === 0 && chartGroups.length === 0) ? (
           <WorkspaceEmptyState
-            title="Todavía no hay actividad suficiente."
-            detail="Cuando el programa genere casos y seguimiento, aquí aparecerán los indicadores de red."
-            actionLabel="Recargar"
+            title={t('empty.titulo')}
+            detail={t('empty.detalle')}
+            actionLabel={t('empty.recargar')}
             onAction={() => setReloadKey((value) => value + 1)}
           />
         ) : (
@@ -155,19 +169,19 @@ export function Reporting({
           />
           <div className="space-y-4">
             <AutomationCoverageCard
-              title="Módulos con automatización"
+              title={t('deck.modulos')}
               icon={<Bot className="h-4 w-4" />}
               accent="violet"
               data={automationByModule}
             />
             <AutomationCoverageCard
-              title="Cobertura de Agentes por etapa"
+              title={t('deck.cobertura.etapa')}
               icon={<GitBranch className="h-4 w-4" />}
               accent="emerald"
               data={automationByStage}
             />
             <AutomationCoverageCard
-              title="Salidas generadas por Agentes"
+              title={t('deck.salidas')}
               icon={<Sparkles className="h-4 w-4" />}
               accent="amber"
               data={automationOutputs}
@@ -178,7 +192,7 @@ export function Reporting({
         {automationByCenter.length > 0 ? (
           <div className="mb-6">
             <AutomationCoverageCard
-              title="Centros con mayor actividad de Agentes"
+              title={t('deck.centros')}
               icon={<BarChart3 className="h-4 w-4" />}
               accent="sky"
               data={automationByCenter}
@@ -255,14 +269,15 @@ function LlmAutomationDeck({
   activeCases: number
   insights: string[]
 }) {
+  const t = useXarxaT('reporting')
   return (
     <section className="rounded-[24px] border border-slate-100 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">Resumen ejecutivo</p>
-          <h3 className="mt-1 text-base font-semibold text-[#152520]">Dónde actúa la red y dónde están ayudando más los Agentes</h3>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7b3fa0]">{t('resumen.titulo')}</p>
+          <h3 className="mt-1 text-base font-semibold text-[#152520]">{t('resumen.subtitulo')}</h3>
           <p className="mt-2 text-sm leading-6 text-[#4a7068]">
-            Lectura rápida para coordinación: carga activa, cobertura asistida y puntos donde conviene intervenir antes.
+            {t('resumen.lectura')}
           </p>
         </div>
         <div className="rounded-2xl bg-[#faf6fd] p-3 text-[#7b3fa0]">
@@ -271,10 +286,10 @@ function LlmAutomationDeck({
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <AutomationImpactCard label="Pasos de Agentes" value={String(totalRuns)} note="Ejecuciones registradas" />
-        <AutomationImpactCard label="Casos preparados" value={String(automationCases)} note="Casos asistidos por Agentes" />
-        <AutomationImpactCard label="Borradores" value={String(drafts)} note="Recomendaciones, notas e invitaciones" />
-        <AutomationImpactCard label="Cobertura" value={`${automationCases}/${activeCases || 0}`} note="Casos activos con apoyo de Agentes" />
+        <AutomationImpactCard label={t('kpi.pasos')} value={String(totalRuns)} note={t('kpi.pasos.nota')} />
+        <AutomationImpactCard label={t('kpi.casos')} value={String(automationCases)} note={t('kpi.casos.nota')} />
+        <AutomationImpactCard label={t('kpi.borradores')} value={String(drafts)} note={t('kpi.borradores.nota')} />
+        <AutomationImpactCard label={t('kpi.cobertura')} value={`${automationCases}/${activeCases || 0}`} note={t('kpi.cobertura.nota')} />
       </div>
 
       <div className="mt-5 grid gap-2">
@@ -286,7 +301,7 @@ function LlmAutomationDeck({
           ))
         ) : (
           <div className="rounded-2xl border border-slate-100 bg-[#fbfcfb] px-4 py-3 text-sm text-[#4a7068]">
-            Todavía no hay suficiente actividad como para generar lectura ejecutiva en este período.
+            {t('resumen.vacio')}
           </div>
         )}
       </div>
@@ -307,6 +322,7 @@ function AutomationCoverageCard({
   data: Array<{ label: string; value: number }>
   compact?: boolean
 }) {
+  const t = useXarxaT('reporting')
   const accentStyles: Record<typeof accent, { header: string; chip: string; fill: string }> = {
     violet: { header: 'text-[#7b3fa0]', chip: 'bg-[#faf6fd] text-[#7b3fa0]', fill: 'bg-[#7b3fa0]' },
     emerald: { header: 'text-emerald-700', chip: 'bg-emerald-50 text-emerald-700', fill: 'bg-emerald-500' },
@@ -322,14 +338,14 @@ function AutomationCoverageCard({
     <section className="rounded-[24px] border border-slate-100 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${style.header}`}>Cobertura</p>
+          <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${style.header}`}>{t('kpi.cobertura')}</p>
           <h3 className="mt-1 text-sm font-semibold text-[#152520]">{title}</h3>
         </div>
         <div className={`rounded-2xl p-2 ${style.chip}`}>{icon}</div>
       </div>
       {visible.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-[#fbfcfb] px-4 py-6 text-center text-sm text-slate-400">
-          Sin señales de Agentes con los filtros actuales.
+          {t('cobertura.vacio')}
         </div>
       ) : (
         <div className="space-y-2.5">

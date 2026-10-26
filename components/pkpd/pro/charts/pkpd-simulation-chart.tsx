@@ -15,6 +15,7 @@ import {
   YAxis,
 } from 'recharts'
 
+import { useXarxaT } from '@/components/i18n/use-xarxa-strings'
 import { deriveProtocolSemanticFrame, formatProtocolReviewDate, getProgramProtocol } from '@/components/pkpd/pro/protocol-guidance'
 import type { CasoCompleto, Program } from '@/components/pkpd/pro/xarxa-types'
 
@@ -82,7 +83,8 @@ export function PkpdSimulationChart({
   program?: Program | null
   preferredScenario?: string | null
 }) {
-  const scenarios = buildScenarioDescriptors(caso)
+  const t = useXarxaT('charts-simulation')
+  const scenarios = buildScenarioDescriptors(caso, t)
   const defaultScenario = preferredScenario && scenarios.some((scenario) => scenario.label === preferredScenario)
     ? preferredScenario
     : scenarios[0]?.label ?? 'Mantener dosis'
@@ -93,9 +95,9 @@ export function PkpdSimulationChart({
   }, [defaultScenario, caso.caseId])
 
   const scenario = scenarios.find((item) => item.label === selectedScenario) ?? scenarios[0]
-  const model = buildSimulationModel(caso, scenario)
-  const observed = buildObservedData(caso)
-  const inputQuality = buildInputQuality(caso)
+  const model = buildSimulationModel(caso, scenario, t)
+  const observed = buildObservedData(caso, t)
+  const inputQuality = buildInputQuality(caso, t)
   const protocol = getProgramProtocol(program)
   const semanticFrame = deriveProtocolSemanticFrame(caso)
 
@@ -105,7 +107,7 @@ export function PkpdSimulationChart({
       title: caso.title,
       generatedAt: new Date().toISOString(),
       preview: true,
-      note: 'Paquete de trabajo para motor PK/PD externo. La simulación visual del cockpit es indicativa hasta integrar el algoritmo final.',
+      note: t('sim.export.note'),
       therapyContext: caso.therapyContext,
       patientProfile: caso.patientProfile,
       determinants: caso.labDeterminants,
@@ -129,14 +131,14 @@ export function PkpdSimulationChart({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-800">
-                Simulación indicativa
+                {t('sim.badge.indicative')}
               </span>
               <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-medium text-[#4a7068] ring-1 ring-amber-200">
-                Pendiente de motor bayesiano
+                {t('sim.badge.pending')}
               </span>
             </div>
             <p className="mt-2 text-sm leading-6 text-amber-900">
-              Este bloque ya sirve como workbench de decisión y exporta el paquete del caso, pero la curva y las proyecciones siguen siendo una vista previa hasta conectar el algoritmo PK/PD externo.
+              {t('sim.banner.note')}
             </p>
           </div>
           <button
@@ -145,38 +147,38 @@ export function PkpdSimulationChart({
             className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-50"
           >
             <Download className="h-3.5 w-3.5" />
-            Exportar paquete JSON
+            {t('sim.export')}
           </button>
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Tratamiento actual" value={observed.drugLine} accent="text-[#152520]" icon={FlaskConical} />
-            <MetricCard label="Muestra observada" value={observed.sampleLine} accent="text-[#152520]" icon={TrendingUp} />
-            <MetricCard label="Lectura protocolaria" value={semanticFrame.label} accent="text-[#152520]" icon={ShieldCheck} />
-            <MetricCard label="Decisión en foco" value={classifyDecision(scenario)} accent={riskAccent(scenario.risk)} icon={CheckCircle2} />
+            <MetricCard label={t('sim.metric.therapy')} value={t(observed.drugLine)} accent="text-[#152520]" icon={FlaskConical} />
+            <MetricCard label={t('sim.metric.sample')} value={t(observed.sampleLine)} accent="text-[#152520]" icon={TrendingUp} />
+            <MetricCard label={t('sim.metric.protocolReading')} value={semanticFrame.label} accent="text-[#152520]" icon={ShieldCheck} />
+            <MetricCard label={t('sim.metric.decision')} value={t(classifyDecision(scenario))} accent={riskAccent(scenario.risk)} icon={CheckCircle2} />
           </div>
 
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_360px]">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Workbench PK/PD</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{t('sim.workbench.kicker')}</p>
               <h3 className="mt-1 text-lg font-semibold text-[#152520]">{scenario.label}</h3>
               <p className="mt-1 text-sm text-[#4a7068]">{scenario.outcome}</p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
-              <LegendChip color="emerald" label="Propuesta" />
-              <LegendChip color="rose" label="Situación actual" dashed />
-              <LegendChip color="lime" label="Rango diana" soft />
+              <LegendChip color="emerald" label={t('sim.legend.proposal')} />
+              <LegendChip color="rose" label={t('sim.legend.current')} dashed />
+              <LegendChip color="lime" label={t('sim.legend.target')} soft />
             </div>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Impacto esperado" value={scenario.outcome} accent="text-[#152520]" icon={TrendingUp} />
-            <MetricCard label="Riesgo" value={scenario.risk} accent={riskAccent(scenario.risk)} icon={AlertTriangle} />
-            <MetricCard label="Requiere confirmar" value={scenario.requirement} accent="text-[#152520]" icon={FlaskConical} />
-            <MetricCard label="Validación principal" value={scenario.validationOwner} accent="text-[#152520]" icon={CheckCircle2} />
+            <MetricCard label={t('sim.metric.impact')} value={scenario.outcome} accent="text-[#152520]" icon={TrendingUp} />
+            <MetricCard label={t('sim.metric.risk')} value={t(riskDisplayKey(scenario.risk))} accent={riskAccent(scenario.risk)} icon={AlertTriangle} />
+            <MetricCard label={t('sim.metric.requirement')} value={scenario.requirement} accent="text-[#152520]" icon={FlaskConical} />
+            <MetricCard label={t('sim.metric.validation')} value={scenario.validationOwner} accent="text-[#152520]" icon={CheckCircle2} />
           </div>
 
           <div className="mt-5 h-[340px] rounded-2xl border border-slate-100 bg-white p-3">
@@ -201,7 +203,7 @@ export function PkpdSimulationChart({
                   tickFormatter={(value) => `${value}`}
                 >
                   <Label
-                    value="Concentración rel. (%)"
+                    value={t('sim.axis.concentration')}
                     angle={-90}
                     position="insideLeft"
                     offset={-2}
@@ -224,7 +226,7 @@ export function PkpdSimulationChart({
                   fill="#ef4444"
                   stroke="#ffffff"
                   strokeWidth={2}
-                  label={{ value: 'Muestra actual', position: 'top', fill: '#ef4444', fontSize: 11 }}
+                  label={{ value: t('sim.dot.sample'), position: 'top', fill: '#ef4444', fontSize: 11 }}
                 />
                 <Line
                   type="monotone"
@@ -249,12 +251,12 @@ export function PkpdSimulationChart({
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <SmallInsight
-              label="Lectura clínica"
+              label={t('sim.insight.clinical')}
               value={semanticFrame.rationale}
               tone="emerald"
             />
             <SmallInsight
-              label="Contexto de validación"
+              label={t('sim.insight.validationContext')}
               value={scenario.note}
               tone="slate"
             />
@@ -262,27 +264,27 @@ export function PkpdSimulationChart({
 
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             <WorkbenchPanel
-              title="Datos observados"
+              title={t('sim.panel.observed')}
               items={[
-                ['Fármaco y pauta', observed.drugLine],
-                ['Nivel o valle', observed.sampleLine],
-                ['Intervalo actual', observed.intervalLine],
-                ['Biomarcadores', observed.biomarkerLine],
+                [t('sim.observed.drug'), t(observed.drugLine)],
+                [t('sim.observed.level'), t(observed.sampleLine)],
+                [t('sim.observed.interval'), t(observed.intervalLine)],
+                [t('sim.observed.biomarkers'), t(observed.biomarkerLine)],
               ]}
             />
             <WorkbenchPanel
-              title="Calidad del input"
-              items={inputQuality.map((item) => [item.label, item.value] as [string, string])}
+              title={t('sim.panel.quality')}
+              items={inputQuality.map((item) => [t(item.label), t(item.value)] as [string, string])}
             />
           </div>
         </div>
 
         <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Decisión terapéutica</p>
-            <h3 className="mt-1 text-lg font-semibold text-[#152520]">Comparador de estrategias</h3>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{t('sim.decision.kicker')}</p>
+            <h3 className="mt-1 text-lg font-semibold text-[#152520]">{t('sim.decision.title')}</h3>
             <p className="mt-1 text-sm leading-6 text-[#4a7068]">
-              Usa este panel para contrastar ratificación, intensificación, desintensificación, repetición de determinantes o cambio de mecanismo.
+              {t('sim.decision.intro')}
             </p>
           </div>
 
@@ -306,12 +308,12 @@ export function PkpdSimulationChart({
                       <p className="mt-1 text-sm text-[#4a7068]">{item.outcome}</p>
                     </div>
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${riskPill(item.risk)}`}>
-                      {item.risk}
+                      {t(riskDisplayKey(item.risk))}
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-500">
                     <span className="rounded-full bg-slate-100 px-2.5 py-1">{item.validationOwner}</span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1">{item.kind === 'exposure' ? 'Con curva' : 'Discusión cualitativa'}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1">{item.kind === 'exposure' ? t('sim.scenario.withCurve') : t('sim.scenario.qualitative')}</span>
                   </div>
                 </button>
               )
@@ -319,17 +321,17 @@ export function PkpdSimulationChart({
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-4">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Decisión en foco</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{t('sim.metric.decision')}</p>
             <p className="mt-2 text-base font-semibold text-[#152520]">{scenario.label}</p>
             <div className="mt-3 space-y-2 text-sm">
-              <DecisionRow label="Tipo de decisión" value={classifyDecision(scenario)} />
-              <DecisionRow label="Aprobación principal" value={scenario.validationOwner} />
-              <DecisionRow label="Acción sugerida" value={scenario.requirement} />
+              <DecisionRow label={t('sim.decision.type')} value={t(classifyDecision(scenario))} />
+              <DecisionRow label={t('sim.decision.approval')} value={scenario.validationOwner} />
+              <DecisionRow label={t('sim.decision.action')} value={scenario.requirement} />
             </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-4">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Semántica del protocolo</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{t('sim.protocol.kicker')}</p>
             <p className="mt-2 text-base font-semibold text-[#152520]">{semanticFrame.label}</p>
             <p className="mt-2 text-sm leading-6 text-[#4a7068]">{semanticFrame.rationale}</p>
             {semanticFrame.caution ? (
@@ -339,9 +341,9 @@ export function PkpdSimulationChart({
 
           {protocol ? (
             <div className="rounded-2xl border border-slate-200 bg-[#fbfcfb] p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">Protocolo y fuentes</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#4a7068]">{t('sim.protocol.sources')}</p>
               <p className="mt-2 text-base font-semibold text-[#152520]">{protocol.title}</p>
-              <p className="mt-1 text-xs text-[#4a7068]">Última revisión: {formatProtocolReviewDate(protocol.lastReview)}</p>
+              <p className="mt-1 text-xs text-[#4a7068]">{t('sim.protocol.lastReview').replaceAll('{date}', formatProtocolReviewDate(protocol.lastReview))}</p>
               {protocol.alignment ? <p className="mt-2 text-sm leading-6 text-[#4a7068]">{protocol.alignment}</p> : null}
               {protocol.references?.length ? (
                 <div className="mt-3 space-y-2">
@@ -371,7 +373,7 @@ export function PkpdSimulationChart({
   )
 }
 
-function buildSimulationModel(caso: CasoCompleto, scenario: ScenarioDescriptor) {
+function buildSimulationModel(caso: CasoCompleto, scenario: ScenarioDescriptor, t: (key: string) => string) {
   const direction = deriveExposureDirection(caso)
   const target = direction === 'low' ? LOW_TARGET : direction === 'high' ? HIGH_TARGET : BALANCED_TARGET
   const curveSet = direction === 'low' ? LOW_EXPOSURE_CURVES : direction === 'high' ? HIGH_EXPOSURE_CURVES : BALANCED_CURVES
@@ -391,18 +393,18 @@ function buildSimulationModel(caso: CasoCompleto, scenario: ScenarioDescriptor) 
   const selectedSample = points.find((point) => point.moment === 'Valle') ?? points[4]
   const delta = Math.round(selectedSample.selected - currentSample.current)
 
-  let readout = 'La alternativa mantiene una lectura parecida a la situación actual.'
-  if (delta >= 10) readout = 'La alternativa desplaza la exposición de forma visible hacia la zona objetivo.'
-  if (delta <= -10) readout = 'La alternativa reduce exposición y puede ser útil si el riesgo principal es sobreexposición.'
-  if (scenario.kind !== 'exposure') readout = 'El valor de este escenario está en la decisión clínica o en la confirmación de datos, no en la curva.'
+  let readout = t('sim.readout.neutral')
+  if (delta >= 10) readout = t('sim.readout.up')
+  if (delta <= -10) readout = t('sim.readout.down')
+  if (scenario.kind !== 'exposure') readout = t('sim.readout.qualitative')
 
-  let sampleMessage = 'La muestra actual debe confirmarse dentro del contexto del caso.'
+  let sampleMessage = t('sim.sample.default')
   if (String(caso.pkpdInterpretation?.summary ?? '').toLowerCase().includes('valle')) {
-    sampleMessage = 'La interpretación depende de confirmar que la extracción corresponde a un nivel valle.'
+    sampleMessage = t('sim.sample.valle')
   } else if (direction === 'high') {
-    sampleMessage = 'La concentración actual se interpreta con señal de sobreexposición y requiere contexto renal o de seguridad.'
+    sampleMessage = t('sim.sample.high')
   } else if (direction === 'low') {
-    sampleMessage = 'La concentración actual queda por debajo del rango objetivo y favorece revisar optimización o repetición del determinante.'
+    sampleMessage = t('sim.sample.low')
   }
 
   return {
@@ -417,12 +419,12 @@ function buildSimulationModel(caso: CasoCompleto, scenario: ScenarioDescriptor) 
   }
 }
 
-function buildScenarioDescriptors(caso: CasoCompleto): ScenarioDescriptor[] {
+function buildScenarioDescriptors(caso: CasoCompleto, t: (key: string) => string): ScenarioDescriptor[] {
   const labels = caso.simulation?.scenarios?.length
     ? caso.simulation.scenarios
     : fallbackScenarioLabels(caso)
 
-  return labels.map((label) => describeScenario(label))
+  return labels.map((label) => describeScenario(label, t))
 }
 
 function fallbackScenarioLabels(caso: CasoCompleto) {
@@ -438,18 +440,18 @@ function fallbackScenarioLabels(caso: CasoCompleto) {
   return ['Mantener dosis', 'Acortar intervalo', 'Aumentar dosis', 'Cambiar mecanismo', 'Repetir determinantes']
 }
 
-function describeScenario(label: string): ScenarioDescriptor {
+function describeScenario(label: string, t: (key: string) => string): ScenarioDescriptor {
   const normalized = label.toLowerCase()
 
   if (normalized.includes('acortar') || normalized.includes('intensificar')) {
     return {
       label,
       kind: 'exposure',
-      outcome: 'Aumenta la exposición y reduce la probabilidad de infradosificación.',
+      outcome: t('sim.scenario.intensify.outcome'),
       risk: 'Bajo',
-      requirement: 'Confirmar peso actual y fecha de última administración.',
-      note: 'Úsalo para discutir optimización de pauta dentro de la validación farmacéutica.',
-      validationOwner: 'Farmacia + Digestivo',
+      requirement: t('sim.scenario.intensify.requirement'),
+      note: t('sim.scenario.intensify.note'),
+      validationOwner: t('sim.owner.pharmacy.digestive'),
       curveKey: 'raise-strong',
     }
   }
@@ -458,11 +460,11 @@ function describeScenario(label: string): ScenarioDescriptor {
     return {
       label,
       kind: 'exposure',
-      outcome: 'Incrementa exposición, con cambio moderado y controlable.',
+      outcome: t('sim.scenario.increase.outcome'),
       risk: 'Medio',
-      requirement: 'Revisar seguridad y datos analíticos recientes.',
-      note: 'Adecuado cuando el equipo quiere subir exposición sin modificar tanto el intervalo.',
-      validationOwner: 'Farmacia + Digestivo',
+      requirement: t('sim.scenario.increase.requirement'),
+      note: t('sim.scenario.increase.note'),
+      validationOwner: t('sim.owner.pharmacy.digestive'),
       curveKey: 'raise-light',
     }
   }
@@ -471,11 +473,11 @@ function describeScenario(label: string): ScenarioDescriptor {
     return {
       label,
       kind: 'exposure',
-      outcome: 'Reduce exposición y favorece una estrategia de ajuste conservador.',
+      outcome: t('sim.scenario.deintensify.outcome'),
       risk: 'Bajo',
-      requirement: 'Corroborar estabilidad clínica y seguimiento previsto.',
-      note: 'Úsalo cuando el objetivo es bajar exposición manteniendo vigilancia de respuesta.',
-      validationOwner: 'Farmacia + Digestivo',
+      requirement: t('sim.scenario.deintensify.requirement'),
+      note: t('sim.scenario.deintensify.note'),
+      validationOwner: t('sim.owner.pharmacy.digestive'),
       curveKey: normalized.includes('reduc') ? 'lower-strong' : 'lower-light',
     }
   }
@@ -484,11 +486,11 @@ function describeScenario(label: string): ScenarioDescriptor {
     return {
       label,
       kind: 'diagnostic',
-      outcome: 'No cambia la pauta; mejora la confianza interpretativa del caso.',
+      outcome: t('sim.scenario.repeat.outcome'),
       risk: 'Muy bajo',
-      requirement: 'Confirmar extracción en valle y fuente del determinante.',
-      note: 'Escenario orientado a cerrar gaps antes de tomar una decisión terapéutica.',
-      validationOwner: 'Laboratorio + Enfermería',
+      requirement: t('sim.scenario.repeat.requirement'),
+      note: t('sim.scenario.repeat.note'),
+      validationOwner: t('sim.owner.lab.nursing'),
       curveKey: 'maintain',
     }
   }
@@ -497,11 +499,11 @@ function describeScenario(label: string): ScenarioDescriptor {
     return {
       label,
       kind: 'decision',
-      outcome: 'Abre discusión de cambio terapéutico cuando la exposición no explica la respuesta.',
+      outcome: t('sim.scenario.change.outcome'),
       risk: 'Alto',
-      requirement: 'Alinear historial de biológicos, inflamación y criterio clínico.',
-      note: 'Escenario cualitativo para discusión clínica; la curva solo sirve como referencia contextual.',
-      validationOwner: 'Digestivo + Farmacia',
+      requirement: t('sim.scenario.change.requirement'),
+      note: t('sim.scenario.change.note'),
+      validationOwner: t('sim.owner.digestive.pharmacy'),
       curveKey: 'maintain',
     }
   }
@@ -509,11 +511,11 @@ function describeScenario(label: string): ScenarioDescriptor {
   return {
     label,
     kind: 'exposure',
-    outcome: 'Mantiene la pauta actual como comparador base.',
+    outcome: t('sim.scenario.maintain.outcome'),
     risk: 'Alto',
-    requirement: 'Adherencia confirmada y cronología consistente.',
-    note: 'Sirve como línea base frente a otras alternativas antes de validar la recomendación.',
-    validationOwner: 'Farmacia',
+    requirement: t('sim.scenario.maintain.requirement'),
+    note: t('sim.scenario.maintain.note'),
+    validationOwner: t('sim.owner.pharmacy'),
     curveKey: 'maintain',
   }
 }
@@ -559,7 +561,7 @@ function bestCurveForScenario(scenario: ScenarioDescriptor, direction: 'low' | '
   return scenario.curveKey ?? 'maintain'
 }
 
-function buildObservedData(caso: CasoCompleto) {
+function buildObservedData(caso: CasoCompleto, t: (key: string) => string) {
   const therapy = caso.therapyContext ?? {}
   const determinants = caso.labDeterminants ?? []
   const trough = determinants.find((item) =>
@@ -572,14 +574,14 @@ function buildObservedData(caso: CasoCompleto) {
     .map((item) => `${item.label}: ${item.value}${item.unit ? ` ${item.unit}` : ''}`)
 
   return {
-    drugLine: [therapy.currentDrug, therapy.currentDose, therapy.interval].filter(Boolean).join(' · ') || 'Pendiente de revisar',
-    sampleLine: trough ? `${trough.value}${trough.unit ? ` ${trough.unit}` : ''}` : 'Sin nivel interpretable',
-    intervalLine: String(therapy.interval ?? 'Sin intervalo documentado'),
-    biomarkerLine: biomarkers.length > 0 ? biomarkers.join(' · ') : 'Biomarcadores no priorizados',
+    drugLine: [therapy.currentDrug, therapy.currentDose, therapy.interval].filter(Boolean).join(' · ') || t('sim.observed.pending'),
+    sampleLine: trough ? `${trough.value}${trough.unit ? ` ${trough.unit}` : ''}` : t('sim.observed.noLevel'),
+    intervalLine: String(therapy.interval ?? t('sim.observed.noInterval')),
+    biomarkerLine: biomarkers.length > 0 ? biomarkers.join(' · ') : t('sim.observed.noBiomarkers'),
   }
 }
 
-function buildInputQuality(caso: CasoCompleto) {
+function buildInputQuality(caso: CasoCompleto, t: (key: string) => string) {
   const determinants = caso.labDeterminants ?? []
   const confirmed = determinants.filter((item) => item.status === 'Confirmado').length
   const troughItem = determinants.find((item) =>
@@ -588,32 +590,40 @@ function buildInputQuality(caso: CasoCompleto) {
   )
   return [
     {
-      label: 'Temporalidad de muestra',
-      value: troughItem?.relationToDose ? String(troughItem.relationToDose) : 'Pendiente de confirmar',
+      label: t('sim.quality.timing'),
+      value: troughItem?.relationToDose ? String(troughItem.relationToDose) : t('sim.quality.pending'),
     },
     {
-      label: 'Determinantes confirmados',
+      label: t('sim.quality.confirmed'),
       value: `${confirmed}/${determinants.length || 0}`,
     },
     {
-      label: 'Confianza del caso',
+      label: t('sim.quality.confidence'),
       value: caso.pkpdInterpretation?.confidence || 'Media',
     },
     {
-      label: 'Origen del cálculo',
-      value: 'Vista previa estructurada del workbench',
+      label: t('sim.quality.origin'),
+      value: t('sim.quality.preview'),
     },
   ]
 }
 
 function classifyDecision(scenario: ScenarioDescriptor) {
   const normalized = scenario.label.toLowerCase()
-  if (normalized.includes('mantener') || normalized.includes('confirmar')) return 'Ratificación de pauta actual'
-  if (normalized.includes('acortar') || normalized.includes('aument') || normalized.includes('intensif')) return 'Aumentar exposición'
-  if (normalized.includes('alargar') || normalized.includes('reduc') || normalized.includes('desintens')) return 'Reducir exposición'
-  if (normalized.includes('cambiar')) return 'Cambiar medicación / mecanismo'
-  if (normalized.includes('repetir')) return 'Repetir determinantes'
-  return 'Discusión clínica'
+  if (normalized.includes('mantener') || normalized.includes('confirmar')) return 'sim.decisionType.ratify'
+  if (normalized.includes('acortar') || normalized.includes('aument') || normalized.includes('intensif')) return 'sim.decisionType.increase'
+  if (normalized.includes('alargar') || normalized.includes('reduc') || normalized.includes('desintens')) return 'sim.decisionType.reduce'
+  if (normalized.includes('cambiar')) return 'sim.decisionType.change'
+  if (normalized.includes('repetir')) return 'sim.decisionType.repeat'
+  return 'sim.decisionType.discussion'
+}
+
+function riskDisplayKey(risk: string) {
+  const normalized = risk.toLowerCase()
+  if (normalized.includes('muy bajo')) return 'sim.risk.veryLow'
+  if (normalized.includes('bajo')) return 'sim.risk.low'
+  if (normalized.includes('medio')) return 'sim.risk.medium'
+  return 'sim.risk.high'
 }
 
 function riskAccent(risk: string) {
@@ -746,6 +756,7 @@ function SimulationTooltip({
   label?: string
   selectedLabel: string
 }) {
+  const t = useXarxaT('charts-simulation')
   if (!active || !payload?.length) return null
 
   const current = payload.find((item) => item.dataKey === 'current')?.value
@@ -754,7 +765,7 @@ function SimulationTooltip({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg">
       <p className="text-xs font-semibold text-[#152520]">{label}</p>
-      <p className="mt-1 text-xs text-[#4a7068]">Escenario actual: {current}</p>
+      <p className="mt-1 text-xs text-[#4a7068]">{t('sim.tooltip.current')}{current}</p>
       <p className="text-xs text-emerald-700">{selectedLabel}: {selected}</p>
     </div>
   )
